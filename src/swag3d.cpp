@@ -7,13 +7,16 @@
 
 // Include GLEW
 #ifdef __APPLE_CC__
+
 #include <OpenGL/gl3.h>
+
 #define GLFW_INCLUDE_GLCOREARB
 #else
 #include "GL/glew.h"
 #endif
 
 #include "SDL.h"
+
 #undef main
 
 // Include GLM
@@ -25,20 +28,20 @@
 
 using namespace glm;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
     //First we need to start up SDL, and make sure it went ok
-    if (SDL_Init(SDL_INIT_VIDEO) != 0){
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
+
 
     /* Request opengl 3.3 context.
      *      * SDL doesn't have the ability to choose which profile at this time of writing,
      *           * but it should default to the core profile */
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     /* Turn on double buffering with a 24bit Z buffer.
      *      * You may need to change this to 16 or 32 for your system */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -48,14 +51,14 @@ int main(int argc, char* argv[])
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
     SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_OPENGL);
     //Make sure creating our window went ok
-    if (win == nullptr){
+    if (win == nullptr) {
         std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
     SDL_GLContext glcontext = SDL_GL_CreateContext(win);
 
-    SDL_GL_MakeCurrent(win,glcontext);
+    SDL_GL_MakeCurrent(win, glcontext);
 
     Init init;
 
@@ -77,10 +80,10 @@ int main(int argc, char* argv[])
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
-    static const GLfloat g_vertex_buffer_data[] = { 
-        -1.0f, -1.0f, 0.0f,
-        1.0f, -1.0f, 0.0f,
-        0.0f,  1.0f, 0.0f,
+    static const GLfloat g_vertex_buffer_data[] = {
+            -1.0f, -1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
     };
 
     GLuint vertexbuffer;
@@ -91,16 +94,16 @@ int main(int argc, char* argv[])
 
     SDL_Event e;
     bool quit = false;
-    while (!quit){
+    while (!quit) {
 
         // Event polling
-        while (SDL_PollEvent(&e)){
-            if (e.type == SDL_QUIT){
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
                 quit = true;
             }
         }
 
-      
+
         glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glCullFace(GL_BACK);
@@ -115,8 +118,8 @@ int main(int argc, char* argv[])
                 GL_FLOAT,           // type
                 GL_FALSE,           // normalized?
                 0,                  // stride
-                (void*)0            // array buffer offset
-                );
+                (void *) 0            // array buffer offset
+        );
 
         // Draw the triangle !
         glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
@@ -124,7 +127,7 @@ int main(int argc, char* argv[])
         glDisableVertexAttribArray(0);
 
         SDL_GL_SwapWindow(win);
-    
+
 
     } // Check if the ESC key was pressed or the window was closed
 

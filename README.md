@@ -1,4 +1,6 @@
-# opengl-test
+# swag3d
+
+## [Wiki](https://github.com/zanshi/swag3d/wiki)
 
 ### Requirements
 
