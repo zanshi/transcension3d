@@ -13,6 +13,7 @@
 
 #include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
+#include "systems/DebugSystem.hpp"
 
 namespace ex = entityx;
 
@@ -23,6 +24,7 @@ namespace sw {
         explicit Application() {
             systems.add<MovementSystem>();
             systems.add<RenderSystem>();
+            systems.add<DebugSystem>(std::cout);
 
             // An object can't move unless it has a position, D'UH
             //systems.add<ex::deps::Dependency<MovementComponent, BodyComponent>>();

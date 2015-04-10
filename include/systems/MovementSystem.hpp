@@ -28,10 +28,12 @@ namespace sw {
                 //Simple Euler integration of position
                 body->position_ += movement->velocity_ * static_cast<float>(dt);
 
+                /* Debugging
                 std::cout << "MovementSystem:" << std::endl
                 << "  Operating on entity with id=" << entity.id().id() << std::endl
                 << "    Rotation: " << std::endl
                 << std::endl;
+                 */
             }
         }
     };

@@ -9,6 +9,8 @@
 #include "components/BodyComponent.hpp"
 #include "components/RenderComponent.hpp"
 
+#include "events/RenderEvent.hpp"
+
 namespace ex = entityx;
 
 namespace sw {
@@ -26,13 +28,9 @@ namespace sw {
             ex::ComponentHandle <RenderComponent> render;
 
             for (ex::Entity entity : es.entities_with_components(body, render)) {
-                // Debug log dat shit
-                std::cout << "RenderSystem:" << std::endl
-                << "  Operating on entity with id=" << entity.id().id() << std::endl
-                << "    Rotation: " << std::endl
-                << std::endl;
+                // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
+                events.emit<RenderEvent>(entity);
             }
         }
     };
-
 }
