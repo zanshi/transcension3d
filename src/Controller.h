@@ -1,8 +1,0 @@
-//
-// Created by Cristoffer on 10/04/2015.
-//
-
-#ifndef OPENGL_BOOTSTRAP_CONTROLLER_H
-#define OPENGL_BOOTSTRAP_CONTROLLER_H
-
-#endif //OPENGL_BOOTSTRAP_CONTROLLER_H
