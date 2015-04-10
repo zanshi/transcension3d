@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.8)
-set(PROJECT_NAME_STR Opengl-Bootstrap)
+set(PROJECT_NAME_STR swag3d)
 project(${PROJECT_NAME_STR} C CXX)
 
 
