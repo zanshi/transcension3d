@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 
 
     //Load in shaders
-    static ShaderProgram prog("vertShader.vert", "fragShader.frag");
+    static ShaderProgram prog("../shaders/vertShader.vert", "../shaders/fragShader.frag");
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
