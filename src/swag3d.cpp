@@ -1,6 +1,10 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+
+#include <chrono>
+#include <ctime>
 
 
 #include "cleanup.h"
@@ -21,12 +25,17 @@
 
 // Include GLM
 #include "glm/glm.hpp"
-#include <iostream>
 
 #include <common/Init.h>
 #include <common/Shader.h>
 
+#include "entityx/entityx.h"
+
+#include "Application.hpp"
+
 using namespace glm;
+
+namespace ex = entityx;
 
 int main(int argc, char *argv[]) {
     //First we need to start up SDL, and make sure it went ok
@@ -34,7 +43,6 @@ int main(int argc, char *argv[]) {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
-
 
     /* Request opengl 3.3 context.
      *      * SDL doesn't have the ability to choose which profile at this time of writing,
@@ -74,7 +82,7 @@ int main(int argc, char *argv[]) {
 
 
     //Load in shaders
-    static ShaderProgram prog("vertShader.vert", "fragShader.frag");
+    static ShaderProgram prog("../shaders/vertShader.vert", "../shaders/fragShader.frag");
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -91,10 +99,29 @@ int main(int argc, char *argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
+    /** EntityX testing **/
+    sw::Application app{};
+
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point current, last;
+
+    int counter = 0;
+    int counter2 = 0;
 
     SDL_Event e;
     bool quit = false;
     while (!quit) {
+        current = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> dt = std::chrono::duration_cast<std::chrono::duration<double>>(current - last);
+        last = current;
+
+        if (++counter > 10000) {
+            std::cout << "+++Debug number: " << counter2++ << std::endl;
+
+            app.update(dt.count());
+            counter = 0;
+        }
+
 
         // Event polling
         while (SDL_PollEvent(&e)) {
