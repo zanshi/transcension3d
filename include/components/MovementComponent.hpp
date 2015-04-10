@@ -9,7 +9,7 @@
 namespace sw {
 
     struct MovementComponent {
-        MovementComponent(const glm::vec3 velocity, const float mass)
+        MovementComponent(glm::vec3 velocity = {0.0f, 0.0f, 0.0f}, float mass = 1.0f)
                 : velocity_(velocity), mass_(mass) { };
 
         glm::vec3 velocity_;

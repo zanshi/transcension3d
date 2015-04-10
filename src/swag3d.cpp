@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
         last = current;
 
         if (++counter > 10000) {
-            std::cout << "Number: " << counter2++ << std::endl;
+            std::cout << "+++Debug number: " << counter2++ << std::endl;
 
             app.update(dt.count());
             counter = 0;

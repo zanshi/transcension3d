@@ -11,6 +11,7 @@
 #include "events/RenderEvent.hpp"
 
 #include <ostream>
+#include <vector>
 
 #include "glm/glm.hpp"
 
@@ -27,31 +28,39 @@ namespace sw {
         DebugSystem(std::ostream &debug_stream)
                 : debug_ostream_(debug_stream) { };
 
-        void configure(ex::EventManager &event_manager) override {
-            event_manager.subscribe<RenderEvent>(*this);
+        void configure(ex::EventManager &events) override {
+            events.subscribe<RenderEvent>(*this);
         }
 
-        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) { }
+        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) {
+            for (ex::Entity entity : entities_to_debug_) {
+                debug_ostream_ << "Rendered entity with index=" << entity.id().index()
+                << ", unique id=" << entity.id().id() << std::endl;
+
+                // retrieve the render component data and log
+                auto body = entity.component<BodyComponent>();
+                auto render = entity.component<RenderComponent>();
+
+                if (body) {
+                    debug_ostream_ << "  BodyComponent: " << "Position=" << body->position_
+                    << ", Rotation=" << body->rotation_ << std::endl;
+                }
+
+                if (render) {
+                    debug_ostream_ << "  RenderComponent message='" << render->debug_message_ << "'"
+                                   << std::endl << std::endl;
+                }
+            }
+
+            entities_to_debug_.clear();
+        }
 
         void receive(const RenderEvent &render_event) {
-            debug_ostream_ << "Rendered entity with index=" << render_event.rendered_entity_.id().index()
-            << ", unique id=" << render_event.rendered_entity_.id().id() << std::endl;
-
-            auto body = render_event.rendered_entity_.component<BodyComponent>();
-
-            if (body) {
-                debug_ostream_ << "  BodyComponent: " << "Position=" << body->position_
-                << ", Rotation=" << body->rotation_ << std::endl
-                << std::endl;
-            }
-
-            auto render = render_event.rendered_entity_.component<RenderComponent>();
-
-            if (render) {
-                debug_ostream_ << "ZOMG" << std::endl;
-            }
+            // defer all debugging until DebugSystem::update(), because events are immutable and holy trinities
+            entities_to_debug_.push_back(render_event.rendered_entity_);
         }
 
         std::ostream &debug_ostream_;
+        std::vector<ex::Entity> entities_to_debug_;
     };
 }

@@ -9,7 +9,7 @@
 namespace sw {
 
     struct BodyComponent {
-        BodyComponent(const glm::vec3 position, const glm::vec3 rotation)
+        BodyComponent(glm::vec3 position = {0.0f, 0.0f, 0.0f}, glm::vec3 rotation = {0.0f, 0.0f, 0.0f})
                 : position_(position), rotation_(rotation) { };
 
         glm::vec3 position_;

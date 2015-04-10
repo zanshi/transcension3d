@@ -36,17 +36,18 @@ namespace sw {
         void update(ex::TimeDelta dt) {
             systems.update<MovementSystem>(dt);
             systems.update<RenderSystem>(dt);
+            systems.update<DebugSystem>(dt);
         }
 
         // init with some uninteresting, crappy entities
-        void init(){
+        void init() {
             /** Entity 1 **/
             ex::Entity entity1 = entities.create();
 
             // entity.assign returns a handle of the specified type,
             // can be useful for "remembering" values when initializing, like so:
             //ex::ComponentHandle<BodyComponent> bc1 =
-            entity1.assign<BodyComponent>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f,0.0f));
+            entity1.assign<BodyComponent>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
             entity1.assign<RenderComponent>("Entity 1: Benjamin");
 
             /** Entity 2 **/
