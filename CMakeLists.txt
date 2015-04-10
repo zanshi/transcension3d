@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.8)
-set(PROJECT_NAME_STR Opengl-Bootstrap)
+set(PROJECT_NAME_STR swag3d)
 project(${PROJECT_NAME_STR} C CXX)
+
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -107,9 +109,14 @@ target_link_libraries(GLEW
 	${EXTRA_LIBS}
 )
 
+add_subdirectory(
+  ${PROJECT_EXT_DIR}/entityx
+)
+
 
 set(ext_libs
   ${CMAKE_SOURCE_DIR}/external/glew/include/
+  ${CMAKE_SOURCE_DIR}/external/entityx/
 )
 
 
@@ -119,6 +126,17 @@ include_directories(
         ${PROJECT_INCLUDE_DIR}
 )
 
+set(ALL_LIBS
+  ${OPENGL_LIBRARY}
+  GLEW
+  INT_LIBS
+  entityx
+  ${SDL2_LIBRARY}
+)
+
+set(EXT_DEPS
+    entityx
+)
 
 
 file(GLOB PROJECT_LIBS_FILES ${PROJECT_LIBS_DIR}/*.cpp)
@@ -126,12 +144,8 @@ add_library(INT_LIBS
   ${PROJECT_LIBS_FILES}
 )
 
-
-set(ALL_LIBS
-  ${OPENGL_LIBRARY}
-  GLEW
-  INT_LIBS
-  ${SDL2_LIBRARY}
+add_dependencies(INT_LIBS
+  ${EXT_DEPS}
 )
 
 
