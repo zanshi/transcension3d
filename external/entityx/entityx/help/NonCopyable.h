@@ -3,18 +3,20 @@
 #pragma once
 
 namespace entityx {
-namespace help {
+    namespace help {
 
-class NonCopyable {
-protected:
-  NonCopyable() = default;
-  ~NonCopyable() = default;
+        class NonCopyable {
+        protected:
+            NonCopyable() = default;
 
-
-  NonCopyable(const NonCopyable&) = delete;
-  NonCopyable& operator = (const NonCopyable &) = delete;
-};
+            ~NonCopyable() = default;
 
 
-}  // namespace help
+            NonCopyable(const NonCopyable &) = delete;
+
+            NonCopyable &operator=(const NonCopyable &) = delete;
+        };
+
+
+    }  // namespace help
 }  // namespace entityx

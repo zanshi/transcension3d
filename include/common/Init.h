@@ -2,14 +2,14 @@
 
 #include <string>
 
-class Init{
-    private:
-        bool glewInitialized = false;
-    public:
+class Init {
+private:
+    bool glewInitialized = false;
+public:
 
-        void glew(){
-            // Initialize GLEW if not on apple
-            // Apple already has such context-info, and thus, this isn't needed.
+    void glew() {
+        // Initialize GLEW if not on apple
+        // Apple already has such context-info, and thus, this isn't needed.
 #ifndef __APPLE__        
             if(!glewInitialized){
                 glewExperimental=GL_TRUE;
@@ -23,7 +23,7 @@ class Init{
                 glewInitialized = true;
             }
 #endif
-        }
+    }
 
 };
 

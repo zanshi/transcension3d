@@ -12,10 +12,10 @@
 
 namespace entityx {
 
-BasePool::~BasePool() {
-  for (char *ptr : blocks_) {
-    delete[] ptr;
-  }
-}
+    BasePool::~BasePool() {
+        for (char *ptr : blocks_) {
+            delete[] ptr;
+        }
+    }
 
 }  // namespace entityx

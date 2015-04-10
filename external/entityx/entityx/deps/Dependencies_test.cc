@@ -18,47 +18,51 @@
 namespace deps = entityx::deps;
 
 
-struct A : public entityx::Component<A> {};
-struct B : public entityx::Component<B> {
-  explicit B(bool b = false) : b(b) {}
-
-  bool b;
+struct A : public entityx::Component<A> {
 };
-struct C : public entityx::Component<C> {};
+
+struct B : public entityx::Component<B> {
+    explicit B(bool b = false) : b(b) { }
+
+    bool b;
+};
+
+struct C : public entityx::Component<C> {
+};
 
 TEST_CASE_METHOD(entityx::EntityX, "TestSingleDependency") {
-  systems.add<deps::Dependency<A, B>>();
-  systems.configure();
+    systems.add < deps::Dependency < A, B >> ();
+    systems.configure();
 
-  entityx::Entity e = entities.create();
-  REQUIRE(!static_cast<bool>(e.component<A>()));
-  REQUIRE(!static_cast<bool>(e.component<B>()));
-  e.assign<A>();
-  REQUIRE(static_cast<bool>(e.component<A>()));
-  REQUIRE(static_cast<bool>(e.component<B>()));
+    entityx::Entity e = entities.create();
+    REQUIRE(!static_cast<bool>(e.component<A>()));
+    REQUIRE(!static_cast<bool>(e.component<B>()));
+    e.assign<A>();
+    REQUIRE(static_cast<bool>(e.component<A>()));
+    REQUIRE(static_cast<bool>(e.component<B>()));
 }
 
 TEST_CASE_METHOD(entityx::EntityX, "TestMultipleDependencies") {
-  systems.add<deps::Dependency<A, B, C>>();
-  systems.configure();
+    systems.add < deps::Dependency < A, B, C >> ();
+    systems.configure();
 
-  entityx::Entity e = entities.create();
-  REQUIRE(!static_cast<bool>(e.component<A>()));
-  REQUIRE(!static_cast<bool>(e.component<B>()));
-  REQUIRE(!static_cast<bool>(e.component<C>()));
-  e.assign<A>();
-  REQUIRE(static_cast<bool>(e.component<A>()));
-  REQUIRE(static_cast<bool>(e.component<B>()));
-  REQUIRE(static_cast<bool>(e.component<C>()));
+    entityx::Entity e = entities.create();
+    REQUIRE(!static_cast<bool>(e.component<A>()));
+    REQUIRE(!static_cast<bool>(e.component<B>()));
+    REQUIRE(!static_cast<bool>(e.component<C>()));
+    e.assign<A>();
+    REQUIRE(static_cast<bool>(e.component<A>()));
+    REQUIRE(static_cast<bool>(e.component<B>()));
+    REQUIRE(static_cast<bool>(e.component<C>()));
 }
 
 TEST_CASE_METHOD(entityx::EntityX, "TestDependencyDoesNotRecreateComponent") {
-  systems.add<deps::Dependency<A, B>>();
-  systems.configure();
+    systems.add < deps::Dependency < A, B >> ();
+    systems.configure();
 
-  entityx::Entity e = entities.create();
-  e.assign<B>(true);
-  REQUIRE(e.component<B>()->b);
-  e.assign<A>();
-  REQUIRE(e.component<B>()->b);
+    entityx::Entity e = entities.create();
+    e.assign<B>(true);
+    REQUIRE(e.component<B>()->b);
+    e.assign<A>();
+    REQUIRE(e.component<B>()->b);
 }

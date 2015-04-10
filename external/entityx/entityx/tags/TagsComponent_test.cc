@@ -19,24 +19,25 @@ using namespace entityx;
 using namespace entityx::tags;
 
 
-struct Position : public Component<Position> {};
+struct Position : public Component<Position> {
+};
 
 
-template <typename T>
+template<typename T>
 int size(const T &t) {
-  int n = 0;
-  for (auto i : t) {
-    ++n;
-    (void)i;  // Unused on purpose, suppress warning
-  }
-  return n;
+    int n = 0;
+    for (auto i : t) {
+        ++n;
+        (void) i;  // Unused on purpose, suppress warning
+    }
+    return n;
 }
 
 
 TEST_CASE("TestVariadicConstruction", "TagsComponentTest") {
-  auto tags = TagsComponent("player", "indestructible");
-  unordered_set<string> expected;
-  expected.insert("player");
-  expected.insert("indestructible");
-  REQUIRE(expected == tags.tags);
+    auto tags = TagsComponent("player", "indestructible");
+    unordered_set<string> expected;
+    expected.insert("player");
+    expected.insert("indestructible");
+    REQUIRE(expected == tags.tags);
 }

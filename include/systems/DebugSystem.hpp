@@ -48,7 +48,7 @@ namespace sw {
 
                 if (render) {
                     debug_ostream_ << "  RenderComponent message='" << render->debug_message_ << "'"
-                                   << std::endl << std::endl;
+                    << std::endl << std::endl;
                 }
             }
 
