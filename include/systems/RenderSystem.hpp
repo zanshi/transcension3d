@@ -33,13 +33,13 @@ namespace sw {
         void setRootEntity(ex::Entity root) { root_ = root; };
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
-            events_ = events;
+            //events_ = events;
 
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
             // Start rendering at the top of the tree
-            render(root_, false, alpha);
+            renderEntity(root_, false, alpha);
             /*
             ex::ComponentHandle <BodyComponent> body;
             ex::ComponentHandle <RenderComponent> render;
@@ -52,7 +52,7 @@ namespace sw {
              */
         }
 
-        void render(ex::Entity entityToRender, bool dirty, float alpha) {
+        void renderEntity(ex::Entity entityToRender, bool dirty, float alpha) {
             auto transform = entityToRender.component<TransformComponent>();
             auto render = entityToRender.component<RenderComponent>();
             auto graphNode = entityToRender.component<GraphNodeComponent>();
@@ -70,18 +70,18 @@ namespace sw {
             if (render) {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
-                events.emit<RenderEvent>(entityToRender);
+                //events.emit<RenderEvent>(entityToRender);
             }
 
             // Render its children
             for (ex::Entity child : graphNode->children_) {
-                render(child, dirty, alpha);
+                renderEntity(child, dirty, alpha);
             }
         }
 
     private:
         // Ugly-ass hack for events
-        ex::EventManager &events_;
+        //ex::EventManager &events_;
         // Reference to the top node in the tree, where rendering ALWAYS starts
         ex::Entity root_;
 

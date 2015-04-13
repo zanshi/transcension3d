@@ -7,6 +7,8 @@
 
 #include <entityx/config.h>
 
+namespace ex = entityx;
+
 namespace sw {
-    const TimeDelta TIME_STEP = 0.01;
+    const ex::TimeDelta TIME_STEP = 0.01;
 }
