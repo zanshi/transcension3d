@@ -58,7 +58,7 @@ namespace sw {
 
             /** Entity 3 **/
             ex::Entity entity3 = entities.create();
-            entity3.assign<RenderComponent>("Entity 3: Obama");
+            auto render = entity3.assign<RenderComponent>("Entity 3: Obama");
         }
     };
 
