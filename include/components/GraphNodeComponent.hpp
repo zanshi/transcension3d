@@ -8,15 +8,25 @@
 #include <vector>
 #include <entityx/entityx.h>
 
+#include "GraphInterface.hpp"
+
 namespace ex = entityx;
 
 namespace sw {
-
     struct GraphNodeComponent {
-        GraphNodeComponent(ex::Entity parent) {
-            // Make sure the parent isn't itself...
+        GraphNodeComponent(ex::Entity parent, ex::Entity itself) {
+            // Make sure the specified parent isn't the entity itself
             auto parentNode = parent.component<GraphNodeComponent>();
-            assert(parentNode && parentNode.get() != this);
+            if (parentNode) {
+                assert(parentNode.get() != this);
+                // Add 'itself' to the parent's children.
+                // There is no chance in hell that it already is in the vector, so we don't bother with that.
+                parentNode->children_.push_back(itself);
+            } else {
+                // 'itself' is the root entity, whose "parent" is an empty entity,
+                // thus, we should NOT add 'itself' as a child to the parent
+                // Do nothing...
+            }
             parent_ = parent;
         }
 

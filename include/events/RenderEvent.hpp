@@ -6,7 +6,6 @@
 
 #include <entityx/entityx.h>
 
-#include "components/BodyComponent.hpp"
 #include "components/RenderComponent.hpp"
 
 namespace ex = entityx;

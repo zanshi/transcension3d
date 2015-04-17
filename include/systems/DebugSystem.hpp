@@ -6,7 +6,6 @@
 
 #include <entityx/entityx.h>
 
-#include "components/BodyComponent.hpp"
 #include "components/RenderComponent.hpp"
 #include "events/RenderEvent.hpp"
 
@@ -38,13 +37,7 @@ namespace sw {
                 << ", unique id=" << entity.id().id() << std::endl;
 
                 // retrieve the render component data and log
-                auto body = entity.component<BodyComponent>();
                 auto render = entity.component<RenderComponent>();
-
-                if (body) {
-                    debug_ostream_ << "  BodyComponent: " << "Position=" << body->position_
-                    << ", Rotation=" << body->rotation_ << std::endl;
-                }
 
                 if (render) {
                     debug_ostream_ << "  RenderComponent message='" << render->debug_message_ << "'"
