@@ -8,16 +8,19 @@
 #include <vector>
 #include <entityx/entityx.h>
 
+#include "GraphInterface.hpp"
+
 namespace ex = entityx;
 
 namespace sw {
-
     struct GraphNodeComponent {
-        GraphNodeComponent(ex::Entity parent) {
+        GraphNodeComponent(ex::Entity parent, ex::Entity itself) {
             // Make sure the parent isn't itself...
             auto parentNode = parent.component<GraphNodeComponent>();
             assert(parentNode && parentNode.get() != this);
             parent_ = parent;
+
+            GraphInterface::addChild(parent, itself);
         }
 
         ex::Entity parent_;

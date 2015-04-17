@@ -4,6 +4,5 @@
 
 #pragma once
 
-#include "BodyComponent.hpp"
 #include "MovementComponent.hpp"
 #include "RenderComponent.hpp"
