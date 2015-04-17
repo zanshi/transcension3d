@@ -8,11 +8,13 @@
 
 #include "components/GraphNodeComponent.hpp"
 
+namespace ex = entityx;
+
 namespace sw {
     namespace GraphInterface {
         void addChild(ex::Entity parent, ex::Entity child_new) {
             auto parent_node = parent.component<GraphNodeComponent>();
-            auto child_node = child.component<GraphNodeComponent>();
+            auto child_node = child_new.component<GraphNodeComponent>();
 
             // Check that both parent and child has a GraphNodeComponent
             if (!parent_node || !child_node)
@@ -39,10 +41,10 @@ namespace sw {
             std::for_each(c.begin(), c.end(), [&] (ex::Entity child) {
                 auto child_node = parent.component<GraphNodeComponent>();
                 if (child_node) {
-                    child_node->parent_ = null;
+                    //child_node->parent_ = ;
                 }
             });
-            parent->children_.clear();
+            node->children_.clear();
         }
 
         void removeChild(ex::Entity parent, ex::Entity child_to_remove) {

@@ -30,11 +30,15 @@ namespace sw {
 
     class RenderSystem : public ex::System<RenderSystem> {
     public:
-        void setRootEntity(ex::Entity root) { root_ = root; };
+        RenderSystem(ex::EventManager &events)
+                : events_(events) {};
+
+        void setRootEntity(ex::Entity root) {
+            root_ = root;
+            std::cout << "Root entity set." << std::endl;
+        };
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
-            //events_ = events;
-
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
@@ -70,7 +74,7 @@ namespace sw {
             if (render) {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
-                //events.emit<RenderEvent>(entityToRender);
+                events_.emit<RenderEvent>(entityToRender);
             }
 
             // Render its children
@@ -81,7 +85,7 @@ namespace sw {
 
     private:
         // Ugly-ass hack for events
-        //ex::EventManager &events_;
+        ex::EventManager &events_;
         // Reference to the top node in the tree, where rendering ALWAYS starts
         ex::Entity root_;
 
@@ -91,13 +95,16 @@ namespace sw {
             // Make sure the parent has a TransformComponent
             // TODO: Fix entity dependencies so all entities have Transform- and GraphNodeComponents
             auto transform_parent = parent_entity.component<TransformComponent>();
-            assert(transform_parent);
 
-            glm::mat4 &parent_world = transform_parent->cached_world_;
-
-            // Multiply the local transform with the parent's world transform
-            transform->cached_world_ = parent_world * local;
+            if (transform_parent) {
+                glm::mat4 &parent_world = transform_parent->cached_world_;
+                // Multiply the local transform with the parent's world transform
+                transform->cached_world_ = parent_world * local;
+            } else {
+                glm::mat4 parent_world(1.0f);
+                // Multiply the local transform with the parent's world transform
+                transform->cached_world_ = parent_world * local;
+            }
         }
-
     };
 }

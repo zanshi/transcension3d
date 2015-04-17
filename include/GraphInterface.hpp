@@ -6,6 +6,8 @@
 
 #include <entityx/entityx.h>
 
+namespace ex = entityx;
+
 namespace sw {
     /** GraphInterface **/
     // The interface gives functions to manipulate the tree graph
