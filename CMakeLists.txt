@@ -103,6 +103,8 @@ add_library(GLEW STATIC
 	${GLEW_INCLUDE}
 )
 
+## Assimp
+include(BuildAssimp)
 
 target_link_libraries(GLEW
 	${OPENGL_LIBRARY}
@@ -117,6 +119,7 @@ add_subdirectory(
 set(ext_libs
   ${CMAKE_SOURCE_DIR}/external/glew/include/
   ${CMAKE_SOURCE_DIR}/external/entityx/
+  ${CMAKE_SOURCE_DIR}/external/assimp/include
 )
 
 
@@ -132,10 +135,12 @@ set(ALL_LIBS
   INT_LIBS
   entityx
   ${SDL2_LIBRARY}
+  assimp
 )
 
 set(EXT_DEPS
     entityx
+    assimp
 )
 
 
