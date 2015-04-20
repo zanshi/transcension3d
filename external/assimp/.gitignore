@@ -10,7 +10,6 @@ build
 # Output
 bin/
 lib/
-contrib/
 
 # Generated
 assimp.pc
