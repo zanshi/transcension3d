@@ -104,6 +104,9 @@ add_library(GLEW STATIC
 )
 
 ## Assimp
+set(ASSIMP_BUILD_ASSIMP_TOOLS FALSE)
+set(ASSIMP_BUILD_TESTS FALSE)
+
 include(BuildAssimp)
 
 target_link_libraries(GLEW

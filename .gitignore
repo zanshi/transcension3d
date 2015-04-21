@@ -360,3 +360,6 @@ DerivedData
 *.xcuserstate
 *.pbxproj
 *.xcworkspacedata
+
+
+*.dae
