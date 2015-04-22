@@ -146,11 +146,16 @@ set(ALL_LIBS
   entityx
   ${SDL2_LIBRARY}
   ${ASSIMP_LIBRARY}
-
+  ${ZLIB_LIBRARY}
 )
+
+
+
+
 
 set(EXT_DEPS
     entityx
+    ${ASSIMP_LIBRARY}
 )
 
 
