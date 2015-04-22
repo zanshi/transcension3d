@@ -7,6 +7,7 @@
 #include <entityx/entityx.h>
 
 #include "components/RenderComponent.hpp"
+#include "components/DimensionComponent.hpp"
 #include "events/RenderEvent.hpp"
 
 #include <ostream>
@@ -34,10 +35,13 @@ namespace sw {
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) {
             for (RenderEvent event : events_to_debug_) {
                 ex::Entity entity = event.rendered_entity_;
-                unsigned int depth = event.depth_;
-                std::string indrag("  ", depth);
 
-                debug_ostream_ << indrag << "Rendered entity with index=" << entity.id().index()
+                ex::ComponentHandle<DimensionComponent> dim = entity.component<DimensionComponent>();
+
+                size_t num_indrag = event.depth_ * 3;
+                std::string indrag(num_indrag, ' ');
+
+                debug_ostream_ << indrag << "* Dimension: " << dim->dimension_ << ", Rendered entity with index=" << entity.id().index()
                 << ", unique id=" << entity.id().id() << std::endl;
 
                 // retrieve the render component data and log
@@ -45,7 +49,7 @@ namespace sw {
 
                 if (render) {
                     debug_ostream_ << indrag << "  RenderComponent message='" << render->debug_message_ << "'"
-                    << std::endl << std::endl;
+                    << std::endl;
                 }
             }
 

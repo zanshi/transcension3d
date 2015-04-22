@@ -88,7 +88,7 @@ namespace sw {
 
         // Setup function to initiate the RenderSystem with a root node
         void initSceneGraphRoot(ex::Entity root) {
-            std::shared_ptr<RenderSystem> renderSystem = systems.system < RenderSystem > ();
+            std::shared_ptr<RenderSystem> renderSystem = systems.system<RenderSystem> ();
             root_ = root;
 
             // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
@@ -161,72 +161,5 @@ namespace sw {
                     processAssimpNode(*(node->mChildren + i), scene, current_depth + 1, dim_node, current_entity);
             }
         }
-
-        /*** UNUSED ***/
-
-        /*
-        // Assimp loading test: load test.dae (COLLADA format)
-        void initAssimp() {
-            std::cout << "COLLADA file located in the /res folder:" << std::endl;
-            std::string input;
-            std::cin >> input;
-
-            const std::string filename = "../res/" + input;
-
-            Assimp::Importer importer;
-            // Import the scene in COLLADA format
-            const aiScene *scene = importer.ReadFile(filename.c_str(), 0);
-            if (scene == nullptr) {
-                std::cout << "The file could not be loaded." << std::endl;
-                assert(scene);
-            }
-
-            // Traverse the tree graph
-            const aiNode *root = scene->mRootNode;
-
-            std::cout << "Traversing the tree '" << filename << "', starting with the root node." << std::endl
-            << "===================" << std::endl;
-
-            traverseNode(scene, root, 0);
-        }
-         */
-
-        /*
-        void traverseNode(const aiScene *scene, const aiNode *current, unsigned int depth) {
-            using namespace std;
-
-            const unsigned int indrag_c = 3;
-            const size_t indrag = depth * indrag_c;
-            string indrag_s(indrag, ' ');
-
-            cout << indrag_s
-            << "* Current node name: '" << current->mName.C_Str() << "'." << endl;
-
-
-            // Display the details regarding the 'current' node
-            if (current->mNumMeshes != 0) {
-                cout << indrag_s
-                << "Meshes: " << current->mNumMeshes << endl;
-
-                for (int i = 0; i < current->mNumMeshes; ++i) {
-                    const aiMesh *mesh = *(scene->mMeshes + i);
-
-                    // Display info about the mesh
-                    cout << indrag_s
-                    << "Mesh " << i << ": mNumVertices=" << mesh->mNumVertices << endl;
-                }
-            }
-
-            ++depth;
-
-            for (int i = 0; i < current->mNumChildren; ++i) {
-                const aiNode *child = *(current->mChildren + i);
-                if (child != nullptr) {
-                    traverseNode(scene, child, depth);
-                }
-            }
-        }
-         */
-
     };
 }
