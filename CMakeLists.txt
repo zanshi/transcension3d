@@ -62,9 +62,12 @@ set(SDL2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/SDL2/include/)
 set(SDL2MAIN_LIBRARY "${PROJECT_SOURCE_DIR}/external/SDL2/lib/libSDL2main.a")
 set(SDL2_LIBRARY_TEMP  "${PROJECT_SOURCE_DIR}/external/SDL2/lib/libSDL2.a")
 set(SDL2_LIBRARY ${SDL2MAIN_LIBRARY} ${SDL2_LIBRARY_TEMP})
+set(ZLIB_LIBRARY "${PROJECT_SOURCE_DIR}/external/zlib/libzlibstatic.a")
+set(ASSIMP_LIBRARY "${PROJECT_SOURCE_DIR}/external/assimp/lib32/libassimp.a")
 
 else()
 	find_package(SDL2 REQUIRED)
+	set(ASSIMP_LIBRARY assimp)
 endif(MINGW)
 
 
@@ -104,10 +107,14 @@ add_library(GLEW STATIC
 )
 
 ## Assimp
-set(ASSIMP_BUILD_ASSIMP_TOOLS FALSE)
-set(ASSIMP_BUILD_TESTS FALSE)
+
+if(UNIX)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_BUILD_SAMPLES OFF)
 
 include(BuildAssimp)
+endif(UNIX)
 
 target_link_libraries(GLEW
 	${OPENGL_LIBRARY}
@@ -138,12 +145,17 @@ set(ALL_LIBS
   INT_LIBS
   entityx
   ${SDL2_LIBRARY}
-  assimp
+  ${ASSIMP_LIBRARY}
+  ${ZLIB_LIBRARY}
 )
+
+
+
+
 
 set(EXT_DEPS
     entityx
-    assimp
+    ${ASSIMP_LIBRARY}
 )
 
 
