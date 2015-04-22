@@ -32,28 +32,36 @@ namespace sw {
         }
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) {
-            for (ex::Entity entity : entities_to_debug_) {
-                debug_ostream_ << "Rendered entity with index=" << entity.id().index()
+            for (RenderEvent event : events_to_debug_) {
+                ex::Entity entity = event.rendered_entity_;
+                unsigned int depth = event.depth_;
+                std::string indrag("  ", depth);
+
+                debug_ostream_ << indrag << "Rendered entity with index=" << entity.id().index()
                 << ", unique id=" << entity.id().id() << std::endl;
 
                 // retrieve the render component data and log
                 auto render = entity.component<RenderComponent>();
 
                 if (render) {
-                    debug_ostream_ << "  RenderComponent message='" << render->debug_message_ << "'"
+                    debug_ostream_ << indrag << "  RenderComponent message='" << render->debug_message_ << "'"
                     << std::endl << std::endl;
                 }
             }
 
-            entities_to_debug_.clear();
+            events_to_debug_.clear();
         }
 
         void receive(const RenderEvent &render_event) {
             // defer all debugging until DebugSystem::update(), because events are immutable and holy trinities
-            entities_to_debug_.push_back(render_event.rendered_entity_);
+            //* entities_to_debug_.push_back(render_event.rendered_entity_);
+
+            events_to_debug_.push_back(render_event);
+
         }
 
         std::ostream &debug_ostream_;
-        std::vector<ex::Entity> entities_to_debug_;
+        //* std::vector<ex::Entity> entities_to_debug_;
+        std::vector<RenderEvent> events_to_debug_;
     };
 }
