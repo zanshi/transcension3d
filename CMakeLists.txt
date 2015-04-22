@@ -67,6 +67,7 @@ set(ASSIMP_LIBRARY "${PROJECT_SOURCE_DIR}/external/assimp/lib32/libassimp.a")
 
 else()
 	find_package(SDL2 REQUIRED)
+	set(ASSIMP_LIBRARY assimp)
 endif(MINGW)
 
 
@@ -107,11 +108,13 @@ add_library(GLEW STATIC
 
 ## Assimp
 
-#set(ASSIMP_BUILD_ASSIMP_TOOLS FALSE)
-#set(ASSIMP_BUILD_TESTS FALSE)
+if(UNIX)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_BUILD_SAMPLES OFF)
 
-#include(BuildAssimp)
-
+include(BuildAssimp)
+endif(UNIX)
 
 target_link_libraries(GLEW
 	${OPENGL_LIBRARY}
@@ -143,7 +146,6 @@ set(ALL_LIBS
   entityx
   ${SDL2_LIBRARY}
   ${ASSIMP_LIBRARY}
-  ${ZLIB_LIBRARY}
 
 )
 
