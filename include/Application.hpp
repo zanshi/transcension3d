@@ -23,6 +23,8 @@
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 
+#include "scene/SceneImporter.hpp"
+
 namespace ex = entityx;
 
 namespace sw {
@@ -63,26 +65,18 @@ namespace sw {
             std::string input;
             std::cin >> input;
 
-            const std::string filename = "../res/" + input;
+            const std::string filename = input;
 
-            Assimp::Importer importer;
-            // Import the scene in COLLADA format
-            const aiScene *scene = importer.ReadFile(filename.c_str(), 0);
-            if (scene == nullptr) {
-                std::cout << "The file could not be loaded." << std::endl;
-                assert(scene);
-            }
+            // SceneImporter shell
+            SceneImporter::set_relative_path_to_scene_folder("../res");
+            SceneImporter sceneImporter(filename);
 
             /* The coast is clear, now we can start loading the scene */
             // Create two root objects and initialize them
             ex::Entity root = entities.create();
             initSceneGraphRoot(root);
 
-            const aiNode *scene_root = scene->mRootNode;
-
-            // Begin the tree traversal
-            processAssimpNode(scene_root, scene, 0, DIMENSION_BOTH, root);
-
+            sceneImporter.populateInternalGraph(root, [&](){ return createEntity(); } );
 
         }
 
@@ -160,6 +154,10 @@ namespace sw {
                 if (*(node->mChildren + i))
                     processAssimpNode(*(node->mChildren + i), scene, current_depth + 1, dim_node, current_entity);
             }
+        }
+
+        ex::Entity createEntity() {
+            return entities.create();
         }
     };
 }
