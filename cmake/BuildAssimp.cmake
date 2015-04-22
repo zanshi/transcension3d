@@ -1,0 +1,1 @@
+add_subdirectory(${PROJECT_EXT_DIR}/assimp)

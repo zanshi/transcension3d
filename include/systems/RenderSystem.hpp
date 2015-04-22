@@ -33,17 +33,12 @@ namespace sw {
         RenderSystem(ex::EventManager &events)
                 : events_(events) {};
 
-        void setRootEntity(ex::Entity root) {
-            root_ = root;
-            std::cout << "Root entity set." << std::endl;
-        };
-
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
             // Start rendering at the top of the tree
-            renderEntity(root_, false, alpha);
+            renderEntity(root_, false, alpha, 0);
             /*
             ex::ComponentHandle <BodyComponent> body;
             ex::ComponentHandle <RenderComponent> render;
@@ -56,7 +51,7 @@ namespace sw {
              */
         }
 
-        void renderEntity(ex::Entity entityToRender, bool dirty, float alpha) {
+        void renderEntity(ex::Entity entityToRender, bool dirty, float alpha, unsigned int current_depth) {
             auto transform = entityToRender.component<TransformComponent>();
             auto render = entityToRender.component<RenderComponent>();
             auto graphNode = entityToRender.component<GraphNodeComponent>();
@@ -74,13 +69,20 @@ namespace sw {
             if (render) {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
-                events_.emit<RenderEvent>(entityToRender);
+                events_.emit<RenderEvent>(entityToRender, current_depth);
             }
 
             // Render its children
             for (ex::Entity child : graphNode->children_) {
-                renderEntity(child, dirty, alpha);
+                renderEntity(child, dirty, alpha, current_depth+1);
             }
+        }
+
+        // Root entity functions
+
+        void setRootEntity(ex::Entity root) {
+            root_ = root;
+            std::cout << "Root entity set." << std::endl;
         }
 
     private:
