@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
-/** @file  aiColor4D.inl
+/** @file  color4.inl
  *  @brief Inline implementation of aiColor4t<TReal> operators
  */
 #ifndef AI_COLOR4D_INL_INC
@@ -175,7 +175,7 @@ template <typename TReal>
 inline bool aiColor4t<TReal> :: IsBlack() const	{
 	// The alpha component doesn't care here. black is black.
 	static const TReal epsilon = 10e-3f;
-	return fabs( r ) < epsilon && fabs( g ) < epsilon && fabs( b ) < epsilon;
+	return std::fabs( r ) < epsilon && std::fabs( g ) < epsilon && std::fabs( b ) < epsilon;
 }
 
 #endif // __cplusplus
