@@ -14,7 +14,17 @@
 
 #include "assimp/scene.h"
 
-// GL Includes
+// Include GLEW
+#ifdef __APPLE_CC__
+
+#include <OpenGL/gl3.h>
+
+#define GLFW_INCLUDE_GLCOREARB
+#else
+#include "GL/glew.h"
+#endif
+
+// GLM includes
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -22,6 +32,8 @@
 // Taken from http://www.learnopengl.com/code_viewer.php?code=mesh&type=header
 
 namespace sw {
+
+    const unsigned int VERTEX_NUM_ATTRIBUTES = 8;
 
     struct Vertex {
         // Position
@@ -48,6 +60,7 @@ namespace sw {
             this->indices = indices;
             this->textures = textures;
 
+            VAO = VBO = EBO = 0;
             // Now that we have all the required data, set the vertex buffers and its attribute pointers.
 
             this->setupMesh();

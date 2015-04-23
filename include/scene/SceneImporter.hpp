@@ -16,8 +16,7 @@
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 
-// Project-related imports
-#include "components/all_components.hpp"
+#include "components/DimensionComponent.hpp"
 
 namespace ex = entityx;
 
@@ -58,5 +57,7 @@ namespace sw {
                                unsigned int current_depth,
                                Dim dim_parent,
                                ex::Entity parent);
+
+        void addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh);
     };
 }

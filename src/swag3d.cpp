@@ -12,7 +12,8 @@
 // Include GLEW
 #ifdef __APPLE_CC__
 
-#include <OpenGL/gl3.h>
+//#include <OpenGL/gl3.h>
+#include <GL/glew.h>
 
 #define GLFW_INCLUDE_GLCOREARB
 #else
@@ -37,10 +38,6 @@
 namespace ex = entityx;
 
 int main(int argc, char *argv[]) {
-    // Application initialization
-    sw::Application app;
-    app.initScene();
-
     //First we need to start up SDL, and make sure it went ok
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
@@ -71,17 +68,17 @@ int main(int argc, char *argv[]) {
 
     SDL_GL_MakeCurrent(win, glcontext);
 
-    Init init;
+    //Init init;
 
-    init.glew();
+    //init.glew();
 
     //Initialize GLEW
-//    glewExperimental = GL_TRUE; 
-//    GLenum glewError = glewInit();
-//    if( glewError != GLEW_OK )
-//    {
-//        printf( "Error initializing GLEW! %s\n", glewGetErrorString( glewError ) );
-//    }
+    glewExperimental = GL_TRUE;
+    GLenum glewError = glewInit();
+    if( glewError != GLEW_OK )
+    {
+        printf( "Error initializing GLEW! %s\n", glewGetErrorString( glewError ) );
+    }
 
 
     //Load in shaders
@@ -101,6 +98,10 @@ int main(int argc, char *argv[]) {
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+    // Application initialization
+    sw::Application app;
+    app.initScene();
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point current, last;
