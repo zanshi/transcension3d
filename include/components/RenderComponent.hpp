@@ -6,7 +6,7 @@
 
 namespace sw {
 
-    struct RenderComponent {
+    struct RenderComponent : public ex::Component<RenderComponent> {
         RenderComponent(std::string debug_message = "Default message")
                 : debug_message_(debug_message) { };
 

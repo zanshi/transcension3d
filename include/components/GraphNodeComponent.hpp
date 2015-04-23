@@ -6,14 +6,17 @@
 #pragma once
 
 #include <vector>
-#include <entityx/entityx.h>
 
-#include "GraphInterface.hpp"
+#include "entityx/entityx.h"
 
 namespace ex = entityx;
 
 namespace sw {
-    struct GraphNodeComponent {
+
+    struct GraphNodeComponent : public ex::Component<GraphNodeComponent> {
+
+        GraphNodeComponent() { }
+
         GraphNodeComponent(ex::Entity parent, ex::Entity itself) {
             // Make sure the specified parent isn't the entity itself
             auto parentNode = parent.component<GraphNodeComponent>();

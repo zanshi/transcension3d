@@ -15,8 +15,8 @@
 namespace ex = entityx;
 
 namespace sw {
-    class TransformComponent {
-    public:
+
+    struct TransformComponent : public ex::Component<TransformComponent> {
         // Default position and rotation is {0}
         TransformComponent(glm::vec3 position = {0.0f, 0.0f, 0.0f},
                            glm::vec3 rotation = {0.0f, 0.0f, 0.0f})

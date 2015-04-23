@@ -5,6 +5,8 @@
 
 #pragma once
 
+namespace ex = entityx;
+
 namespace sw {
     enum Dim {
         DIMENSION_BOTH = 0,
@@ -19,7 +21,7 @@ namespace sw {
      * 'dimension', i.e. if current_dim == DIMENSION_ONE, render all entities in
      * DIMENSION_ONE or DIMENSION_BOTH.
      */
-    struct DimensionComponent {
+    struct DimensionComponent : public ex::Component<DimensionComponent> {
         Dim dimension_;
         DimensionComponent(Dim dim = Dim::DIMENSION_BOTH)
                 : dimension_(dim) { };
