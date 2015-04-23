@@ -68,7 +68,7 @@ namespace sw {
             const std::string filename = input;
 
             // SceneImporter shell
-            SceneImporter::set_relative_path_to_scene_folder("../res");
+            SceneImporter::relative_path_to_scene_folder_ = "../res/";
             SceneImporter sceneImporter(filename);
 
             /* The coast is clear, now we can start loading the scene */
@@ -76,7 +76,7 @@ namespace sw {
             ex::Entity root = entities.create();
             initSceneGraphRoot(root);
 
-            sceneImporter.populateInternalGraph(root, [&](){ return createEntity(); } );
+            sceneImporter.populateInternalGraph(root, [&](){ return entities.create(); } );
 
         }
 
@@ -106,58 +106,5 @@ namespace sw {
         ex::Entity root_;
         unsigned int current_dim_;
 
-        // TODO: Move node classification out of here
-
-        const std::regex REGEX_MATCH_DIMENSION_ONE = std::regex("\\S+_dim1");
-        const std::regex REGEX_MATCH_DIMENSION_TWO = std::regex("\\S+_dim2");
-
-
-        const Dim getDimensionOfNodeName(const char *str) {
-            if (std::regex_match(str, REGEX_MATCH_DIMENSION_ONE))
-                return DIMENSION_ONE;
-
-            if (std::regex_match(str, REGEX_MATCH_DIMENSION_TWO))
-                return DIMENSION_TWO;
-
-            return DIMENSION_BOTH;
-        }
-
-        // Method to "look at" a node in the tree graph returned by the Assimp importer
-        // The method transfers all the node's data (including meshes etc.) to swag3d's internal structure
-        // Start by calling processAssimpNode with the root node as argument
-        void processAssimpNode(const aiNode *node, const aiScene *scene, unsigned int current_depth,
-                               Dim dim_parent, ex::Entity parent) {
-            assert(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE || dim_parent == Dim::DIMENSION_TWO
-                                                                                  &&
-                                                                                  "Something strange happened with the assimp processing.");
-
-            // If parent belongs to either dimension 1 or 2 -> all its children belongs to the same dimension
-            // If parent belongs to both dimensions -> determine which dimension(-s) its children belongs to
-            Dim dim_node;
-            if (dim_parent == DIMENSION_BOTH) {
-                // Determine which dimension the current node and its children belongs to (can be both)
-                dim_node = getDimensionOfNodeName(node->mName.C_Str());
-            } else {
-                // Parent belongs to either dimension 1 or 2 -> this node does as well
-                dim_node = dim_parent;
-            }
-
-            /* Add the current node to its parent */
-            ex::Entity current_entity = entities.create();
-            current_entity.assign<TransformComponent>();
-            current_entity.assign<GraphNodeComponent>(parent, current_entity);
-            current_entity.assign<DimensionComponent>(dim_node);
-            current_entity.assign<RenderComponent>( std::string(node->mName.C_Str()) );
-
-            // Recursively process all its children nodes
-            for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-                if (*(node->mChildren + i))
-                    processAssimpNode(*(node->mChildren + i), scene, current_depth + 1, dim_node, current_entity);
-            }
-        }
-
-        ex::Entity createEntity() {
-            return entities.create();
-        }
     };
 }

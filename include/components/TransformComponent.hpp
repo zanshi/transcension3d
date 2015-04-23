@@ -22,8 +22,14 @@ namespace sw {
                            glm::vec3 rotation = {0.0f, 0.0f, 0.0f})
                 : position_(position), rotation_(rotation), orientation_(glm::quat(rotation)) {
             update_local_transform();
-            is_dirty = true;
+            is_dirty_ = true;
         };
+
+        TransformComponent(glm::mat4 local_transform)
+                : local_(local_transform) {
+            // TODO: extract position_ and rotation_
+            is_dirty_ = true;
+        }
 
         /** Public member variables for convenience **/
         glm::vec3 position_;
@@ -33,7 +39,7 @@ namespace sw {
         glm::mat4 cached_world_;
 
         // Set this to true if position or rotation has been updated
-        bool is_dirty;
+        bool is_dirty_;
 
         void update_local_transform() {
             // TODO : Test this code snippet
