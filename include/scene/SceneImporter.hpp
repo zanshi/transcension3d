@@ -43,6 +43,7 @@ namespace sw {
 
     private:
         // private member variables
+        Assimp::Importer importer;
         const aiScene *p_scene;
         bool has_populated_internal_graph_;
 

@@ -28,16 +28,19 @@
 
 #include <common/Init.h>
 #include <common/Shader.h>
+#include <Application.hpp>
 
 #include "entityx/entityx.h"
 
-#include "Application.hpp"
-
-using namespace glm;
+//#include "Application.hpp"
 
 namespace ex = entityx;
 
 int main(int argc, char *argv[]) {
+    // Application initialization
+    sw::Application app;
+    app.initScene();
+
     //First we need to start up SDL, and make sure it went ok
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
@@ -98,9 +101,6 @@ int main(int argc, char *argv[]) {
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    /** EntityX testing **/
-    sw::Application app{};
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point current, last;

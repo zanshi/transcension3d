@@ -2,18 +2,13 @@
 // Created by Benjamin Wiberg on 15-04-22.
 //
 
-#pragma once
-
 #include <regex>
 #include "scene/SceneImporter.hpp"
-
-#include "glm/glm.hpp"
 
 namespace sw {
     std::string SceneImporter::relative_path_to_scene_folder_ = "../res/";
 
     SceneImporter::SceneImporter(std::string filename) {
-        Assimp::Importer importer;
         filename = relative_path_to_scene_folder_ + filename;
         p_scene = importer.ReadFile(filename.c_str(), 0);
         if (p_scene == nullptr) {
@@ -35,6 +30,9 @@ namespace sw {
 
         // Populate the graph
         processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
+
+        // Remove the read file from memory
+        importer.FreeScene();
 
     }
 
@@ -86,14 +84,10 @@ namespace sw {
                                           unsigned int current_depth,
                                           Dim dim_parent,
                                           ex::Entity parent) {
-        /*
-        assert(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE || dim_parent == Dim::DIMENSION_TWO
-                                                                                        &&
-                                                                                        "Something strange happened with the assimp processing.");
-        */
 
         // Make sure that the supplied dim_parent is valid
-        if ( !(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE || dim_parent == Dim::DIMENSION_TWO) ) {
+        if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
+              dim_parent == Dim::DIMENSION_TWO)) {
             dim_parent = Dim::DIMENSION_BOTH;
         }
 
@@ -113,7 +107,7 @@ namespace sw {
         current_entity.assign<TransformComponent>(convert_aiMatrix4x4_to_glmMat4(node->mTransformation));
         current_entity.assign<GraphNodeComponent>(parent, current_entity);
         current_entity.assign<DimensionComponent>(dim_current);
-        current_entity.assign<RenderComponent>( std::string(node->mName.C_Str()) );
+        current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
         // Recursively process all its children nodes
         for (unsigned int i = 0; i < node->mNumChildren; ++i) {
