@@ -58,11 +58,11 @@ namespace sw {
             auto movement = entityToRender.component<MovementComponent>();
 
             // See if we need to update the current entities cached world transform
-            dirty |= transform->is_dirty;
+            dirty |= transform->is_dirty_;
             if (dirty) {
                 // If dirty, update its cached world transform
                 combine(transform, graphNode->parent_);
-                transform->is_dirty = false;
+                transform->is_dirty_ = false;
             }
 
             // Render if the current entity has a RenderComponent
