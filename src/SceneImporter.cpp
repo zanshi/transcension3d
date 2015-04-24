@@ -10,6 +10,7 @@
 
 // GLM includes
 #include <glm/glm.hpp>
+#include <assimp/postprocess.h>
 
 // Project-related imports
 #include "components/all_components.hpp"
@@ -19,7 +20,7 @@ namespace sw {
 
     SceneImporter::SceneImporter(std::string filename) {
         filename = relative_path_to_scene_folder_ + filename;
-        p_scene = importer.ReadFile(filename.c_str(), 0);
+        p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate);
         if (p_scene == nullptr) {
             std::cout << "The file could not be loaded. Exiting." << std::endl;
             assert(p_scene);

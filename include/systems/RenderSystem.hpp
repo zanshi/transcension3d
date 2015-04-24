@@ -39,16 +39,9 @@ namespace sw {
 
             // Start rendering at the top of the tree
             renderEntity(root_, false, alpha, 0);
-            /*
-            ex::ComponentHandle <BodyComponent> body;
-            ex::ComponentHandle <RenderComponent> render;
 
-            for (ex::Entity entity : es.entities_with_components(body, render)) {
-                // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
-                events.emit<RenderEvent>(entity);
 
-            }
-             */
+
         }
 
         void renderEntity(ex::Entity entityToRender, bool dirty, float alpha, unsigned int current_depth) {
@@ -56,6 +49,7 @@ namespace sw {
             auto render = entityToRender.component<RenderComponent>();
             auto graphNode = entityToRender.component<GraphNodeComponent>();
             auto movement = entityToRender.component<MovementComponent>();
+            auto mesh = entityToRender.component<MeshComponent>();
 
             // See if we need to update the current entities cached world transform
             dirty |= transform->is_dirty_;
@@ -66,10 +60,18 @@ namespace sw {
             }
 
             // Render if the current entity has a RenderComponent
-            if (render) {
+            if (render && mesh) {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
-                events_.emit<RenderEvent>(entityToRender, current_depth);
+                // events_.emit<RenderEvent>(entityToRender, current_depth);
+
+
+
+                // Draw mesh
+                glBindVertexArray(mesh->VAO);
+                glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+
             }
 
             // Render its children

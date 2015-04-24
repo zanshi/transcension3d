@@ -112,25 +112,10 @@ int main(int argc, char *argv[]) {
     SDL_Event e;
     bool quit = false;
     while (!quit) {
+
         current = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> dt = std::chrono::duration_cast<std::chrono::duration<double>>(current - last);
         last = current;
-
-        if (++counter > 10000) {
-            std::cout << "+++Debug number: " << counter2++ << std::endl;
-
-            app.update(dt.count());
-            counter = 0;
-        }
-
-
-        // Event polling
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
-
 
         glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -138,21 +123,14 @@ int main(int argc, char *argv[]) {
 
         prog(); // calls for glUseProgram
 
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                3,                  // size
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                0,                  // stride
-                (void *) 0            // array buffer offset
-        );
+        app.update(dt.count());
 
-        // Draw the triangle !
-        glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
-
-        glDisableVertexAttribArray(0);
+        // Event polling
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
 
         SDL_GL_SwapWindow(win);
 
