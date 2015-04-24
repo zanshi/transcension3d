@@ -29,39 +29,13 @@ namespace sw {
         has_populated_internal_graph_ = false;
     }
 
-    void SceneImporter::populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction) {
-        // Don't populate the application if it has already been done
-        if (has_populated_internal_graph_)
-            return;
-        else
-            has_populated_internal_graph_ = true;
-
-        createEntity = createEntityFunction;
-
-        // Populate the graph
-        processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
-
-        // Remove the read file from memory
-        importer.FreeScene();
-
+    /* Mesh methods  */
+    glm::vec3 aiVector_to_glmVec(const aiVector3D in_vec) {
+        return glm::vec3(in_vec[0], in_vec[1], in_vec[2]);
     }
 
-    /* Regular expressions to match object dimensions */
-
-    const std::regex REGEX_MATCH_DIMENSION_ONE = std::regex("\\S+_dim1");
-    const std::regex REGEX_MATCH_DIMENSION_TWO = std::regex("\\S+_dim2");
-
-    const Dim getDimensionOfNodeName(const char *str) {
-        if (*str == 0)
-            return DIMENSION_BOTH;
-
-        if (std::regex_match(str, REGEX_MATCH_DIMENSION_ONE))
-            return DIMENSION_ONE;
-
-        if (std::regex_match(str, REGEX_MATCH_DIMENSION_TWO))
-            return DIMENSION_TWO;
-
-        return DIMENSION_BOTH;
+    glm::vec2 aiVector_to_glmVec(const aiVector2D in_vec) {
+        return glm::vec2(in_vec[0], in_vec[1]);
     }
 
     glm::mat4 aiMatrix4x4_to_glmMat4(const aiMatrix4x4 aiMat) {
@@ -90,10 +64,81 @@ namespace sw {
         return m;
     }
 
+    glm::vec3 SceneImporter::getCameraLookAt() {
+        aiCamera camera = **p_scene->mCameras;
+        glm::mat4 cameraTransform = aiMatrix4x4_to_glmMat4(camera_node->mTransformation);
+
+        glm::vec3 local_pos = aiVector_to_glmVec(camera.mLookAt);
+        glm::vec4 temp = {local_pos[0], local_pos[1], local_pos[2], 0.0f};
+
+        glm::vec4 world_lookAt = cameraTransform*temp;
+
+        return glm::vec3(world_lookAt);
+    };
+
+    glm::vec3 SceneImporter::getCameraPosition() {
+        aiCamera camera = **p_scene->mCameras;
+        glm::mat4 cameraTransform = aiMatrix4x4_to_glmMat4(camera_node->mTransformation);
+
+        glm::vec3 local_pos = aiVector_to_glmVec(camera.mPosition);
+        glm::vec4 temp = {local_pos[0], local_pos[1], local_pos[2], 1.0f};
+
+        glm::vec4 world_pos = cameraTransform*temp;
+
+        return glm::vec3(world_pos);
+    };
+
+    glm::mat4 SceneImporter::getCameraProjectionMatrix() {
+        aiCamera camera = **p_scene->mCameras;
+        aiMatrix4x4 temp;
+        camera.GetCameraMatrix(temp);
+
+        return aiMatrix4x4_to_glmMat4(temp);
+    };
+
+    void SceneImporter::populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction) {
+        // Don't populate the application if it has already been done
+        if (has_populated_internal_graph_)
+            return;
+        else
+            has_populated_internal_graph_ = true;
+
+        createEntity = createEntityFunction;
+
+        // Populate the graph
+        processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
+
+        // Remove the read file from memory
+        importer.FreeScene();
+
+    }
+
+    /* Regular expressions to match object dimensions */
+
+    const std::regex REGEX_MATCH_DIMENSION_ONE = std::regex("\\S+_dim1");
+
+    const std::regex REGEX_MATCH_DIMENSION_TWO = std::regex("\\S+_dim2");
+
+    const Dim getDimensionOfNodeName(const char *str) {
+        if (*str == 0)
+            return DIMENSION_BOTH;
+
+        if (std::regex_match(str, REGEX_MATCH_DIMENSION_ONE))
+            return DIMENSION_ONE;
+
+        if (std::regex_match(str, REGEX_MATCH_DIMENSION_TWO))
+            return DIMENSION_TWO;
+
+        return DIMENSION_BOTH;
+    }
+
     void SceneImporter::processAssimpNode(const aiNode *node,
                                           unsigned int current_depth,
                                           Dim dim_parent,
                                           ex::Entity parent) {
+        if (std::string( node->mName.C_Str() ) == "Camera") {
+            camera_node = node;
+        }
 
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
@@ -120,7 +165,7 @@ namespace sw {
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
         // Add a MeshComponent to the entity
-        if (node->mMeshes) {
+        if (node->mNumMeshes > 0) {
             unsigned int index_mesh = *(node->mMeshes);
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
             addMeshComponentToEntity(current_entity, mesh);
@@ -131,15 +176,6 @@ namespace sw {
             if (*(node->mChildren + i))
                 processAssimpNode(*(node->mChildren + i), current_depth + 1, dim_current, current_entity);
         }
-    }
-
-    /* Mesh methods and private helper functions */
-    glm::vec3 aiVector_to_glmVec(const aiVector3D in_vec) {
-        return glm::vec3(in_vec[0], in_vec[1], in_vec[2]);
-    }
-
-    glm::vec2 aiVector_to_glmVec(const aiVector2D in_vec) {
-        return glm::vec2(in_vec[0], in_vec[1]);
     }
 
     void SceneImporter::addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh) {

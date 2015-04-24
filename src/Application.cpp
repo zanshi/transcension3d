@@ -51,11 +51,19 @@ void sw::Application::initScene() {
 
     sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
 
+    auto renderSystem = systems.system < RenderSystem > ();
+
+    // Camera stuff
+    glm::vec3 world_cameraLookAt = sceneImporter.getCameraLookAt();
+    glm::vec3 world_cameraPosition = sceneImporter.getCameraPosition();
+    glm::mat4 cameraProjection = sceneImporter.getCameraProjectionMatrix();
+    renderSystem->setCamera(world_cameraPosition, world_cameraLookAt);
+    renderSystem->setProjectionMatrix(cameraProjection);
 }
 
 // Setup function to initiate the RenderSystem with a root node
 void sw::Application::initSceneGraphRoot(ex::Entity root) {
-    std::shared_ptr<RenderSystem> renderSystem = systems.system < RenderSystem > ();
+    auto renderSystem = systems.system < RenderSystem > ();
     root_ = root;
 
     // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
