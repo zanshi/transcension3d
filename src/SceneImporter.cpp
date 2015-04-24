@@ -121,7 +121,7 @@ namespace sw {
         // Add a MeshComponent to the entity
         if (node->mMeshes) {
             unsigned int index_mesh = *(node->mMeshes);
-            const aiMesh *mesh = *(p_scene->mMeshes+index_mesh);
+            const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
             addMeshComponentToEntity(current_entity, mesh);
         }
 
@@ -151,14 +151,20 @@ namespace sw {
 
         for (unsigned int i = 0; i < num; ++i) {
             Vertex vert = {
-                    aiVector_to_glmVec( *(mesh->mVertices+i) ),
-                    aiVector_to_glmVec( *(mesh->mNormals+i) ),
+                    aiVector_to_glmVec(*(mesh->mVertices + i)),
+                    aiVector_to_glmVec(*(mesh->mNormals + i)),
                     {0.0f, 0.0f}
             };
-            GLuint index = VERTEX_NUM_ATTRIBUTES * i;
 
             vertices.push_back(vert);
-            indices.push_back(index);
+        }
+
+        // Indices for each triangle
+        for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
+            aiFace face = mesh->mFaces[i];
+            for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+                indices.push_back(face.mIndices[j]);
+            }
         }
 
         entity.assign<MeshComponent>(vertices, indices);
