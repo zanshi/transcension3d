@@ -181,6 +181,8 @@ namespace sw {
     void SceneImporter::addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh) {
         unsigned int num = mesh->mNumVertices;
 
+        //std::cout << "number of vertices" << num << std::endl;
+
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
         // No Textures atm...
@@ -192,7 +194,6 @@ namespace sw {
                     aiVector_to_glmVec(*(mesh->mNormals + i)),
                     {0.0f, 0.0f}
             };
-
             vertices.push_back(vert);
         }
 

@@ -21,6 +21,8 @@
 
 #include "game_constants.hpp"
 
+#include <iomanip>
+
 namespace ex = entityx;
 
 namespace sw {
@@ -74,8 +76,11 @@ namespace sw {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
                 // events_.emit<RenderEvent>(entityToRender, current_depth);
-                glm::mat4 model = glm::scale(transform->cached_world_, {0.1f, 0.1f, 0.1f});
 
+                // TODO: Investigate what units should be used in blender
+                glm::mat4 model = glm::scale(transform->cached_world_, {0.5f, 0.5f, 0.5f});
+
+                //glm::mat4 model(1.0f);
                 glUniformMatrix4fv(uniform_M, 1, GL_FALSE, glm::value_ptr(model));
 
                 // Draw mesh
@@ -83,11 +88,12 @@ namespace sw {
                 glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
 
+
             }
 
             // Render its children
             for (ex::Entity child : graphNode->children_) {
-                renderEntity(child, dirty, alpha, current_depth+1);
+                renderEntity(child, dirty, alpha, current_depth + 1);
             }
         }
 
@@ -100,11 +106,48 @@ namespace sw {
 
         void setCamera(glm::vec3 world_cameraPosition, glm::vec3 world_cameraLookAt) {
             // TODO: Validate this
-            view_ = glm::lookAt(world_cameraPosition, world_cameraPosition+world_cameraLookAt, {0.0f, 0.0f, 1.0f});
+            //
+            //world_cameraPosition = world_cameraPosition + glm::vec3(-15.0f, 0.0f, 0.0f);
+
+            // For now set the camera
+            world_cameraPosition = glm::vec3(5.0f, 2.0f, 2.0f);
+            world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
+
+            view_ = glm::lookAt(world_cameraPosition,       // Camera is at (???), in World Space
+                                world_cameraLookAt,         // and looks at the origin?
+                                {0.0f, 1.0f, 0.0f});        // Head is up (set to 0,-1,0 to look upside-down)
+
+            /*
+            view_ = glm::lookAt(
+                    world_cameraPosition,
+                    glm::vec3(0.0f, 0.0f, 0.0f),
+                    glm::vec3(0.0f, 0.0f, 1.0f)
+            );
+             */
+
+            std::cout << "World lookAt " << std::endl;
+            print_glmVec3(world_cameraLookAt);
+
+            std::cout << "Camera position " << std::endl;
+            print_glmVec3(world_cameraPosition);
+
+            std::cout << "View matrix " << std::endl;
+            print_glmMatrix(view_);
         }
 
         void setProjectionMatrix(glm::mat4 proj) {
-            camera_projection_ = proj;
+
+            // TODO: proj matrix is not correct from parse
+            //camera_projection_ = proj;
+
+            // For now hardcoded perspective matrix
+            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 10.0f);
+
+            // Print the perspective matrices
+            std::cout << "Projection matrix " << std::endl;
+            print_glmMatrix(camera_projection_);
+            std::cout << "Projection matrix (incoming) " << std::endl;
+            print_glmMatrix(proj);
         }
 
         void initShader() {
@@ -113,6 +156,30 @@ namespace sw {
             uniform_P = glGetUniformLocation(shader_, "P");
             uniform_V = glGetUniformLocation(shader_, "V");
             uniform_M = glGetUniformLocation(shader_, "M");
+        }
+
+        void print_glmMatrix(glm::mat4 pMat4) {
+
+            double dArray[16] = {0.0};
+
+            const float *pSource = (const float *) glm::value_ptr(pMat4);
+            for (int i = 0; i < 16; ++i) {
+                dArray[i] = pSource[i];
+                std::cout << std::fixed << std::setprecision(2);
+                std::cout << dArray[i] << " ";
+                if (i == 3 || i == 7 || i == 11)
+                    std::cout << std::endl;
+            }
+            std::cout << std::endl << "--------------------" << std::endl;
+
+        }
+
+        void print_glmVec3(glm::vec3 vec) {
+            for (int i = 0; i < 3; ++i) {
+                std::cout << std::fixed << std::setprecision(2);
+                std::cout << vec[i] << " ";
+            }
+            std::cout << std::endl << "--------------------" << std::endl;
         }
 
     private:

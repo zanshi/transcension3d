@@ -38,6 +38,7 @@ void sw::Application::initScene() {
     std::string input;
     std::cin >> input;
 
+    //input = "a1.dae"; // test file
     const std::string filename = input;
 
     // SceneImporter shell
