@@ -170,4 +170,29 @@ namespace sw {
 
         entity.assign<MeshComponent>(vertices, indices);
     }
+
+
+    void SceneImporter::addShadingComponentToEntity(entityx::Entity entity, const aiMesh *mesh) {
+
+        std::unique_ptr<const aiMaterial> material(p_scene->mMaterials[mesh->mMaterialIndex]);
+        aiColor3D ai_ambient(0.f,0.f,0.f);
+        aiColor3D ai_diffuse(0.f,0.f,0.f);
+        aiColor3D ai_specular(0.f,0.f,0.f);
+        float shininess(0.0f);
+
+        material->Get(AI_MATKEY_COLOR_AMBIENT, ai_ambient);
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, ai_diffuse);
+        material->Get(AI_MATKEY_COLOR_SPECULAR, ai_specular);
+        material->Get(AI_MATKEY_SHININESS, shininess);
+
+        sw::Color color(std::move(glm::vec3 (ai_ambient.r, ai_ambient.g, ai_ambient.b)),
+                        std::move(glm::vec3 (ai_diffuse.r, ai_diffuse.g, ai_diffuse.b)),
+                        std::move(glm::vec3 (ai_specular.r, ai_specular.g, ai_specular.b)));
+
+        entity.assign<ShadingComponent>(std::move(color), std::move(shininess));
+
+
+    }
+
+
 }
