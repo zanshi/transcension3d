@@ -52,14 +52,11 @@ void sw::Application::initScene() {
 
     sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
 
-    auto renderSystem = systems.system < RenderSystem > ();
+    auto renderSystem = systems.system<RenderSystem>();
 
-    // Camera stuff
-    glm::vec3 world_cameraLookAt = sceneImporter.getCameraLookAt();
-    glm::vec3 world_cameraPosition = sceneImporter.getCameraPosition();
-    glm::mat4 cameraProjection = sceneImporter.getCameraProjectionMatrix();
-    renderSystem->setCamera(world_cameraPosition, world_cameraLookAt);
-    renderSystem->setProjectionMatrix(cameraProjection);
+    renderSystem->setCamera(sceneImporter.getCamera());
+
+
 }
 
 // Setup function to initiate the RenderSystem with a root node

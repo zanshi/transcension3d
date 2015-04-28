@@ -64,37 +64,13 @@ namespace sw {
         return m;
     }
 
-    glm::vec3 SceneImporter::getCameraLookAt() {
-        aiCamera camera = **p_scene->mCameras;
-        glm::mat4 cameraTransform = aiMatrix4x4_to_glmMat4(camera_node->mTransformation);
-
-        glm::vec3 local_pos = aiVector_to_glmVec(camera.mLookAt);
-        glm::vec4 temp = {local_pos[0], local_pos[1], local_pos[2], 0.0f};
-
-        glm::vec4 world_lookAt = cameraTransform*temp;
-
-        return glm::vec3(world_lookAt);
-    };
-
-    glm::vec3 SceneImporter::getCameraPosition() {
-        aiCamera camera = **p_scene->mCameras;
-        glm::mat4 cameraTransform = aiMatrix4x4_to_glmMat4(camera_node->mTransformation);
-
-        glm::vec3 local_pos = aiVector_to_glmVec(camera.mPosition);
-        glm::vec4 temp = {local_pos[0], local_pos[1], local_pos[2], 1.0f};
-
-        glm::vec4 world_pos = cameraTransform*temp;
-
-        return glm::vec3(world_pos);
-    };
-
-    glm::mat4 SceneImporter::getCameraProjectionMatrix() {
-        aiCamera camera = **p_scene->mCameras;
-        aiMatrix4x4 temp;
-        camera.GetCameraMatrix(temp);
-
-        return aiMatrix4x4_to_glmMat4(temp);
-    };
+    glm::mat4 SceneImporter::getCamera() {
+        if (camera_node_) {
+            return aiMatrix4x4_to_glmMat4(camera_node_->mTransformation);
+        } else {
+            return glm::mat4(1);
+        }
+    }
 
     void SceneImporter::populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction) {
         // Don't populate the application if it has already been done
@@ -137,7 +113,7 @@ namespace sw {
                                           Dim dim_parent,
                                           ex::Entity parent) {
         if (std::string( node->mName.C_Str() ) == "Camera") {
-            camera_node = node;
+            camera_node_ = node;
         }
 
         // Make sure that the supplied dim_parent is valid
@@ -169,6 +145,7 @@ namespace sw {
             unsigned int index_mesh = *(node->mMeshes);
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
             addMeshComponentToEntity(current_entity, mesh);
+            addShadingComponentToEntity(current_entity, mesh);
         }
 
         // Recursively process all its children nodes
@@ -211,7 +188,7 @@ namespace sw {
 
     void SceneImporter::addShadingComponentToEntity(entityx::Entity entity, const aiMesh *mesh) {
 
-        std::unique_ptr<const aiMaterial> material(p_scene->mMaterials[mesh->mMaterialIndex]);
+        const aiMaterial *material = p_scene->mMaterials[mesh->mMaterialIndex];
         aiColor3D ai_ambient(0.f,0.f,0.f);
         aiColor3D ai_diffuse(0.f,0.f,0.f);
         aiColor3D ai_specular(0.f,0.f,0.f);

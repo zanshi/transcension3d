@@ -42,9 +42,7 @@ namespace sw {
         // structure of the swag3d engine. Callable only ONCE, because reasons
         void populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction);
 
-        glm::vec3 getCameraLookAt();
-        glm::vec3 getCameraPosition();
-        glm::mat4 getCameraProjectionMatrix();
+        glm::mat4 getCamera();
 
     private:
         // private member variables
@@ -52,7 +50,7 @@ namespace sw {
         const aiScene *p_scene;
         bool has_populated_internal_graph_;
 
-        const aiNode *camera_node;
+        const aiNode *camera_node_;
 
         // private member function to create new entity
         std::function<ex::Entity()> createEntity;

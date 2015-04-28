@@ -47,7 +47,7 @@ namespace sw {
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
-            view_ = glm::affineInverse(view_);
+            //view_ = glm::affineInverse(view_);
 
             glUniformMatrix4fv(uniform_P, 1, GL_FALSE, glm::value_ptr(camera_projection_));
             glUniformMatrix4fv(uniform_V, 1, GL_FALSE, glm::value_ptr(view_));
@@ -62,6 +62,7 @@ namespace sw {
             auto graphNode = entityToRender.component<GraphNodeComponent>();
             auto movement = entityToRender.component<MovementComponent>();
             auto mesh = entityToRender.component<MeshComponent>();
+            auto shading = entityToRender.component<ShadingComponent>();
 
             // See if we need to update the current entities cached world transform
             dirty |= transform->is_dirty_;
@@ -72,13 +73,13 @@ namespace sw {
             }
 
             // Render if the current entity has a RenderComponent
-            if (render && mesh) {
+            if (mesh && shading) {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
                 // events_.emit<RenderEvent>(entityToRender, current_depth);
 
                 // TODO: Investigate what units should be used in blender
-                glm::mat4 model = glm::scale(transform->cached_world_, {0.5f, 0.5f, 0.5f});
+                glm::mat4 model = transform->cached_world_;
 
                 //glm::mat4 model(1.0f);
                 glUniformMatrix4fv(uniform_M, 1, GL_FALSE, glm::value_ptr(model));
@@ -104,18 +105,32 @@ namespace sw {
             std::cout << "Root entity set." << std::endl;
         }
 
+        void setCamera(glm::mat4 camera_transform) {
+
+            camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
+            view_ = glm::affineInverse(camera_transform);
+            //view_ = camera_transform;
+
+            print_glmMatrix(view_);
+            std::cout << "Projection" << std::endl;
+            print_glmMatrix(camera_projection_);
+
+        }
+
         void setCamera(glm::vec3 world_cameraPosition, glm::vec3 world_cameraLookAt) {
             // TODO: Validate this
             //
             //world_cameraPosition = world_cameraPosition + glm::vec3(-15.0f, 0.0f, 0.0f);
 
             // For now set the camera
-            world_cameraPosition = glm::vec3(5.0f, 2.0f, 2.0f);
+            world_cameraPosition = glm::vec3(1.0f, 1.0f, 1.0f);
             world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 
             view_ = glm::lookAt(world_cameraPosition,       // Camera is at (???), in World Space
                                 world_cameraLookAt,         // and looks at the origin?
                                 {0.0f, 1.0f, 0.0f});        // Head is up (set to 0,-1,0 to look upside-down)
+
+            //view_ = glm::affineInverse(view_);
 
             /*
             view_ = glm::lookAt(
@@ -161,8 +176,7 @@ namespace sw {
         void print_glmMatrix(glm::mat4 pMat4) {
 
             double dArray[16] = {0.0};
-
-            const float *pSource = (const float *) glm::value_ptr(pMat4);
+            const float *pSource = (const float *) glm::value_ptr(glm::transpose(pMat4));
             for (int i = 0; i < 16; ++i) {
                 dArray[i] = pSource[i];
                 std::cout << std::fixed << std::setprecision(2);

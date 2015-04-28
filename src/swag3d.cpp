@@ -112,8 +112,8 @@ int main(int argc, char *argv[]) {
         }
 
         // TODO: check if this is done correct
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
+        //glDisableVertexAttribArray(0);
+        //glDisableVertexAttribArray(1);
 
         SDL_GL_SwapWindow(win);
 
