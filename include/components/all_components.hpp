@@ -10,3 +10,4 @@
 #include "MovementComponent.hpp"
 #include "RenderComponent.hpp"
 #include "TransformComponent.hpp"
+#include "ShadingComponent.hpp"
