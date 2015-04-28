@@ -9,6 +9,8 @@
 #include <functional>
 #include <string>
 
+#include "glm/glm.hpp"
+
 // EntityX imports
 #include <entityx/entityx.h>
 
@@ -40,11 +42,17 @@ namespace sw {
         // structure of the swag3d engine. Callable only ONCE, because reasons
         void populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction);
 
+        glm::vec3 getCameraLookAt();
+        glm::vec3 getCameraPosition();
+        glm::mat4 getCameraProjectionMatrix();
+
     private:
         // private member variables
         Assimp::Importer importer;
         const aiScene *p_scene;
         bool has_populated_internal_graph_;
+
+        const aiNode *camera_node;
 
         // private member function to create new entity
         std::function<ex::Entity()> createEntity;

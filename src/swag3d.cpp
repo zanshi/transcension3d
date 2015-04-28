@@ -46,18 +46,17 @@ int main(int argc, char *argv[]) {
 
     /* Request opengl 3.3 context.
      *      * SDL doesn't have the ability to choose which profile at this time of writing,
-     *           * but it should default to the core profile */
+     *      * but it should default to the core profile */
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     /* Turn on double buffering with a 24bit Z buffer.
-     *      * You may need to change this to 16 or 32 for your system */
+     * You may need to change this to 16 or 32 for your system */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
-    SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_OPENGL);
+    SDL_Window *win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 640, 480, SDL_WINDOW_OPENGL);
     //Make sure creating our window went ok
     if (win == nullptr) {
         std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -65,11 +64,9 @@ int main(int argc, char *argv[]) {
     }
 
     SDL_GLContext glcontext = SDL_GL_CreateContext(win);
-
     SDL_GL_MakeCurrent(win, glcontext);
 
     //Init init;
-
     //init.glew();
 
     //Initialize GLEW
@@ -79,25 +76,6 @@ int main(int argc, char *argv[]) {
     {
         printf( "Error initializing GLEW! %s\n", glewGetErrorString( glewError ) );
     }
-
-
-    //Load in shaders
-    static ShaderProgram prog("../shaders/vertShader.vert", "../shaders/fragShader.frag");
-
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
-
-    static const GLfloat g_vertex_buffer_data[] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-    };
-
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
     // Application initialization
     sw::Application app;
@@ -111,6 +89,7 @@ int main(int argc, char *argv[]) {
 
     SDL_Event e;
     bool quit = false;
+
     while (!quit) {
 
         current = std::chrono::high_resolution_clock::now();
@@ -119,9 +98,9 @@ int main(int argc, char *argv[]) {
 
         glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glCullFace(GL_BACK);
+        glEnable(GL_DEPTH_TEST);
+        //glCullFace(GL_BACK); //TODO: Check
 
-        prog(); // calls for glUseProgram
 
         app.update(dt.count());
 
@@ -131,6 +110,10 @@ int main(int argc, char *argv[]) {
                 quit = true;
             }
         }
+
+        // TODO: check if this is done correct
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
 
         SDL_GL_SwapWindow(win);
 
