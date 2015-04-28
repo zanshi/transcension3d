@@ -30,6 +30,7 @@ namespace sw {
             // create the constraint solver
             m_pSolver = new btSequentialImpulseConstraintSolver();
 
+
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
             m_pWorld->setGravity(btVector3(0, -9.81f, 0));
@@ -44,11 +45,13 @@ namespace sw {
         }
 
 
-        void UpdateScene(float dt) {
+        void Update(float dt) {
 
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt);
             }
+
+
         }
 
 

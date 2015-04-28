@@ -15,11 +15,13 @@
 #include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
+#include "systems/PhysicsSystem.hpp"
 
 sw::Application::Application() {
     systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
+    systems.add<PhysicsSystem>();
 
     // An object can't move unless it has a position, D'UH
     //systems.add<ex::deps::Dependency<MovementComponent, BodyComponent>>();
