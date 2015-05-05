@@ -17,6 +17,9 @@
 #include "systems/PhysicsSystem.hpp"
 #include "systems/InputSystem.hpp"
 
+
+
+
 sw::Application::Application() {
     systems.add<InputSystem>();
     systems.add<MovementSystem>();
