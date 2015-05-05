@@ -7,7 +7,6 @@
 
 #include "SDL.h"
 
-#undef main
 
 #include "entityx/entityx.h"
 

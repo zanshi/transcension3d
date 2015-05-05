@@ -4,21 +4,8 @@
 
 #include "Application.hpp"
 
-// Include standard headers
-#include "cleanup.h"
-
-// Include GLEW
-#ifdef __APPLE_CC__
-//#include <OpenGL/gl3.h>
-#include <GL/glew.h>
-#define GLFW_INCLUDE_GLCOREARB
-#else
-#include "GL/glew.h"
-#endif
-
-// Include GLM
-#include "glm/glm.hpp"
-#include <common/Shader.h>
+#include <chrono>
+#include <cleanup.h>
 
 // Assimp
 #include "assimp/Importer.hpp"
@@ -27,13 +14,16 @@
 #include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
+#include "systems/PhysicsSystem.hpp"
 #include "systems/InputSystem.hpp"
 
 sw::Application::Application() {
+    systems.add<InputSystem>();
     systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
-    systems.add<InputSystem>();
+    systems.add<PhysicsSystem>();
+
     systems.configure();
 
     events.subscribe<QuitEvent>(*this);
@@ -152,7 +142,7 @@ void sw::Application::run() {
 
 // Setup function to initiate the RenderSystem with a root node
 void sw::Application::initSceneGraphRoot(ex::Entity root) {
-    auto renderSystem = systems.system < RenderSystem > ();
+    auto renderSystem = systems.system<RenderSystem>();
     root_ = root;
 
     // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
