@@ -4,34 +4,6 @@
 
 #include "Application.hpp"
 
-// Include standard headers
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-
-#include <chrono>
-#include <ctime>
-
-
-#include "cleanup.h"
-
-// Include GLEW
-#ifdef __APPLE_CC__
-
-//#include <OpenGL/gl3.h>
-#include <GL/glew.h>
-
-#define GLFW_INCLUDE_GLCOREARB
-#else
-#include "GL/glew.h"
-#endif
-
-// Include GLM
-#include "glm/glm.hpp"
-
-#include <common/Init.h>
-#include <common/Shader.h>
-
 // Assimp
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
@@ -43,14 +15,13 @@
 #include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
-#include "systems/InputSystem.hpp"
+#include "systems/PhysicsSystem.hpp"
 
 sw::Application::Application() {
     systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
-    systems.add<InputSystem>();
-    systems.configure();
+    systems.add<PhysicsSystem>();
 
     events.subscribe<QuitEvent>(*this);
 }
