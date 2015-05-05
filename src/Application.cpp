@@ -4,6 +4,34 @@
 
 #include "Application.hpp"
 
+// Include standard headers
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+
+#include <chrono>
+#include <ctime>
+
+
+#include "cleanup.h"
+
+// Include GLEW
+#ifdef __APPLE_CC__
+
+//#include <OpenGL/gl3.h>
+#include <GL/glew.h>
+
+#define GLFW_INCLUDE_GLCOREARB
+#else
+#include "GL/glew.h"
+#endif
+
+// Include GLM
+#include "glm/glm.hpp"
+
+#include <common/Init.h>
+#include <common/Shader.h>
+
 // Assimp
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
@@ -15,21 +43,66 @@
 #include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
+#include "systems/InputSystem.hpp"
 
 sw::Application::Application() {
     systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
-
-    // An object can't move unless it has a position, D'UH
-    //systems.add<ex::deps::Dependency<MovementComponent, BodyComponent>>();
+    systems.add<InputSystem>();
     systems.configure();
+
+    events.subscribe<QuitEvent>(*this);
 }
 
 void sw::Application::update(ex::TimeDelta dt) {
+    systems.update<InputSystem>(dt);
     systems.update<MovementSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
+}
+
+bool sw::Application::init() {
+    //First we need to start up SDL, and make sure it went ok
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    /* Request opengl 3.3 context.
+     *      * SDL doesn't have the ability to choose which profile at this time of writing,
+     *      * but it should default to the core profile */
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    /* Turn on double buffering with a 24bit Z buffer.
+     * You may need to change this to 16 or 32 for your system */
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+    //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
+    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 640, 480, SDL_WINDOW_OPENGL);
+    //Make sure creating our window went ok
+    if (win == nullptr) {
+        std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    glcontext = SDL_GL_CreateContext(win);
+    SDL_GL_MakeCurrent(win, glcontext);
+
+    //Initialize GLEW
+    glewExperimental = GL_TRUE;
+    GLenum glewError = glewInit();
+    if( glewError != GLEW_OK )
+    {
+        printf( "Error initializing GLEW! %s\n", glewGetErrorString( glewError ) );
+    }
+
+    glEnable(GL_DEPTH_TEST);
+
+    return true;
+
 }
 
 void sw::Application::initScene() {
@@ -55,8 +128,43 @@ void sw::Application::initScene() {
     auto renderSystem = systems.system<RenderSystem>();
 
     renderSystem->setCamera(sceneImporter.getCamera());
+}
+
+void sw::Application::run() {
+    initScene();
+
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point current, last;
+
+    int counter = 0;
+    int counter2 = 0;
+
+    isRunning = true;
+
+    while (isRunning) {
+        current = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> dt = std::chrono::duration_cast<std::chrono::duration<double>>(current - last);
+        last = current;
+
+        glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glCullFace(GL_BACK); //TODO: Check
+
+        update(dt.count());
+
+        // TODO: check if this is done correct
+        //glDisableVertexAttribArray(0);
+        //glDisableVertexAttribArray(1);
+
+        SDL_GL_SwapWindow(win);
 
 
+    } // Check if the ESC key was pressed or the window was closed
+
+    // Clean up
+    SDL_GL_DeleteContext(glcontext);
+    cleanup(win);
+    SDL_Quit();
 }
 
 // Setup function to initiate the RenderSystem with a root node
@@ -79,4 +187,11 @@ void sw::Application::initSceneGraphRoot(ex::Entity root) {
 
     // Save the roots in the Application instance
     current_dim_ = Dim::DIMENSION_ONE;
+
+    renderSystem->initShader();
+}
+
+void sw::Application::receive(const QuitEvent& quitEvent) {
+    std::cout << "Quit pls, from Application" << std::endl;
+    isRunning = false;
 }

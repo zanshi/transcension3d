@@ -39,8 +39,6 @@ namespace sw {
         RenderSystem(ex::EventManager &events)
                 : events_(events) {
             uniform_P = uniform_V = uniform_P = 0;
-
-            initShader();
         };
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -166,11 +164,12 @@ namespace sw {
         }
 
         void initShader() {
-            shader_(); //glUseProgram
+            shader_ = new ShaderProgram("../shaders/vertShader.vert", "../shaders/fragShader.frag");
+            (*shader_)(); //glUseProgram
 
-            uniform_P = glGetUniformLocation(shader_, "P");
-            uniform_V = glGetUniformLocation(shader_, "V");
-            uniform_M = glGetUniformLocation(shader_, "M");
+            uniform_P = glGetUniformLocation(*shader_, "P");
+            uniform_V = glGetUniformLocation(*shader_, "V");
+            uniform_M = glGetUniformLocation(*shader_, "M");
         }
 
         void print_glmMatrix(glm::mat4 pMat4) {
@@ -197,7 +196,6 @@ namespace sw {
         }
 
     private:
-        // Ugly-ass hack for events
         ex::EventManager &events_;
         // Reference to the top node in the tree, where rendering ALWAYS starts
         ex::Entity root_;
@@ -207,7 +205,7 @@ namespace sw {
         glm::mat4 view_;
 
         GLint uniform_P, uniform_V, uniform_M;
-        ShaderProgram shader_ = ShaderProgram("../shaders/vertShader.vert", "../shaders/fragShader.frag");
+        ShaderProgram *shader_;
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
             glm::mat4 &local = transform->local_;
