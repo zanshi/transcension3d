@@ -17,11 +17,23 @@ namespace sw {
             SDL_Event e;
 
             while (SDL_PollEvent(&e)) {
+
                 switch (e.type) {
                     case SDL_QUIT:
                         events.emit<QuitEvent>();
                         std::cout << "Quit pls" << std::endl;
                         break;
+                        /* Look for a keypress */
+                    case SDL_KEYDOWN:
+                        /* Check the SDLKey values */
+                        switch( e.key.keysym.sym ){
+                            case SDLK_ESCAPE:
+                                events.emit<QuitEvent>();
+                                std::cout << "Quit pls" << std::endl;
+                                break;
+                            default:
+                                break;
+                        }
                     default:
                         break;
                 }

@@ -45,7 +45,7 @@ namespace sw {
         }
 
 
-        void Update(float dt) {
+        void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
 
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt);
@@ -61,7 +61,7 @@ namespace sw {
 
         btCollisionDispatcher *m_pDispatcher;
 
-        btSequentialImpulseConstraintSOlver *m_pSolver;
+        btSequentialImpulseConstraintSolver *m_pSolver;
 
         btDefaultCollisionConfiguration *m_pCollisionConfiguration;
 
