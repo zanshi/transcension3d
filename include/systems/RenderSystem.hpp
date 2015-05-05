@@ -180,7 +180,7 @@ namespace sw {
             lightPosLoc    = glGetUniformLocation(*shader_, "lightPos");
             viewPosLoc     = glGetUniformLocation(*shader_, "viewPos");
 
-            glUniform3f(objectColorLoc, 1.0f, 0.1f, 0.31f);     //Färgen på objeket
+            glUniform3f(objectColorLoc, 1.0f, 0.6f, 0.31f);     //
             glUniform3f(lightColorLoc,  1.0f, 1.0f, 1.0f);      //
             glUniform3f(lightPosLoc,    2.0f, 2.0f, 1.0f);
             glUniform3f(viewPosLoc,     1.0f, 1.0f, 1.0f);
