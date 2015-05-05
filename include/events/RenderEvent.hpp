@@ -6,7 +6,6 @@
 
 #include <entityx/entityx.h>
 
-#include "components/BodyComponent.hpp"
 #include "components/RenderComponent.hpp"
 
 namespace ex = entityx;
@@ -14,9 +13,10 @@ namespace ex = entityx;
 namespace sw {
 
     struct RenderEvent {
-        RenderEvent(ex::Entity rendered_entity)
-                : rendered_entity_(rendered_entity) { };
+        RenderEvent(ex::Entity rendered_entity, unsigned int depth)
+                : rendered_entity_(rendered_entity), depth_(depth) { };
 
         ex::Entity rendered_entity_;
+        unsigned int depth_;
     };
 }

@@ -6,7 +6,6 @@
 
 #include "entityx/entityx.h"
 
-#include "components/BodyComponent.hpp"
 #include "components/MovementComponent.hpp"
 
 namespace ex = entityx;
@@ -21,13 +20,10 @@ namespace sw {
      *  **/
     struct MovementSystem : public ex::System<MovementSystem> {
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
-            ex::ComponentHandle <BodyComponent> body;
             ex::ComponentHandle <MovementComponent> movement;
 
-            for (ex::Entity entity : es.entities_with_components(body, movement)) {
+            for (ex::Entity entity : es.entities_with_components(movement)) {
                 //Simple Euler integration of position
-                body->position_ += movement->velocity_ * static_cast<float>(dt);
-
                 /* Debugging
                 std::cout << "MovementSystem:" << std::endl
                 << "  Operating on entity with id=" << entity.id().id() << std::endl
@@ -37,5 +33,4 @@ namespace sw {
             }
         }
     };
-
 }

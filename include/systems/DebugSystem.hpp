@@ -6,8 +6,8 @@
 
 #include <entityx/entityx.h>
 
-#include "components/BodyComponent.hpp"
 #include "components/RenderComponent.hpp"
+#include "components/DimensionComponent.hpp"
 #include "events/RenderEvent.hpp"
 
 #include <ostream>
@@ -33,34 +33,39 @@ namespace sw {
         }
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) {
-            for (ex::Entity entity : entities_to_debug_) {
-                debug_ostream_ << "Rendered entity with index=" << entity.id().index()
+            for (RenderEvent event : events_to_debug_) {
+                ex::Entity entity = event.rendered_entity_;
+
+                ex::ComponentHandle<DimensionComponent> dim = entity.component<DimensionComponent>();
+
+                size_t num_indrag = event.depth_ * 3;
+                std::string indrag(num_indrag, ' ');
+
+                debug_ostream_ << indrag << "* Dimension: " << dim->dimension_ << ", Rendered entity with index=" << entity.id().index()
                 << ", unique id=" << entity.id().id() << std::endl;
 
                 // retrieve the render component data and log
-                auto body = entity.component<BodyComponent>();
                 auto render = entity.component<RenderComponent>();
 
-                if (body) {
-                    debug_ostream_ << "  BodyComponent: " << "Position=" << body->position_
-                    << ", Rotation=" << body->rotation_ << std::endl;
-                }
-
                 if (render) {
-                    debug_ostream_ << "  RenderComponent message='" << render->debug_message_ << "'"
-                    << std::endl << std::endl;
+                    debug_ostream_ << indrag << "  RenderComponent message='" << render->debug_message_ << "'"
+                    << std::endl;
                 }
             }
 
-            entities_to_debug_.clear();
+            events_to_debug_.clear();
         }
 
         void receive(const RenderEvent &render_event) {
             // defer all debugging until DebugSystem::update(), because events are immutable and holy trinities
-            entities_to_debug_.push_back(render_event.rendered_entity_);
+            //* entities_to_debug_.push_back(render_event.rendered_entity_);
+
+            events_to_debug_.push_back(render_event);
+
         }
 
         std::ostream &debug_ostream_;
-        std::vector<ex::Entity> entities_to_debug_;
+        //* std::vector<ex::Entity> entities_to_debug_;
+        std::vector<RenderEvent> events_to_debug_;
     };
 }

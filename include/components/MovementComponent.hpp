@@ -8,7 +8,7 @@
 
 namespace sw {
 
-    struct MovementComponent {
+    struct MovementComponent : public ex::Component<MovementComponent> {
         MovementComponent(glm::vec3 velocity = {0.0f, 0.0f, 0.0f}, float mass = 1.0f)
                 : velocity_(velocity), mass_(mass) { };
 
