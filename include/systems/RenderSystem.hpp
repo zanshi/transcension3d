@@ -45,8 +45,6 @@ namespace sw {
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
-            //view_ = glm::affineInverse(view_);
-
             glUniformMatrix4fv(uniform_P, 1, GL_FALSE, glm::value_ptr(camera_projection_));
             glUniformMatrix4fv(uniform_V, 1, GL_FALSE, glm::value_ptr(view_));
 
@@ -107,7 +105,6 @@ namespace sw {
 
             camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
             view_ = glm::affineInverse(camera_transform);
-            //view_ = camera_transform;
 
             print_glmMatrix(view_);
             std::cout << "Projection" << std::endl;
