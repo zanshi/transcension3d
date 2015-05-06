@@ -8,7 +8,7 @@
 
 #include "events/JumpEvent.hpp"
 #include "events/MovementEvent.hpp"
-#include "events/ViewEvent.hpp"
+#include "events/ViewChangedEvent.hpp"
 
 
 namespace ex = entityx;
@@ -21,7 +21,7 @@ namespace sw {
         void configure(ex::EventManager &events) override {
             events.subscribe<JumpEvent>(*this);
             events.subscribe<MovementEvent>(*this);
-            events.subscribe<ViewEvent>(*this);
+            events.subscribe<ViewChangedEvent>(*this);
         }
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -33,7 +33,7 @@ namespace sw {
         void receive(const MovementEvent &move) {
 
         }
-        void receive(const ViewEvent &view) {
+        void receive(const ViewChangedEvent &view) {
 
         }
     };

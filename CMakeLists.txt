@@ -31,8 +31,8 @@ if( CMAKE_BINARY_DIR MATCHES " " )
 endif()
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++11")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -O2")
 
@@ -182,7 +182,7 @@ add_dependencies(INT_LIBS
 file(GLOB PROJECT_CXX_FILES ${PROJECT_CXX_DIR}/*.cpp)
 add_executable(${PROJECT_NAME_STR}
   ${PROJECT_CXX_FILES}
-include/events/MovementEvent.hpp include/events/JumpEvent.hpp include/events/ViewEvent.hpp include/systems/PlayerControlSystem.hpp)
+include/events/MovementEvent.hpp include/events/JumpEvent.hpp include/events/ViewChangedEvent.hpp include/systems/PlayerControlSystem.hpp)
 
 
 target_link_libraries(${PROJECT_NAME_STR}

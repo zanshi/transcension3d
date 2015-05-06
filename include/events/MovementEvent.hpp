@@ -6,8 +6,8 @@
 
 namespace sw {
     struct MovementEvent {
-        MovementEvent(int x, int y) : x(x) , y(y) {}
+        MovementEvent(int x, int y) : right_(x) , forward_(y) {}
 
-        int x, y;
+        int forward_, right_;
     };
 }

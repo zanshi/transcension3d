@@ -11,7 +11,7 @@
 #include "events/JumpEvent.hpp"
 #include "events/MovementEvent.hpp"
 #include "events/QuitEvent.hpp"
-#include "events/ViewEvent.hpp"
+#include "events/ViewChangedEvent.hpp"
 
 namespace ex = entityx;
 
@@ -21,35 +21,35 @@ namespace sw {
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
             SDL_Event e;
 
-            const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+            const Uint8 *currentKeyStates = SDL_GetKeyboardState(NULL);
+
+            forward = right = 0;
 
 
-            if( currentKeyStates[ SDL_SCANCODE_W ] )
-            {
+            if (currentKeyStates[SDL_SCANCODE_W]) {
                 forward += 1;
             }
-            if( currentKeyStates[ SDL_SCANCODE_A ] )
-            {
+            if (currentKeyStates[SDL_SCANCODE_A]) {
                 right += -1;
             }
-            if( currentKeyStates[ SDL_SCANCODE_S ] )
-            {
+            if (currentKeyStates[SDL_SCANCODE_S]) {
                 forward += -1;
             }
-            if( currentKeyStates[ SDL_SCANCODE_D ] )
-            {
+            if (currentKeyStates[SDL_SCANCODE_D]) {
                 right += 1;
             }
-            events.emit<MovementEvent>(right, forward);
+
+            if (forward != 0 || right != 0)
+                events.emit<MovementEvent>(right, forward);
 
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) {
                     events.emit<QuitEvent>();
                 }
 
-                if(e.type == SDL_KEYDOWN) {
+                if (e.type == SDL_KEYDOWN) {
 
-                    switch(e.key.keysym.sym) {
+                    switch (e.key.keysym.sym) {
 
                         case SDLK_SPACE:
                             events.emit<JumpEvent>();
@@ -61,9 +61,9 @@ namespace sw {
                 }
 
 
-                if(e.type == SDL_MOUSEBUTTONDOWN)  {
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
 
-                    switch(e.button.button) {
+                    switch (e.button.button) {
                         case SDL_BUTTON_LEFT:
                             std::cout << "pew" << std::endl;
                             break;
@@ -71,13 +71,12 @@ namespace sw {
                             break;
                     }
                 }
-                if(e.type == SDL_MOUSEMOTION) {
-
-                    events.emit<ViewEvent>();
-
+                if (e.type == SDL_MOUSEMOTION) {
+                    events.emit<ViewChangedEvent>(e.motion.xrel, e.motion.yrel);
                 }
             }
         }
+
     private:
         int right, forward;
     };
