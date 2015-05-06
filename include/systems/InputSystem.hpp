@@ -27,6 +27,31 @@ namespace sw {
                 if (e.type == SDL_QUIT) {
                     events.emit<QuitEvent>();
                 }
+
+                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
+
+                if( currentKeyStates[ SDL_SCANCODE_W ] )
+                {
+                    std::cout << "heloo" << std::endl;
+                }
+                if( currentKeyStates[ SDL_SCANCODE_A ] )
+                {
+                    std::cout << "heloo" << std::endl;
+                }
+                if( currentKeyStates[ SDL_SCANCODE_S ] )
+                {
+                    std::cout << "heloo" << std::endl;
+                }
+                if( currentKeyStates[ SDL_SCANCODE_D ] )
+                {
+                    std::cout << "heloo" << std::endl;
+                }
+                if( currentKeyStates[ SDL_SCANCODE_LCTRL ] )
+                {
+                    std::cout << "heloo" << std::endl;
+                }
+
                 if(e.type == SDL_KEYDOWN) {
 
                     switch(e.key.keysym.sym) {
@@ -37,26 +62,21 @@ namespace sw {
 
                         case SDLK_s:
                             y += -1;
-                            std::cout << "ner" << std::endl;
                             break;
 
                         case SDLK_a:
                             x += -1;
-                            std::cout << "vänster" << std::endl;
                             break;
 
                         case SDLK_d:
                             x += 1;
-                            std::cout << "höger" << std::endl;
                             break;
 
                         case SDLK_SPACE:
                             events.emit<JumpEvent>();
-                            std::cout << "hopp" << std::endl;
                             break;
 
                         default:
-                            std::cout << "hmm" << std::endl;
                             break;
                     }
                     events.emit<MovementEvent>(x, y);
@@ -70,13 +90,13 @@ namespace sw {
                             std::cout << "pew" << std::endl;
                             break;
                         default:
-                            std::cout << "kuk" << std::endl;
+                            std::cout << "hmm" << std::endl;
                             break;
                     }
                 }
                 if(e.type == SDL_MOUSEMOTION) {
 
-                    std::cout << "x:" << e.motion.xrel << std::endl << "y:" << e.motion.yrel << std::endl;
+                    events.emit<ViewEvent>();
 
                 }
             }
