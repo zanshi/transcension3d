@@ -80,6 +80,12 @@ namespace sw {
                 //glm::mat4 model(1.0f);
                 glUniformMatrix4fv(uniform_M, 1, GL_FALSE, glm::value_ptr(model));
 
+                // Set object material properties
+                glUniform3f(matAmbientLoc,  shading->color_.ambient_.r, shading->color_.ambient_.g, shading->color_.ambient_.b );
+                glUniform3f(matDiffuseLoc,  shading->color_.diffuse_.r, shading->color_.diffuse_.g, shading->color_.diffuse_.b );
+                glUniform3f(matSpecularLoc, shading->color_.specular_.r,shading->color_.specular_.g,shading->color_.specular_.b );
+                glUniform1f(matShineLoc,    shading->shininess_);
+
                 // Draw mesh
                 glBindVertexArray(mesh->VAO);
                 glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
@@ -175,23 +181,12 @@ namespace sw {
             uniform_M = glGetUniformLocation(*shader_, "M");
 
             //Lightning
-            objectColorLoc = glGetUniformLocation(*shader_, "objectColor");
-            lightColorLoc  = glGetUniformLocation(*shader_, "lightColor");
-            lightPosLoc    = glGetUniformLocation(*shader_, "lightPos");
             viewPosLoc     = glGetUniformLocation(*shader_, "viewPos");
+
 
             lightAmbientLoc  = glGetUniformLocation(*shader_, "light.ambient");
             lightDiffuseLoc  = glGetUniformLocation(*shader_, "light.diffuse");
             lightSpecularLoc = glGetUniformLocation(*shader_, "light.specular");
-
-            glUniform3f(lightAmbientLoc,  0.2f, 0.2f, 0.2f);
-            glUniform3f(lightDiffuseLoc,  0.5f, 0.5f, 0.5f);
-            glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
-
-            glUniform3f(objectColorLoc, 1.0f, 0.6f, 0.31f);
-            glUniform3f(lightColorLoc,  1.0f, 1.0f, 1.0f);
-            glUniform3f(lightPosLoc,    2.0f, 2.0f, 1.0f);
-            glUniform3f(viewPosLoc,     1.0f, 1.0f, 1.0f);
 
             //Material
             matAmbientLoc  = glGetUniformLocation(*shader_, "material.ambient");
@@ -199,10 +194,15 @@ namespace sw {
             matSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
             matShineLoc    = glGetUniformLocation(*shader_, "material.shininess");
 
-            glUniform3f(matAmbientLoc,  1.0f, 0.5f, 0.31f);
-            glUniform3f(matDiffuseLoc,  1.0f, 0.5f, 0.31f);
-            glUniform3f(matSpecularLoc, 0.5f, 0.5f, 0.5f);
-            glUniform1f(matShineLoc,    32.0f);
+            glUniform3f(lightAmbientLoc,  0.2f, 0.2f, 0.2f);
+            glUniform3f(lightDiffuseLoc,  0.5f, 0.5f, 0.5f);
+            glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
+
+            glUniform3f(viewPosLoc,     1.0f, 1.0f, 1.0f);
+
+
+
+
 
         }
 
@@ -239,9 +239,6 @@ namespace sw {
         glm::mat4 view_;
 
         // Lightning
-        GLint objectColorLoc;
-        GLint lightColorLoc;
-        GLint lightPosLoc;
         GLint viewPosLoc;
 
         GLint lightAmbientLoc;

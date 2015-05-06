@@ -8,10 +8,7 @@ in vec3 FragPos;
 out vec4 color;
 
 // Uniforms
-uniform vec3 lightPos;
 uniform vec3 viewPos;
-uniform vec3 lightColor;
-uniform vec3 objectColor;
 
 struct Material {
     vec3 ambient;
