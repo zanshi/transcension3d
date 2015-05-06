@@ -45,8 +45,6 @@ namespace sw {
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
-            //view_ = glm::affineInverse(view_);
-
             glUniformMatrix4fv(uniform_P, 1, GL_FALSE, glm::value_ptr(camera_projection_));
             glUniformMatrix4fv(uniform_V, 1, GL_FALSE, glm::value_ptr(view_));
 
@@ -107,23 +105,26 @@ namespace sw {
 
             camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
             view_ = glm::affineInverse(camera_transform);
-            //view_ = camera_transform;
 
+            std::cout << "View matrix " << std::endl;
             print_glmMatrix(view_);
             std::cout << "Projection" << std::endl;
             print_glmMatrix(camera_projection_);
 
+
         }
 
+        // this is not used for now
         void setCamera(glm::vec3 world_cameraPosition, glm::vec3 world_cameraLookAt) {
             // TODO: Validate this
             //
             //world_cameraPosition = world_cameraPosition + glm::vec3(-15.0f, 0.0f, 0.0f);
 
             // For now set the camera
-            world_cameraPosition = glm::vec3(1.0f, 1.0f, 1.0f);
-            world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
+            //world_cameraPosition = glm::vec3(1.0f, 1.0f, 1.0f);
+            //world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 
+            std::cout << "hello" << std::endl;
             view_ = glm::lookAt(world_cameraPosition,       // Camera is at (???), in World Space
                                 world_cameraLookAt,         // and looks at the origin?
                                 {0.0f, 1.0f, 0.0f});        // Head is up (set to 0,-1,0 to look upside-down)
@@ -164,12 +165,26 @@ namespace sw {
         }
 
         void initShader() {
+
             shader_ = new ShaderProgram("../shaders/vertShader.vert", "../shaders/fragShader.frag");
             (*shader_)(); //glUseProgram
 
+            //Model-View-Projection
             uniform_P = glGetUniformLocation(*shader_, "P");
             uniform_V = glGetUniformLocation(*shader_, "V");
             uniform_M = glGetUniformLocation(*shader_, "M");
+
+            //Lightning
+            objectColorLoc = glGetUniformLocation(*shader_, "objectColor");
+            lightColorLoc  = glGetUniformLocation(*shader_, "lightColor");
+            lightPosLoc    = glGetUniformLocation(*shader_, "lightPos");
+            viewPosLoc     = glGetUniformLocation(*shader_, "viewPos");
+
+            glUniform3f(objectColorLoc, 1.0f, 0.6f, 0.31f);     //
+            glUniform3f(lightColorLoc,  1.0f, 1.0f, 1.0f);      //
+            glUniform3f(lightPosLoc,    2.0f, 2.0f, 1.0f);
+            glUniform3f(viewPosLoc,     1.0f, 1.0f, 1.0f);
+
         }
 
         void print_glmMatrix(glm::mat4 pMat4) {
@@ -204,6 +219,13 @@ namespace sw {
         glm::mat4 camera_projection_;
         glm::mat4 view_;
 
+        // Lightning
+        GLint objectColorLoc;
+        GLint lightColorLoc;
+        GLint lightPosLoc;
+        GLint viewPosLoc;
+
+        //
         GLint uniform_P, uniform_V, uniform_M;
         ShaderProgram *shader_;
 

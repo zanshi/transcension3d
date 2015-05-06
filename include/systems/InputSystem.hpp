@@ -77,6 +77,7 @@ namespace sw {
                 if(e.type == SDL_MOUSEMOTION) {
 
                     std::cout << "x:" << e.motion.xrel << std::endl << "y:" << e.motion.yrel << std::endl;
+
                 }
             }
         }

@@ -4,10 +4,11 @@
 
 #pragma once
 
+// Include GLEW
+#include "GL/glew.h"
 
 #include "SDL.h"
 
-#undef main
 
 #include "entityx/entityx.h"
 

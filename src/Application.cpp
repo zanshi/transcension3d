@@ -4,52 +4,29 @@
 
 #include "Application.hpp"
 
-// Include standard headers
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-
 #include <chrono>
-#include <ctime>
-
-
-#include "cleanup.h"
-
-// Include GLEW
-#ifdef __APPLE_CC__
-
-//#include <OpenGL/gl3.h>
-#include <GL/glew.h>
-
-#define GLFW_INCLUDE_GLCOREARB
-#else
-#include "GL/glew.h"
-#endif
-
-// Include GLM
-#include "glm/glm.hpp"
-
-#include <common/Init.h>
-#include <common/Shader.h>
+#include <cleanup.h>
 
 // Assimp
 #include "assimp/Importer.hpp"
-#include "assimp/scene.h"
-
 #include "scene/SceneImporter.hpp"
-
 #include "components/all_components.hpp"
-
 #include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
+#include "systems/PhysicsSystem.hpp"
 #include "systems/InputSystem.hpp"
 
+
+
+
 sw::Application::Application() {
+    systems.add<InputSystem>();
     systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
-    systems.add<InputSystem>();
+    systems.add<PhysicsSystem>();
+
     systems.configure();
 
     events.subscribe<QuitEvent>(*this);
@@ -94,9 +71,8 @@ bool sw::Application::init() {
     //Initialize GLEW
     glewExperimental = GL_TRUE;
     GLenum glewError = glewInit();
-    if( glewError != GLEW_OK )
-    {
-        printf( "Error initializing GLEW! %s\n", glewGetErrorString( glewError ) );
+    if (glewError != GLEW_OK) {
+        printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -125,7 +101,7 @@ void sw::Application::initScene() {
 
     sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
 
-    auto renderSystem = systems.system<RenderSystem>();
+    auto renderSystem = systems.system < RenderSystem > ();
 
     renderSystem->setCamera(sceneImporter.getCamera());
 }
@@ -169,7 +145,7 @@ void sw::Application::run() {
 
 // Setup function to initiate the RenderSystem with a root node
 void sw::Application::initSceneGraphRoot(ex::Entity root) {
-    auto renderSystem = systems.system < RenderSystem > ();
+    auto renderSystem = systems.system<RenderSystem>();
     root_ = root;
 
     // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
@@ -191,7 +167,7 @@ void sw::Application::initSceneGraphRoot(ex::Entity root) {
     renderSystem->initShader();
 }
 
-void sw::Application::receive(const QuitEvent& quitEvent) {
+void sw::Application::receive(const QuitEvent &quitEvent) {
     std::cout << "Quit pls, from Application" << std::endl;
     isRunning = false;
 }

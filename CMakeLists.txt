@@ -32,6 +32,7 @@ endif()
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -O2")
 
@@ -125,11 +126,16 @@ add_subdirectory(
   ${PROJECT_EXT_DIR}/entityx
 )
 
+add_subdirectory(
+    ${PROJECT_EXT_DIR}/bullet
+)
+
 
 set(ext_libs
   ${CMAKE_SOURCE_DIR}/external/glew/include/
   ${CMAKE_SOURCE_DIR}/external/entityx/
   ${CMAKE_SOURCE_DIR}/external/assimp/include
+  ${CMAKE_SOURCE_DIR}/external/bullet/src/
 )
 
 
@@ -144,6 +150,9 @@ set(ALL_LIBS
   GLEW
   INT_LIBS
   entityx
+  BulletDynamics
+  BulletCollision
+  LinearMath
   ${SDL2_LIBRARY}
   ${ASSIMP_LIBRARY}
   ${ZLIB_LIBRARY}
@@ -155,6 +164,7 @@ set(ALL_LIBS
 
 set(EXT_DEPS
     entityx
+    ${BULLET_LIBRARIES}
     ${ASSIMP_LIBRARY}
 )
 

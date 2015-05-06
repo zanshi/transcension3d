@@ -1,4 +1,5 @@
-int main() {
-    int i = nullptr;
-    return 1;
+int main()
+{
+	int i = nullptr;
+	return 1;
 }
