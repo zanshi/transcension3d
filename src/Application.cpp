@@ -56,6 +56,8 @@ bool sw::Application::init() {
      * You may need to change this to 16 or 32 for your system */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 32);
 
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
     win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 640, 480, SDL_WINDOW_OPENGL);
@@ -75,6 +77,7 @@ bool sw::Application::init() {
         printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
     }
 
+    glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
 
     return true;
