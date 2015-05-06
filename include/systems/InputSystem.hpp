@@ -21,56 +21,35 @@ namespace sw {
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
             SDL_Event e;
 
-            x = 0;
-            y = 0;
+            const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
+
+            if( currentKeyStates[ SDL_SCANCODE_W ] )
+            {
+                forward += 1;
+            }
+            if( currentKeyStates[ SDL_SCANCODE_A ] )
+            {
+                right += -1;
+            }
+            if( currentKeyStates[ SDL_SCANCODE_S ] )
+            {
+                forward += -1;
+            }
+            if( currentKeyStates[ SDL_SCANCODE_D ] )
+            {
+                right += 1;
+            }
+            events.emit<MovementEvent>(right, forward);
+
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) {
                     events.emit<QuitEvent>();
                 }
 
-                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-
-
-                if( currentKeyStates[ SDL_SCANCODE_W ] )
-                {
-                    std::cout << "heloo" << std::endl;
-                }
-                if( currentKeyStates[ SDL_SCANCODE_A ] )
-                {
-                    std::cout << "heloo" << std::endl;
-                }
-                if( currentKeyStates[ SDL_SCANCODE_S ] )
-                {
-                    std::cout << "heloo" << std::endl;
-                }
-                if( currentKeyStates[ SDL_SCANCODE_D ] )
-                {
-                    std::cout << "heloo" << std::endl;
-                }
-                if( currentKeyStates[ SDL_SCANCODE_LCTRL ] )
-                {
-                    std::cout << "heloo" << std::endl;
-                }
-
                 if(e.type == SDL_KEYDOWN) {
 
                     switch(e.key.keysym.sym) {
-
-                        case SDLK_w:
-                            y += 1;
-                            break;
-
-                        case SDLK_s:
-                            y += -1;
-                            break;
-
-                        case SDLK_a:
-                            x += -1;
-                            break;
-
-                        case SDLK_d:
-                            x += 1;
-                            break;
 
                         case SDLK_SPACE:
                             events.emit<JumpEvent>();
@@ -79,7 +58,6 @@ namespace sw {
                         default:
                             break;
                     }
-                    events.emit<MovementEvent>(x, y);
                 }
 
 
@@ -90,7 +68,6 @@ namespace sw {
                             std::cout << "pew" << std::endl;
                             break;
                         default:
-                            std::cout << "hmm" << std::endl;
                             break;
                     }
                 }
@@ -102,6 +79,6 @@ namespace sw {
             }
         }
     private:
-        int x,y;
+        int right, forward;
     };
 }
