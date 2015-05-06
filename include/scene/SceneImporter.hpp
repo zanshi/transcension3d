@@ -13,12 +13,14 @@
 
 // EntityX imports
 #include <entityx/entityx.h>
+#include <BulletCollision/CollisionShapes/btCollisionShape.h>
 
 // AssImp imports
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 
 #include "components/DimensionComponent.hpp"
+#include "components/MeshComponent.hpp"
 
 namespace ex = entityx;
 
@@ -67,5 +69,11 @@ namespace sw {
         void addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh);
 
         void addShadingComponentToEntity(entityx::Entity entity, const aiMesh *mesh);
+
+        void addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh);
+
+        glm::vec3 buildBoundingVector(const aiMesh *pMesh, std::vector<Vertex> vertices);
+
+
     };
 }

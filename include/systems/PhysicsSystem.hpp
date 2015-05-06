@@ -47,8 +47,8 @@ namespace sw {
             auto physicsComponent = current_entity.component<PhysicsComponent>();
             auto node = current_entity.component<GraphNodeComponent>();
 
-            if(physicsComponent != nullptr) {
-                m_pWorld->addRigidBody(physicsComponent->body);
+            if(physicsComponent) {
+                m_pWorld->addRigidBody(physicsComponent->body_);
             }
 
             if(!node->children_.empty()) {
@@ -74,6 +74,8 @@ namespace sw {
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt);
             }
+
+
         }
 
 

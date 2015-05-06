@@ -6,11 +6,13 @@
 #include <regex>
 
 // GL Includes
-#include <GL/glew.h>
+//#include <GL/glew.h>
 
 // GLM includes
-#include <glm/glm.hpp>
 #include <assimp/postprocess.h>
+
+// Bullet includes
+#include "btBulletDynamicsCommon.h"
 
 // Project-related imports
 #include "components/all_components.hpp"
@@ -116,6 +118,8 @@ namespace sw {
             camera_node_ = node;
         }
 
+        //std::cout << node->mMetaData->mKeys[0] << std::endl;
+
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
               dim_parent == Dim::DIMENSION_TWO)) {
@@ -146,6 +150,7 @@ namespace sw {
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
             addMeshComponentToEntity(current_entity, mesh);
             addShadingComponentToEntity(current_entity, mesh);
+            addPhysicsComponentToEntity(current_entity, mesh);
         }
 
         // Recursively process all its children nodes
@@ -207,6 +212,43 @@ namespace sw {
 
 
     }
+
+
+    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh) {
+
+        auto mesh = entity.component<MeshComponent>();
+        auto transform = entity.component<TransformComponent>();
+
+
+        float mass = 0.0f;
+
+
+        entity.assign<PhysicsComponent>(std::move(buildBoundingVector(pMesh, mesh->vertices)), mass);
+
+
+
+    }
+
+    glm::vec3 SceneImporter::buildBoundingVector(const aiMesh *pMesh, std::vector<Vertex> vertices)
+    {
+        // Create initial variables to hold min and max xyz values for the mesh
+        glm::vec3 mesh_max(FLT_MIN);
+        glm::vec3 mesh_min(FLT_MAX);
+        glm::vec3 vertex_position;
+
+        for(Vertex vertex : vertices) {
+
+            vertex_position = vertex.Position;
+            mesh_min = glm::min(mesh_min, vertex_position);
+            mesh_max = glm::max(mesh_max, vertex_position);
+
+        }
+
+        return (mesh_max - mesh_min)/2.0f;
+
+
+    }
+
 
 
 }

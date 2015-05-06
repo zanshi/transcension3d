@@ -35,8 +35,10 @@ sw::Application::Application() {
 void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
     systems.update<MovementSystem>(dt);
+    systems.update<PhysicsSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
+
 }
 
 bool sw::Application::init() {

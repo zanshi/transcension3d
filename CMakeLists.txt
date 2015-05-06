@@ -181,8 +181,7 @@ add_dependencies(INT_LIBS
 
 file(GLOB PROJECT_CXX_FILES ${PROJECT_CXX_DIR}/*.cpp)
 add_executable(${PROJECT_NAME_STR}
-  ${PROJECT_CXX_FILES}
-include/events/MovementEvent.hpp include/events/JumpEvent.hpp include/events/ViewEvent.hpp)
+  ${PROJECT_CXX_FILES})
 
 
 target_link_libraries(${PROJECT_NAME_STR}

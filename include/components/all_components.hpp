@@ -11,3 +11,4 @@
 #include "RenderComponent.hpp"
 #include "TransformComponent.hpp"
 #include "ShadingComponent.hpp"
+#include "PhysicsComponent.hpp"
