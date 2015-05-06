@@ -180,10 +180,29 @@ namespace sw {
             lightPosLoc    = glGetUniformLocation(*shader_, "lightPos");
             viewPosLoc     = glGetUniformLocation(*shader_, "viewPos");
 
-            glUniform3f(objectColorLoc, 1.0f, 0.6f, 0.31f);     //
-            glUniform3f(lightColorLoc,  1.0f, 1.0f, 1.0f);      //
+            lightAmbientLoc  = glGetUniformLocation(*shader_, "light.ambient");
+            lightDiffuseLoc  = glGetUniformLocation(*shader_, "light.diffuse");
+            lightSpecularLoc = glGetUniformLocation(*shader_, "light.specular");
+
+            glUniform3f(lightAmbientLoc,  0.2f, 0.2f, 0.2f);
+            glUniform3f(lightDiffuseLoc,  0.5f, 0.5f, 0.5f);
+            glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
+
+            glUniform3f(objectColorLoc, 1.0f, 0.6f, 0.31f);
+            glUniform3f(lightColorLoc,  1.0f, 1.0f, 1.0f);
             glUniform3f(lightPosLoc,    2.0f, 2.0f, 1.0f);
             glUniform3f(viewPosLoc,     1.0f, 1.0f, 1.0f);
+
+            //Material
+            matAmbientLoc  = glGetUniformLocation(*shader_, "material.ambient");
+            matDiffuseLoc  = glGetUniformLocation(*shader_, "material.diffuse");
+            matSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
+            matShineLoc    = glGetUniformLocation(*shader_, "material.shininess");
+
+            glUniform3f(matAmbientLoc,  1.0f, 0.5f, 0.31f);
+            glUniform3f(matDiffuseLoc,  1.0f, 0.5f, 0.31f);
+            glUniform3f(matSpecularLoc, 0.5f, 0.5f, 0.5f);
+            glUniform1f(matShineLoc,    32.0f);
 
         }
 
@@ -224,6 +243,16 @@ namespace sw {
         GLint lightColorLoc;
         GLint lightPosLoc;
         GLint viewPosLoc;
+
+        GLint lightAmbientLoc;
+        GLint lightDiffuseLoc;
+        GLint lightSpecularLoc;
+
+        //Material
+        GLint matAmbientLoc;
+        GLint matDiffuseLoc;
+        GLint matSpecularLoc;
+        GLint matShineLoc;
 
         //
         GLint uniform_P, uniform_V, uniform_M;
