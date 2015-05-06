@@ -11,3 +11,5 @@
 #include "RenderComponent.hpp"
 #include "TransformComponent.hpp"
 #include "ShadingComponent.hpp"
+#include "PlayerComponent.hpp"
+#include "PhysicsComponent.hpp"

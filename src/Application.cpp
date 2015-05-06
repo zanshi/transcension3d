@@ -23,7 +23,6 @@
 
 sw::Application::Application() {
     systems.add<InputSystem>();
-    systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
     systems.add<PhysicsSystem>();
@@ -36,10 +35,9 @@ sw::Application::Application() {
 
 void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
-    systems.update<MovementSystem>(dt);
+    systems.update<PlayerControlSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
-    systems.update<PlayerControlSystem>(dt);
 }
 
 bool sw::Application::init() {
@@ -61,7 +59,7 @@ bool sw::Application::init() {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
-    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 640, 480, SDL_WINDOW_OPENGL);
+    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 1280, 960, SDL_WINDOW_OPENGL);
     //Make sure creating our window went ok
     if (win == nullptr) {
         std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -79,6 +77,9 @@ bool sw::Application::init() {
     }
 
     glEnable(GL_DEPTH_TEST);
+
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_ShowCursor(0);
 
     return true;
 
@@ -106,7 +107,7 @@ void sw::Application::initScene() {
 
     auto renderSystem = systems.system < RenderSystem > ();
 
-    renderSystem->setCamera(sceneImporter.getCamera());
+    //renderSystem->setCamera(sceneImporter.getCamera());
 }
 
 void sw::Application::run() {

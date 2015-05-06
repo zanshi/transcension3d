@@ -112,9 +112,6 @@ namespace sw {
                                           unsigned int current_depth,
                                           Dim dim_parent,
                                           ex::Entity parent) {
-        if (std::string( node->mName.C_Str() ) == "Camera") {
-            camera_node_ = node;
-        }
 
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
@@ -135,10 +132,18 @@ namespace sw {
 
         /* Add the current node to its parent */
         ex::Entity current_entity = createEntity();
+
+        // If Camera node -> node is player
+        if (std::string( node->mName.C_Str() ) == "Camera") {
+            camera_node_ = node;
+            current_entity.assign<PlayerComponent>();
+        }
+
         current_entity.assign<TransformComponent>(aiMatrix4x4_to_glmMat4(node->mTransformation));
         current_entity.assign<GraphNodeComponent>(parent, current_entity);
         current_entity.assign<DimensionComponent>(dim_current);
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
+        current_entity.assign<PhysicsComponent>();
 
         // Add a MeshComponent to the entity
         if (node->mNumMeshes > 0) {

@@ -24,6 +24,7 @@ namespace sw {
             const Uint8 *currentKeyStates = SDL_GetKeyboardState(NULL);
 
             forward = right = 0;
+            is_sprinting = false;
 
 
             if (currentKeyStates[SDL_SCANCODE_W]) {
@@ -38,9 +39,12 @@ namespace sw {
             if (currentKeyStates[SDL_SCANCODE_D]) {
                 right += 1;
             }
+            if (currentKeyStates[SDL_SCANCODE_LSHIFT]) {
+                is_sprinting = true;
+            }
 
             if (forward != 0 || right != 0)
-                events.emit<MovementEvent>(right, forward);
+                events.emit<MovementEvent>(right, forward, is_sprinting);
 
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) {
@@ -54,7 +58,6 @@ namespace sw {
                         case SDLK_SPACE:
                             events.emit<JumpEvent>();
                             break;
-
                         default:
                             break;
                     }
@@ -78,6 +81,7 @@ namespace sw {
         }
 
     private:
-        int right, forward;
+        float right, forward;
+        bool is_sprinting;
     };
 }

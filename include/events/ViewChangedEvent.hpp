@@ -8,6 +8,6 @@ namespace sw {
     struct ViewChangedEvent {
         ViewChangedEvent(int x, int y) : delta_up_(y), delta_right_(x) {}
 
-        int delta_up_, delta_right_;
+        float delta_up_, delta_right_;
     };
 }

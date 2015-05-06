@@ -9,6 +9,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_inverse.hpp"
+#include "glm/gtx/euler_angles.hpp"
 
 #include "components/TransformComponent.hpp"
 #include "components/RenderComponent.hpp"
@@ -39,6 +40,7 @@ namespace sw {
         RenderSystem(ex::EventManager &events)
                 : events_(events) {
             uniform_P = uniform_V = uniform_P = 0;
+            camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 0.01f, 10.0f);
         };
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -46,6 +48,20 @@ namespace sw {
             float alpha = static_cast<float>(dt / TIME_STEP);
 
             glUniformMatrix4fv(uniform_P, 1, GL_FALSE, glm::value_ptr(camera_projection_));
+
+            // Get the player's position, i.e. the camera's position
+            auto player = ex::ComponentHandle<PlayerComponent>();
+            auto transform = ex::ComponentHandle<TransformComponent>();
+            auto graphNode = ex::ComponentHandle<GraphNodeComponent>();
+            for (ex::Entity ex : es.entities_with_components(player, transform, graphNode)) {
+                combine(transform, graphNode->parent_);
+                transform->is_dirty_ = false;
+
+                glm::mat4 player_transform_world = transform->cached_world_;
+
+                view_ = glm::affineInverse(player_transform_world*glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f)*glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f));
+            }
+
             glUniformMatrix4fv(uniform_V, 1, GL_FALSE, glm::value_ptr(view_));
 
             // Start rendering at the top of the tree
@@ -101,6 +117,7 @@ namespace sw {
             std::cout << "Root entity set." << std::endl;
         }
 
+        /*
         void setCamera(glm::mat4 camera_transform) {
 
             camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
@@ -113,6 +130,7 @@ namespace sw {
 
 
         }
+         */
 
         // this is not used for now
         void setCamera(glm::vec3 world_cameraPosition, glm::vec3 world_cameraLookAt) {
