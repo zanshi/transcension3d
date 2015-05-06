@@ -84,6 +84,34 @@ namespace sw {
         // Populate the graph
         processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
 
+
+        std::cout << "this is a test" << std::endl;
+        if (p_scene->HasLights()) {
+
+            /* Add the current node to its parent */
+            //ex::Entity current_entity = createEntity();
+
+            aiLight *light = p_scene->mLights[0];
+
+            std::cout << "inside lights" << "count: " << std::endl;
+            addLightComponentToEntity(rootEntity, light);
+
+
+            /*
+
+            // Recursively process all lights
+            for (unsigned int i = 0; i < p_scene->mNumLights; i++) {
+
+                aiLight *light = p_scene->mLights[i];
+
+                std::cout << "inside lights" << "count: " << i << std::endl;
+                addLightComponentToEntity(rootEntity, light);
+            }
+            //lightPosition = light->mPosition;
+
+             */
+        }
+
         // Remove the read file from memory
         importer.FreeScene();
 
@@ -116,6 +144,7 @@ namespace sw {
             camera_node_ = node;
         }
 
+
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
               dim_parent == Dim::DIMENSION_TWO)) {
@@ -139,6 +168,8 @@ namespace sw {
         current_entity.assign<GraphNodeComponent>(parent, current_entity);
         current_entity.assign<DimensionComponent>(dim_current);
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
+
+        //node->
 
         // Add a MeshComponent to the entity
         if (node->mNumMeshes > 0) {
@@ -212,16 +243,27 @@ namespace sw {
 
 
         //not finished yet
-        const aiLight* light_type = (p_scene->mLights[light->mType]);
+        const aiLight* light_index = (p_scene->mLights[0]);
 
+        glm::vec3 position;
 
-        light->mDirection;
-        light->mName;
+        //std::cout << "hej --> " << p_scene->mLights[0] << std::endl;
+        //light->
+        //std::cout << "mdir --> " << light->mDirection << std::endl;
+        //std::cout << "mname --> " << light->mName << std::endl;
 
+        //light_type->
+        //std::string name = light_index->mName;
 
-//        std::cout << "Light position: " << light->mPosition << std::endl;
+        sw::Color color(std::move(glm::vec3 (light_index->mColorAmbient.r, light_index->mColorAmbient.g, light_index->mColorAmbient.b)),
+                        std::move(glm::vec3 (light_index->mColorDiffuse.r, light_index->mColorDiffuse.g, light_index->mColorDiffuse.b)),
+                        std::move(glm::vec3 (light_index->mColorSpecular.r, light_index->mColorSpecular.g, light_index->mColorSpecular.b)));
 
-        //entity.assign<LightComponent>( );
+        position.x = light_index->mPosition.x;
+        position.y = light_index->mPosition.y;
+        position.z = light_index->mPosition.z;
+
+        entity.assign<LightComponent>(std::move(color), std::move(position)  );
 
 
     }

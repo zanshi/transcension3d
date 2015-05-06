@@ -59,6 +59,7 @@ namespace sw {
             auto movement = entityToRender.component<MovementComponent>();
             auto mesh = entityToRender.component<MeshComponent>();
             auto shading = entityToRender.component<ShadingComponent>();
+            auto light = entityToRender.component<LightComponent>();
 
             // See if we need to update the current entities cached world transform
             dirty |= transform->is_dirty_;
@@ -67,6 +68,7 @@ namespace sw {
                 combine(transform, graphNode->parent_);
                 transform->is_dirty_ = false;
             }
+
 
             // Render if the current entity has a RenderComponent
             if (mesh && shading) {
