@@ -208,5 +208,23 @@ namespace sw {
 
     }
 
+    void SceneImporter::addLightComponentToEntity(entityx::Entity entity, const aiLight *light) {
+
+
+        //not finished yet
+        const aiLight* light_type = (p_scene->mLights[light->mType]);
+
+
+        light->mDirection;
+        light->mName;
+
+
+//        std::cout << "Light position: " << light->mPosition << std::endl;
+
+        //entity.assign<LightComponent>( );
+
+
+    }
+
 
 }
