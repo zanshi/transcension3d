@@ -18,7 +18,10 @@ namespace sw {
         // the PhysicsComponent->body as argument
 
 
-    btRigidBody *body;
+
+
+
+        btRigidBody *body;
 
 
     };

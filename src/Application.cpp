@@ -104,6 +104,11 @@ void sw::Application::initScene() {
     auto renderSystem = systems.system < RenderSystem > ();
 
     renderSystem->setCamera(sceneImporter.getCamera());
+
+
+
+
+
 }
 
 void sw::Application::run() {

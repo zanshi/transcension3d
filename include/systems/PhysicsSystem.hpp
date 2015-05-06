@@ -36,6 +36,31 @@ namespace sw {
             m_pWorld->setGravity(btVector3(0, -9.81f, 0));
         }
 
+
+        void configure(ex::EventManager &events) override {
+
+        }
+
+
+        void populateWorld(ex::Entity current_entity) {
+
+            auto physicsComponent = current_entity.component<PhysicsComponent>();
+            auto node = current_entity.component<GraphNodeComponent>();
+
+            if(physicsComponent != nullptr) {
+                m_pWorld->addRigidBody(physicsComponent->body);
+            }
+
+            if(!node->children_.empty()) {
+                for(ex::Entity child : node->children_) {
+                    populateWorld(child);
+                }
+            }
+
+        }
+
+
+
         ~PhysicsSystem() {
             delete m_pBroadphase;
             delete m_pDispatcher;
@@ -46,13 +71,11 @@ namespace sw {
 
 
         void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
-
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt);
             }
-
-
         }
+
 
 
         private:
