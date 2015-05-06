@@ -75,9 +75,8 @@ namespace sw {
                 // events_.emit<RenderEvent>(entityToRender, current_depth);
 
                 // TODO: Investigate what units should be used in blender
+                // Get the model matrix and send it to the shader.
                 glm::mat4 model = transform->cached_world_;
-
-                //glm::mat4 model(1.0f);
                 glUniformMatrix4fv(uniform_M, 1, GL_FALSE, glm::value_ptr(model));
 
                 // Set object material properties
@@ -101,7 +100,6 @@ namespace sw {
         }
 
         // Root entity functions
-
         void setRootEntity(ex::Entity root) {
             root_ = root;
             std::cout << "Root entity set." << std::endl;
@@ -182,7 +180,6 @@ namespace sw {
 
             //Lightning
             viewPosLoc     = glGetUniformLocation(*shader_, "viewPos");
-
 
             lightAmbientLoc  = glGetUniformLocation(*shader_, "light.ambient");
             lightDiffuseLoc  = glGetUniformLocation(*shader_, "light.diffuse");

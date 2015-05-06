@@ -5,7 +5,7 @@ in vec3 Normal;
 in vec3 FragPos;
 
 // Ouput data
-out vec4 color;
+out vec4 Color;
 
 // Uniforms
 uniform vec3 viewPos;
@@ -46,5 +46,5 @@ void main()
     vec3 specular = light.specular * (spec * material.specular);
 
     vec3 result = ambient + diffuse + specular;
-    color = vec4(result, 1.0f);
+    Color = vec4(result, 1.0f);
 }
