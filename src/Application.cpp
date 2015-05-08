@@ -104,10 +104,10 @@ void sw::Application::initScene() {
     sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
 
     auto renderSystem = systems.system < RenderSystem > ();
-
     renderSystem->setCamera(sceneImporter.getCamera());
 
-
+    auto sys = systems.system<PhysicsSystem>();
+    sys->populateWorld(root);
 
 
 
@@ -125,8 +125,13 @@ void sw::Application::run() {
     isRunning = true;
 
     while (isRunning) {
+
+        using namespace std::chrono;
+
         current = std::chrono::high_resolution_clock::now();
+
         std::chrono::duration<double> dt = std::chrono::duration_cast<std::chrono::duration<double>>(current - last);
+
         last = current;
 
         glClearColor(0.3f, 0.3f, 0.3f, 0.0f);

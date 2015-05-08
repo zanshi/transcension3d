@@ -118,6 +118,8 @@ namespace sw {
             camera_node_ = node;
         }
 
+        std::cout << "hej" << std::endl;
+
         //std::cout << node->mMetaData->mKeys[0] << std::endl;
 
         // Make sure that the supplied dim_parent is valid
@@ -220,14 +222,12 @@ namespace sw {
         auto transform = entity.component<TransformComponent>();
 
 
-        float mass = 0.0f;
-
 
         entity.assign<PhysicsComponent>(entity, std::move(buildBoundingVector(pMesh, mesh->vertices)), mass);
 
 
-
     }
+
 
     glm::vec3 SceneImporter::buildBoundingVector(const aiMesh *pMesh, std::vector<Vertex> vertices)
     {

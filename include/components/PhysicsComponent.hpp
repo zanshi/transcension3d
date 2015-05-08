@@ -38,6 +38,10 @@ namespace sw {
 
             body_ = new btRigidBody(bodyConstructionInfo);
 
+            std::cout << "boundingvector xyz: " << boundingVector.x << " " << boundingVector.y << " "
+            << boundingVector.z << std::endl;
+
+
         }
 
 
