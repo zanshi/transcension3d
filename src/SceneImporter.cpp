@@ -222,6 +222,7 @@ namespace sw {
         auto transform = entity.component<TransformComponent>();
 
 
+        float mass = 10.0f;
 
         entity.assign<PhysicsComponent>(entity, std::move(buildBoundingVector(pMesh, mesh->vertices)), mass);
 
