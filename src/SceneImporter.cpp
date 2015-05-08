@@ -84,6 +84,34 @@ namespace sw {
         // Populate the graph
         processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
 
+
+        std::cout << "this is a test" << std::endl;
+        if (p_scene->HasLights()) {
+
+            /* Add the current node to its parent */
+            //ex::Entity current_entity = createEntity();
+
+            aiLight *light = p_scene->mLights[0];
+
+            std::cout << "inside lights" << "count: " << std::endl;
+            addLightComponentToEntity(rootEntity, light);
+
+
+            /*
+
+            // Recursively process all lights
+            for (unsigned int i = 0; i < p_scene->mNumLights; i++) {
+
+                aiLight *light = p_scene->mLights[i];
+
+                std::cout << "inside lights" << "count: " << i << std::endl;
+                addLightComponentToEntity(rootEntity, light);
+            }
+            //lightPosition = light->mPosition;
+
+             */
+        }
+
         // Remove the read file from memory
         importer.FreeScene();
 
@@ -112,6 +140,7 @@ namespace sw {
                                           unsigned int current_depth,
                                           Dim dim_parent,
                                           ex::Entity parent) {
+
 
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
@@ -144,6 +173,8 @@ namespace sw {
         current_entity.assign<DimensionComponent>(dim_current);
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
         current_entity.assign<PhysicsComponent>();
+
+        //node->
 
         // Add a MeshComponent to the entity
         if (node->mNumMeshes > 0) {
@@ -209,6 +240,35 @@ namespace sw {
                         std::move(glm::vec3 (ai_specular.r, ai_specular.g, ai_specular.b)));
 
         entity.assign<ShadingComponent>(std::move(color), std::move(shininess));
+
+
+    }
+
+    void SceneImporter::addLightComponentToEntity(entityx::Entity entity, const aiLight *light) {
+
+
+        //not finished yet
+        const aiLight* light_index = (p_scene->mLights[0]);
+
+        glm::vec3 position;
+
+        //std::cout << "hej --> " << p_scene->mLights[0] << std::endl;
+        //light->
+        //std::cout << "mdir --> " << light->mDirection << std::endl;
+        //std::cout << "mname --> " << light->mName << std::endl;
+
+        //light_type->
+        //std::string name = light_index->mName;
+
+        sw::Color color(std::move(glm::vec3 (light_index->mColorAmbient.r, light_index->mColorAmbient.g, light_index->mColorAmbient.b)),
+                        std::move(glm::vec3 (light_index->mColorDiffuse.r, light_index->mColorDiffuse.g, light_index->mColorDiffuse.b)),
+                        std::move(glm::vec3 (light_index->mColorSpecular.r, light_index->mColorSpecular.g, light_index->mColorSpecular.b)));
+
+        position.x = light_index->mPosition.x;
+        position.y = light_index->mPosition.y;
+        position.z = light_index->mPosition.z;
+
+        entity.assign<LightComponent>(std::move(color), std::move(position)  );
 
 
     }

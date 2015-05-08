@@ -67,5 +67,7 @@ namespace sw {
         void addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh);
 
         void addShadingComponentToEntity(entityx::Entity entity, const aiMesh *mesh);
+
+        void addLightComponentToEntity(entityx::Entity entity, const aiLight *light);
     };
 }
