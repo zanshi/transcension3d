@@ -223,7 +223,7 @@ namespace sw {
         float mass = 0.0f;
 
 
-        entity.assign<PhysicsComponent>(std::move(buildBoundingVector(pMesh, mesh->vertices)), mass);
+        entity.assign<PhysicsComponent>(entity, std::move(buildBoundingVector(pMesh, mesh->vertices)), mass);
 
 
 
