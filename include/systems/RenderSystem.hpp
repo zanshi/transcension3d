@@ -68,11 +68,13 @@ namespace sw {
                 transform->is_dirty_ = false;
             }
 
+
             // Render if the current entity has a RenderComponent
             if (mesh && shading) {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
                 // events_.emit<RenderEvent>(entityToRender, current_depth);
+
 
                 // TODO: Investigate what units should be used in blender
                 glm::mat4 model = transform->cached_world_;
@@ -103,7 +105,7 @@ namespace sw {
 
         void setCamera(glm::mat4 camera_transform) {
 
-            camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
+            camera_projection_ = glm::perspective(glm::radians(90.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
             view_ = glm::affineInverse(camera_transform);
 
             std::cout << "View matrix " << std::endl;
@@ -259,21 +261,22 @@ namespace sw {
         ShaderProgram *shader_;
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
-            glm::mat4 &local = transform->local_;
+            glm::mat4 local = transform->local_;
 
             // Make sure the parent has a TransformComponent
             // TODO: Fix entity dependencies so all entities have Transform- and GraphNodeComponents
             auto transform_parent = parent_entity.component<TransformComponent>();
 
             if (transform_parent) {
-                glm::mat4 &parent_world = transform_parent->cached_world_;
-                // Multiply the local transform with the parent's world transform
+                glm::mat4 parent_world = transform_parent->cached_world_;
                 transform->cached_world_ = parent_world * local;
             } else {
                 glm::mat4 parent_world(1.0f);
                 // Multiply the local transform with the parent's world transform
                 transform->cached_world_ = parent_world * local;
             }
+            // Multiply the local transform with the parent's world transform
+
         }
     };
 }

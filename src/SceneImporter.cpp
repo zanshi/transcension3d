@@ -118,9 +118,6 @@ namespace sw {
             camera_node_ = node;
         }
 
-        std::cout << "hej" << std::endl;
-
-        //std::cout << node->mMetaData->mKeys[0] << std::endl;
 
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
@@ -139,15 +136,36 @@ namespace sw {
             dim_current = dim_parent;
         }
 
+
+
         /* Add the current node to its parent */
         ex::Entity current_entity = createEntity();
         current_entity.assign<TransformComponent>(aiMatrix4x4_to_glmMat4(node->mTransformation));
         current_entity.assign<GraphNodeComponent>(parent, current_entity);
+
+
+
         current_entity.assign<DimensionComponent>(dim_current);
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
         // Add a MeshComponent to the entity
         if (node->mNumMeshes > 0) {
+
+
+            for(int i = 0; i < 4; i++) {
+                for(int j = 0; j < 4; j++) {
+                    std::cout << node->mTransformation[i][j] << " ";
+                }
+                std::cout << std::endl;
+            }
+
+
+            auto transform = current_entity.component<TransformComponent>();
+            auto graphNode = current_entity.component<GraphNodeComponent>();
+
+            combine(transform, graphNode->parent_);
+
+
             unsigned int index_mesh = *(node->mMeshes);
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
             addMeshComponentToEntity(current_entity, mesh);
@@ -222,7 +240,7 @@ namespace sw {
         auto transform = entity.component<TransformComponent>();
 
 
-        float mass = 10.0f;
+        btScalar mass = 1;
 
         entity.assign<PhysicsComponent>(entity, std::move(buildBoundingVector(pMesh, mesh->vertices)), mass);
 

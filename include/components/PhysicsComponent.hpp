@@ -21,9 +21,11 @@ namespace sw {
 
         PhysicsComponent() {}
 
-        PhysicsComponent(ex::Entity entity, glm::vec3 boundingVector, float mass = 0.0f ) {
+        PhysicsComponent(ex::Entity entity, glm::vec3 boundingVector, btScalar mass = 0.0f ) {
             motionState_ = new MyMotionState(entity);
-            shape_ = new btBoxShape(btVector3(boundingVector.x, boundingVector.y, boundingVector.z));
+            //shape_ = new btBoxShape(btVector3(boundingVector.x, boundingVector.y, boundingVector.z));
+
+            shape_ = new btBoxShape(btVector3(2.0f, 1.0f, 1.0f));
 
             // calculate the local inertia
             btVector3 localInertia(0, 0, 0);
@@ -37,6 +39,11 @@ namespace sw {
             btRigidBody::btRigidBodyConstructionInfo bodyConstructionInfo(mass, motionState_, shape_,localInertia);
 
             body_ = new btRigidBody(bodyConstructionInfo);
+
+            if ( mass != 0.0f) {
+                body_->setCollisionFlags(body_->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+                body_->setActivationState(DISABLE_DEACTIVATION);
+            }
 
             std::cout << "boundingvector xyz: " << boundingVector.x << " " << boundingVector.y << " "
             << boundingVector.z << std::endl;

@@ -32,7 +32,20 @@ namespace sw {
                     switch(e.key.keysym.sym) {
 
                         case SDLK_w:
-                            y += 1;
+
+                            for (ex::Entity entity : es.entities_with_components<PhysicsComponent>()) {
+
+                                std::cout << "hej" << std::endl;
+
+                                auto physics = entity.component<PhysicsComponent>();
+
+                                physics->body_->setLinearVelocity(btVector3(1.0f, 1.0f, 0.0f));
+
+
+                                //physics->body_->setWorldTransform()
+                            }
+
+                            //y += 1;
                             break;
 
                         case SDLK_s:

@@ -33,7 +33,7 @@ namespace sw {
 
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
-            m_pWorld->setGravity(btVector3(0, -9.81f, 0));
+            m_pWorld->setGravity(btVector3(0, -10, 0));
 
         }
 
@@ -45,10 +45,13 @@ namespace sw {
 
         void populateWorld(ex::Entity current_entity) {
 
+
+
             auto physicsComponent = current_entity.component<PhysicsComponent>();
             auto node = current_entity.component<GraphNodeComponent>();
 
             if(physicsComponent) {
+                std::cout << "populateworld" << std::endl;
                 m_pWorld->addRigidBody(physicsComponent->body_);
             }
 
@@ -76,6 +79,17 @@ namespace sw {
                 m_pWorld->stepSimulation(dt);
             }
 
+            btTransform trans;
+
+            for ( ex::Entity entity : entityManager.entities_with_components<PhysicsComponent>()) {
+
+                auto phys = entity.component<PhysicsComponent>();
+
+                phys->body_->getMotionState()->getWorldTransform(trans);
+
+                std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
+
+            }
 
 
         }

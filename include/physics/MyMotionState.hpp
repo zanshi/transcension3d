@@ -7,6 +7,7 @@
 #include "btBulletDynamicsCommon.h"
 #include "entityx/entityx.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "glm/gtx/string_cast.hpp"
 
 namespace ex = entityx;
 
@@ -22,7 +23,12 @@ namespace sw {
             auto transform = entity.component<TransformComponent>();
 
             btTransform initialTransform;
+
+            initialTransform.setIdentity();
+
             initialTransform.setFromOpenGLMatrix(glm::value_ptr(transform->cached_world_));
+
+            std::cout << glm::to_string(transform->cached_world_) << std::endl;
 
             mInitialPosition_ = initialTransform;
 
@@ -45,26 +51,30 @@ namespace sw {
 
             if(!transformComponent) { return; }
 
-//            btQuaternion rot = worldTrans.getRotation();
-//
-//            transformComponent->orientation_.w = rot.w();
-//            transformComponent->orientation_.x = rot.x();
-//            transformComponent->orientation_.y = rot.y();
-//            transformComponent->orientation_.z = rot.z();
-//
-//            btVector3 pos = worldTrans.getOrigin();
-//
-//            transformComponent->position_.x = pos.x();
-//            transformComponent->position_.y = pos.y();
-//            transformComponent->position_.z = pos.z();
-//
-//            transformComponent->update_local_transform();
-//
-//            transformComponent->is_dirty_ = true;
+            btQuaternion rot = worldTrans.getRotation();
 
-            worldTrans.getOpenGLMatrix(glm::value_ptr(transformComponent->cached_world_));
+            transformComponent->orientation_.w = rot.w();
+            transformComponent->orientation_.x = rot.x();
+            transformComponent->orientation_.y = rot.y();
+            transformComponent->orientation_.z = rot.z();
+
+            btVector3 pos = worldTrans.getOrigin();
+
+            transformComponent->position_.x = pos.x();
+            transformComponent->position_.y = pos.y();
+            transformComponent->position_.z = pos.z();
+
+            transformComponent->update_local_transform();
+
+            transformComponent->is_dirty_ = true;
+
+              worldTrans.getOpenGLMatrix(glm::value_ptr(transformComponent->cached_world_));
 
 
+        }
+
+        void updateTransform(btTransform& newpos) {
+            mInitialPosition_ = newpos;
         }
 
         protected:

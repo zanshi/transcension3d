@@ -21,6 +21,7 @@
 
 #include "components/DimensionComponent.hpp"
 #include "components/MeshComponent.hpp"
+#include "components/TransformComponent.hpp"
 
 namespace ex = entityx;
 
@@ -73,6 +74,26 @@ namespace sw {
         void addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh);
 
         glm::vec3 buildBoundingVector(const aiMesh *pMesh, std::vector<Vertex> vertices);
+
+
+        void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
+            glm::mat4 local = transform->local_;
+
+            // Make sure the parent has a TransformComponent
+            // TODO: Fix entity dependencies so all entities have Transform- and GraphNodeComponents
+            auto transform_parent = parent_entity.component<TransformComponent>();
+
+            if (transform_parent) {
+                glm::mat4 parent_world = transform_parent->cached_world_;
+                transform->cached_world_ = parent_world * local;
+            } else {
+                glm::mat4 parent_world(1.0f);
+                // Multiply the local transform with the parent's world transform
+                transform->cached_world_ = parent_world * local;
+            }
+            // Multiply the local transform with the parent's world transform
+
+        }
 
 
     };
