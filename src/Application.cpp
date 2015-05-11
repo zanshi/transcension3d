@@ -116,8 +116,8 @@ void sw::Application::initScene() {
 void sw::Application::run() {
     initScene();
 
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point current, last;
+    std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point current;
 
     int counter = 0;
     int counter2 = 0;
@@ -141,8 +141,8 @@ void sw::Application::run() {
         update(dt.count());
 
         // TODO: check if this is done correct
-        //glDisableVertexAttribArray(0);
-        //glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
 
         SDL_GL_SwapWindow(win);
 

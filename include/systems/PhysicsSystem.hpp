@@ -76,20 +76,28 @@ namespace sw {
 
         void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
             if (m_pWorld) {
-                m_pWorld->stepSimulation(dt);
+                m_pWorld->stepSimulation(dt,10);
             }
 
-            btTransform trans;
+//            for(int i = m_pWorld->getNumCollisionObjects()-1; i>=0; i--) {
+//
+//                btCollisionObject *obj = m_pWorld->getCollisionObjectArray()[i];
+//                btRigidBody *body = btRigidBody::upcast(obj);
+//                btTransform trans;
+//
+//                if (body && body->getMotionState()) {
+//                    body->getMotionState()->getWorldTransform(trans);
+//                } else {
+//                    trans = obj->getWorldTransform();
+//                }
+//
+//
+//                std::cout << "world pos obj: " << i << ", " << static_cast<float>(trans.getOrigin().getX())
+//                        << ", " << static_cast<float>(trans.getOrigin().getY()) << ", " <<
+//                        static_cast<float>(trans.getOrigin().getZ()) << std::endl;
+//
+//            }
 
-            for ( ex::Entity entity : entityManager.entities_with_components<PhysicsComponent>()) {
-
-                auto phys = entity.component<PhysicsComponent>();
-
-                phys->body_->getMotionState()->getWorldTransform(trans);
-
-                std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
-
-            }
 
 
         }

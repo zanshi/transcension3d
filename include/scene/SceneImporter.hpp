@@ -14,6 +14,7 @@
 // EntityX imports
 #include <entityx/entityx.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <sys/cdefs.h>
 
 // AssImp imports
 #include "assimp/Importer.hpp"
@@ -71,7 +72,7 @@ namespace sw {
 
         void addShadingComponentToEntity(entityx::Entity entity, const aiMesh *mesh);
 
-        void addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh);
+        void addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass);
 
         glm::vec3 buildBoundingVector(const aiMesh *pMesh, std::vector<Vertex> vertices);
 

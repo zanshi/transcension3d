@@ -148,6 +148,8 @@ namespace sw {
         current_entity.assign<DimensionComponent>(dim_current);
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
+
+
         // Add a MeshComponent to the entity
         if (node->mNumMeshes > 0) {
 
@@ -158,6 +160,8 @@ namespace sw {
                 }
                 std::cout << std::endl;
             }
+
+            //auto test = node->mMetaData->Get(0,);
 
 
             auto transform = current_entity.component<TransformComponent>();
@@ -170,7 +174,17 @@ namespace sw {
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
             addMeshComponentToEntity(current_entity, mesh);
             addShadingComponentToEntity(current_entity, mesh);
-            addPhysicsComponentToEntity(current_entity, mesh);
+
+
+            float mass = 1.0f;
+
+            if (std::string( node->mName.C_Str() ) == "Cube__2_") {
+                mass = 0.0f;
+                std::cout << "mass" << std::endl;
+            }
+
+
+            addPhysicsComponentToEntity(current_entity, mesh, mass);
         }
 
         // Recursively process all its children nodes
@@ -234,15 +248,12 @@ namespace sw {
     }
 
 
-    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh) {
+    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass) {
 
         auto mesh = entity.component<MeshComponent>();
         auto transform = entity.component<TransformComponent>();
 
-
-        btScalar mass = 1;
-
-        entity.assign<PhysicsComponent>(entity, std::move(buildBoundingVector(pMesh, mesh->vertices)), mass);
+        entity.assign<PhysicsComponent>(transform, std::move(buildBoundingVector(pMesh, mesh->vertices)), btScalar(mass));
 
 
     }

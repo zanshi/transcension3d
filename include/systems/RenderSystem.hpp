@@ -10,16 +10,14 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_inverse.hpp"
 
-#include "components/TransformComponent.hpp"
-#include "components/RenderComponent.hpp"
-#include "components/GraphNodeComponent.hpp"
-#include "components/MovementComponent.hpp"
+#include "components/all_components.hpp"
 
 #include "events/RenderEvent.hpp"
 
 #include "common/Shader.h"
 
 #include "game_constants.hpp"
+#include "PhysicsSystem.hpp"
 
 #include <iomanip>
 
@@ -59,12 +57,13 @@ namespace sw {
             auto movement = entityToRender.component<MovementComponent>();
             auto mesh = entityToRender.component<MeshComponent>();
             auto shading = entityToRender.component<ShadingComponent>();
+            auto physics = entityToRender.component<PhysicsComponent>();
 
             // See if we need to update the current entities cached world transform
             dirty |= transform->is_dirty_;
             if (dirty) {
                 // If dirty, update its cached world transform
-                combine(transform, graphNode->parent_);
+                //combine(transform, graphNode->parent_);
                 transform->is_dirty_ = false;
             }
 
@@ -74,6 +73,10 @@ namespace sw {
                 // The current entity can be rendered, so render it ffs
                 // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
                 // events_.emit<RenderEvent>(entityToRender, current_depth);
+
+
+                physics->body_->getCollisionShape()->
+
 
 
                 // TODO: Investigate what units should be used in blender

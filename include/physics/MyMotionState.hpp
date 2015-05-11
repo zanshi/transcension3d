@@ -6,6 +6,7 @@
 
 #include "btBulletDynamicsCommon.h"
 #include "entityx/entityx.h"
+#include "components/TransformComponent.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include "glm/gtx/string_cast.hpp"
 
@@ -18,20 +19,19 @@ namespace sw {
 
         public:
 
-        MyMotionState(ex::Entity entity) : entity_(entity)  {
+        MyMotionState(ex::ComponentHandle<TransformComponent> transform)
+                : transformComponent_(transform)
+        {
 
-            auto transform = entity.component<TransformComponent>();
+            std::cout << "transformComponent: " << glm::to_string(transformComponent_->cached_world_) << std::endl;
 
-            btTransform initialTransform;
+            transform_.setFromOpenGLMatrix(glm::value_ptr(transformComponent_->cached_world_));
 
-            initialTransform.setIdentity();
+            glm::mat4 test;
 
-            initialTransform.setFromOpenGLMatrix(glm::value_ptr(transform->cached_world_));
+            transform_.getOpenGLMatrix(glm::value_ptr(test));
 
-            std::cout << glm::to_string(transform->cached_world_) << std::endl;
-
-            mInitialPosition_ = initialTransform;
-
+            std::cout << "transform: " << glm::to_string(test) << std::endl;
         }
 
         virtual ~MyMotionState() {
@@ -40,47 +40,35 @@ namespace sw {
 
         virtual void getWorldTransform(btTransform &worldTrans) const
         {
-            worldTrans = mInitialPosition_;
+            std::cout << "getworldtransform" << std::endl;
+
+            worldTrans = transform_;
         }
 
         virtual void setWorldTransform(const btTransform &worldTrans)
         {
 
-            std::cout << "setworldtransform" << std::endl;
-            auto transformComponent = entity_.component<TransformComponent>();
+            //std::cout << "setworldtransform" << std::endl;
 
-            if(!transformComponent) { return; }
+            if(!transformComponent_) { return; }
 
-            btQuaternion rot = worldTrans.getRotation();
+            transform_ = worldTrans;
 
-            transformComponent->orientation_.w = rot.w();
-            transformComponent->orientation_.x = rot.x();
-            transformComponent->orientation_.y = rot.y();
-            transformComponent->orientation_.z = rot.z();
+            glm::mat4 temp;
 
-            btVector3 pos = worldTrans.getOrigin();
+            worldTrans.getOpenGLMatrix(glm::value_ptr(temp));
 
-            transformComponent->position_.x = pos.x();
-            transformComponent->position_.y = pos.y();
-            transformComponent->position_.z = pos.z();
+            //std::cout << "transform: " << glm::to_string(temp) << std::endl;
 
-            transformComponent->update_local_transform();
-
-            transformComponent->is_dirty_ = true;
-
-              worldTrans.getOpenGLMatrix(glm::value_ptr(transformComponent->cached_world_));
+            transformComponent_->cached_world_ = temp;
 
 
-        }
-
-        void updateTransform(btTransform& newpos) {
-            mInitialPosition_ = newpos;
         }
 
         protected:
 
-        btTransform mInitialPosition_;
-        ex::Entity entity_;
+        btTransform transform_;
+        ex::ComponentHandle<TransformComponent> transformComponent_;
 
 
 

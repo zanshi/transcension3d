@@ -21,11 +21,11 @@ namespace sw {
 
         PhysicsComponent() {}
 
-        PhysicsComponent(ex::Entity entity, glm::vec3 boundingVector, btScalar mass = 0.0f ) {
-            motionState_ = new MyMotionState(entity);
-            //shape_ = new btBoxShape(btVector3(boundingVector.x, boundingVector.y, boundingVector.z));
+        PhysicsComponent(ex::ComponentHandle<TransformComponent> transformComponent, glm::vec3 boundingVector, btScalar mass = 0.0f ) {
+            motionState_ = new MyMotionState(transformComponent);
+            shape_ = new btBoxShape(btVector3(boundingVector.x, boundingVector.y, boundingVector.z));
 
-            shape_ = new btBoxShape(btVector3(2.0f, 1.0f, 1.0f));
+            //shape_ = new btBoxShape(btVector3(2.0f, 1.0f, 1.0f));
 
             // calculate the local inertia
             btVector3 localInertia(0, 0, 0);
@@ -40,10 +40,10 @@ namespace sw {
 
             body_ = new btRigidBody(bodyConstructionInfo);
 
-            if ( mass != 0.0f) {
-                body_->setCollisionFlags(body_->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-                body_->setActivationState(DISABLE_DEACTIVATION);
-            }
+//            if ( mass != 0.0f) {
+//                body_->setCollisionFlags(body_->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+//                body_->setActivationState(DISABLE_DEACTIVATION);
+//            }
 
             std::cout << "boundingvector xyz: " << boundingVector.x << " " << boundingVector.y << " "
             << boundingVector.z << std::endl;
