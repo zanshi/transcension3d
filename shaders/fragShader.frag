@@ -29,13 +29,15 @@ uniform int num_lights;
 uniform Material material;
 
 uniform mat4 V;
+uniform mat4 V_inv;
 
-void main()
-{
+uniform vec3 viewPos;
+
+void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
 
     // Calculate lighting for each light source independently
-    for (int i=0; i<num_lights; i++) {
+    for (int i = 0; i < num_lights; i++) {
         Light light = lights[i];
 
         /* Light dat biatch */
@@ -49,7 +51,7 @@ void main()
         vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
         // Specular
-        vec3 viewDir = normalize(- mat3(V)*FragPos);
+        vec3 viewDir = normalize(viewPos - FragPos);
         vec3 reflectDir = reflect(-lightDir, norm);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         vec3 specular = light.specular * (spec * material.specular);

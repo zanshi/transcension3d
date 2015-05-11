@@ -88,8 +88,6 @@ namespace sw {
                 glm::mat4 l_transform = transform->cached_world_;
                 glm::vec3 l_pos;
                 glm::quat l_quat;
-                glm::vec3 temp3;
-                glm::vec4 temp4;
                 glm::decompose(l_transform, temp3, l_quat, l_pos, temp3, temp4);
                 //std::cout << "Light pos: x=" << lightEyePos[0] << ", y=" << lightEyePos[1] << ", z=" << lightEyePos[2] << std::endl;
                 glm::vec3 l_euler = glm::eulerAngles(l_quat);
@@ -113,6 +111,13 @@ namespace sw {
             }
 
             glUniform1i(num_lights_loc, num_lights_currently_);
+
+            // Pass the position of the eye in world coordinates
+            glm::vec3 viewPos;
+            glm::decompose(view_, temp3, tempquat, viewPos, temp3, temp4);
+            std::cout << "Test of where viewport is: " << std::endl;
+            print_glmVec3(viewPos);
+            glUniform3f(viewPosLoc, viewPos.x, viewPos.y, viewPos.z);
 
             // Start rendering at the top of the tree
             renderEntity(root_, false, alpha, 0);
@@ -224,6 +229,8 @@ namespace sw {
             matDiffuseLoc  = glGetUniformLocation(*shader_, "material.diffuse");
             matSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
             matShineLoc    = glGetUniformLocation(*shader_, "material.shininess");
+
+            viewPosLoc = glGetUniformLocation(*shader_, "viewPos");
         }
 
         void print_glmMatrix(glm::mat4 pMat4) {
@@ -266,6 +273,8 @@ namespace sw {
 
         GLint num_lights_loc;
 
+        GLint viewPosLoc;
+
         //Material
         GLint matAmbientLoc;
         GLint matDiffuseLoc;
@@ -275,6 +284,11 @@ namespace sw {
         //
         GLint uniform_P, uniform_V, uniform_V_inverse, uniform_M;
         ShaderProgram *shader_;
+
+        // Used for GLM decomposition
+        glm::vec3 temp3;
+        glm::vec4 temp4;
+        glm::quat tempquat;
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
             glm::mat4 &local = transform->local_;
