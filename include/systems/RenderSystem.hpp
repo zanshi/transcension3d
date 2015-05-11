@@ -61,11 +61,14 @@ namespace sw {
 
                 glm::mat4 player_transform_world = transform->cached_world_;
 
-                view_ = glm::affineInverse(player_transform_world*glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f)*glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f));
+                view_ = player_transform_world*glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f)*glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f);
             }
 
             glUniformMatrix4fv(uniform_V, 1, GL_FALSE, glm::value_ptr(view_));
+            glm::mat4 view_inverse = glm::affineInverse(view_);
+            glUniformMatrix4fv(uniform_V_inverse, 1, GL_FALSE, glm::value_ptr(view_inverse));
 
+            /* LIGHTS */
             // Get all the lights
             auto dimension = ex::ComponentHandle<DimensionComponent>();
             auto light = ex::ComponentHandle<LightComponent>();
@@ -73,6 +76,13 @@ namespace sw {
             num_lights_currently_ = 0;
             for (ex::Entity current_light : es.entities_with_components(graphNode, transform, dimension, light)) {
                 num_lights_currently_++;
+
+                // See if we need to update the current light's cached world transform
+                if (transform->is_dirty_) {
+                    // If dirty, update its cached world transform
+                    combine(transform, graphNode->parent_);
+                    transform->is_dirty_ = false;
+                }
 
                 // All these values are in the Eye's coordinate system
                 glm::mat4 l_transform = transform->cached_world_;
@@ -112,12 +122,10 @@ namespace sw {
             auto transform = entityToRender.component<TransformComponent>();
             auto render = entityToRender.component<RenderComponent>();
             auto graphNode = entityToRender.component<GraphNodeComponent>();
-            auto movement = entityToRender.component<MovementComponent>();
             auto mesh = entityToRender.component<MeshComponent>();
             auto shading = entityToRender.component<ShadingComponent>();
-            auto light = entityToRender.component<LightComponent>();
 
-            // See if we need to update the current entities cached world transform
+            // See if we need to update the current entity's cached world transform
             dirty |= transform->is_dirty_;
             if (dirty) {
                 // If dirty, update its cached world transform
@@ -125,13 +133,8 @@ namespace sw {
                 transform->is_dirty_ = false;
             }
 
-
             // Render if the current entity has a RenderComponent
             if (mesh && shading) {
-                // The current entity can be rendered, so render it ffs
-                // RENDER -> represented by emitting a RenderEvent, TODO: make it ACTUALLY render something...
-                // events_.emit<RenderEvent>(entityToRender, current_depth);
-
                 // TODO: Investigate what units should be used in blender
                 // Get the model matrix and send it to the shader.
                 glm::mat4 model = transform->cached_world_;
@@ -147,8 +150,6 @@ namespace sw {
                 glBindVertexArray(mesh->VAO);
                 glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
-
-
             }
 
             // Render its children
@@ -163,63 +164,13 @@ namespace sw {
             std::cout << "Root entity set." << std::endl;
         }
 
-        /*
-        void setCamera(glm::mat4 camera_transform) {
-
-            camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
-            view_ = glm::affineInverse(camera_transform);
-
-            std::cout << "View matrix " << std::endl;
-            print_glmMatrix(view_);
-            std::cout << "Projection" << std::endl;
-            print_glmMatrix(camera_projection_);
-
-
-        }
-         */
-
-        // this is not used for now
-        void setCamera(glm::vec3 world_cameraPosition, glm::vec3 world_cameraLookAt) {
-            // TODO: Validate this
-            //
-            //world_cameraPosition = world_cameraPosition + glm::vec3(-15.0f, 0.0f, 0.0f);
-
-            // For now set the camera
-            //world_cameraPosition = glm::vec3(1.0f, 1.0f, 1.0f);
-            //world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
-
-            std::cout << "hello" << std::endl;
-            view_ = glm::lookAt(world_cameraPosition,       // Camera is at (???), in World Space
-                                world_cameraLookAt,         // and looks at the origin?
-                                {0.0f, 1.0f, 0.0f});        // Head is up (set to 0,-1,0 to look upside-down)
-
-            //view_ = glm::affineInverse(view_);
-
-            /*
-            view_ = glm::lookAt(
-                    world_cameraPosition,
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec3(0.0f, 0.0f, 1.0f)
-            );
-             */
-
-            std::cout << "World lookAt " << std::endl;
-            print_glmVec3(world_cameraLookAt);
-
-            std::cout << "Camera position " << std::endl;
-            print_glmVec3(world_cameraPosition);
-
-            std::cout << "View matrix " << std::endl;
-            print_glmMatrix(view_);
-        }
-
         void setProjectionMatrix(glm::mat4 proj) {
 
             // TODO: proj matrix is not correct from parse
             //camera_projection_ = proj;
 
             // For now hardcoded perspective matrix
-            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 10.0f);
+            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 100.0f);
 
             // Print the perspective matrices
             std::cout << "Projection matrix " << std::endl;
@@ -236,6 +187,7 @@ namespace sw {
             //Model-View-Projection
             uniform_P = glGetUniformLocation(*shader_, "P");
             uniform_V = glGetUniformLocation(*shader_, "V");
+            uniform_V_inverse = glGetUniformLocation(*shader_, "V_inv");
             uniform_M = glGetUniformLocation(*shader_, "M");
 
             //Lighting, get uniform locations for all lights in the scene
@@ -321,7 +273,7 @@ namespace sw {
         GLint matShineLoc;
 
         //
-        GLint uniform_P, uniform_V, uniform_M;
+        GLint uniform_P, uniform_V, uniform_V_inverse, uniform_M;
         ShaderProgram *shader_;
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
@@ -341,5 +293,42 @@ namespace sw {
                 transform->cached_world_ = parent_world * local;
             }
         }
+
+
+        // this is not used for now
+        void setCamera(glm::vec3 world_cameraPosition, glm::vec3 world_cameraLookAt) {
+            // TODO: Validate this
+            //
+            //world_cameraPosition = world_cameraPosition + glm::vec3(-15.0f, 0.0f, 0.0f);
+
+            // For now set the camera
+            //world_cameraPosition = glm::vec3(1.0f, 1.0f, 1.0f);
+            //world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
+
+            std::cout << "hello" << std::endl;
+            view_ = glm::lookAt(world_cameraPosition,       // Camera is at (???), in World Space
+                                world_cameraLookAt,         // and looks at the origin?
+                                {0.0f, 1.0f, 0.0f});        // Head is up (set to 0,-1,0 to look upside-down)
+
+            //view_ = glm::affineInverse(view_);
+
+            /*
+            view_ = glm::lookAt(
+                    world_cameraPosition,
+                    glm::vec3(0.0f, 0.0f, 0.0f),
+                    glm::vec3(0.0f, 0.0f, 1.0f)
+            );
+             */
+
+            std::cout << "World lookAt " << std::endl;
+            print_glmVec3(world_cameraLookAt);
+
+            std::cout << "Camera position " << std::endl;
+            print_glmVec3(world_cameraPosition);
+
+            std::cout << "View matrix " << std::endl;
+            print_glmMatrix(view_);
+        }
+
     };
 }

@@ -2,7 +2,7 @@
 
 // Input data
 in vec3 Normal;
-in vec3 FragEyePos;
+in vec3 FragPos;
 
 // Output data
 out vec4 Color;
@@ -44,12 +44,12 @@ void main()
 
         // Diffuse
         vec3 norm = normalize(Normal);
-        vec3 lightDir = normalize(light.position - FragEyePos);
+        vec3 lightDir = normalize(light.position - FragPos);
         float diff = max(dot(norm, lightDir), 0.0);
         vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
         // Specular
-        vec3 viewDir = normalize(- mat3(V)*FragEyePos);
+        vec3 viewDir = normalize(- mat3(V)*FragPos);
         vec3 reflectDir = reflect(-lightDir, norm);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         vec3 specular = light.specular * (spec * material.specular);
