@@ -21,6 +21,12 @@ namespace sw {
 
         PhysicsComponent() {}
 
+        ~PhysicsComponent() {
+            delete motionState_;
+            delete shape_;
+            delete body_;
+        }
+
         PhysicsComponent(ex::ComponentHandle<TransformComponent> transformComponent, glm::vec3 boundingVector, btScalar mass = 0.0f ) {
             motionState_ = new MyMotionState(transformComponent);
             shape_ = new btBoxShape(btVector3(boundingVector.x, boundingVector.y, boundingVector.z));
@@ -32,6 +38,9 @@ namespace sw {
 
             // objects of infinite mass can't
             // move or rotate
+
+
+
             if (mass != 0.0f)
                 shape_->calculateLocalInertia(mass, localInertia);
 

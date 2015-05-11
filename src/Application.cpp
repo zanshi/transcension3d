@@ -107,6 +107,7 @@ void sw::Application::initScene() {
     renderSystem->setCamera(sceneImporter.getCamera());
 
     auto sys = systems.system<PhysicsSystem>();
+
     sys->populateWorld(root);
 
 
@@ -125,8 +126,6 @@ void sw::Application::run() {
     isRunning = true;
 
     while (isRunning) {
-
-        using namespace std::chrono;
 
         current = std::chrono::high_resolution_clock::now();
 

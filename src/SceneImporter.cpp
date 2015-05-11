@@ -22,7 +22,7 @@ namespace sw {
 
     SceneImporter::SceneImporter(std::string filename) {
         filename = relative_path_to_scene_folder_ + filename;
-        p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate);
+        p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate );
         if (p_scene == nullptr) {
             std::cout << "The file could not be loaded. Exiting." << std::endl;
             assert(p_scene);
@@ -67,7 +67,7 @@ namespace sw {
     }
 
     glm::mat4 SceneImporter::getCamera() {
-        if (camera_node_) {
+        if (camera_node_ != nullptr) {
             return aiMatrix4x4_to_glmMat4(camera_node_->mTransformation);
         } else {
             return glm::mat4(1);
@@ -87,7 +87,7 @@ namespace sw {
         processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
 
         // Remove the read file from memory
-        importer.FreeScene();
+        //importer.FreeScene();
 
     }
 
@@ -253,28 +253,28 @@ namespace sw {
         auto mesh = entity.component<MeshComponent>();
         auto transform = entity.component<TransformComponent>();
 
-        entity.assign<PhysicsComponent>(transform, std::move(buildBoundingVector(pMesh, mesh->vertices)), btScalar(mass));
+        entity.assign<PhysicsComponent>(transform, std::move(buildBoundingVector(mesh->vertices)), mass);
 
 
     }
 
 
-    glm::vec3 SceneImporter::buildBoundingVector(const aiMesh *pMesh, std::vector<Vertex> vertices)
+    glm::vec3 SceneImporter::buildBoundingVector(std::vector<Vertex> vertices)
     {
         // Create initial variables to hold min and max xyz values for the mesh
-        glm::vec3 mesh_max(FLT_MIN);
-        glm::vec3 mesh_min(FLT_MAX);
+        glm::vec3 vert_max(FLT_MIN);
+        glm::vec3 vert_min(FLT_MAX);
         glm::vec3 vertex_position;
 
         for(Vertex vertex : vertices) {
 
             vertex_position = vertex.Position;
-            mesh_min = glm::min(mesh_min, vertex_position);
-            mesh_max = glm::max(mesh_max, vertex_position);
+            vert_min = glm::min(vert_min, vertex_position);
+            vert_max = glm::max(vert_max, vertex_position);
 
         }
 
-        return (mesh_max - mesh_min)/2.0f;
+        return (vert_max - vert_min)/2.0f;
 
 
     }

@@ -38,7 +38,10 @@ namespace sw {
 
         SceneImporter() = delete;
 
-        ~SceneImporter() { };
+        ~SceneImporter() {
+            //delete camera_node_;
+            //delete p_scene;
+        };
 
         static std::string relative_path_to_scene_folder_;
 
@@ -74,7 +77,7 @@ namespace sw {
 
         void addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass);
 
-        glm::vec3 buildBoundingVector(const aiMesh *pMesh, std::vector<Vertex> vertices);
+        glm::vec3 buildBoundingVector(std::vector<Vertex> vertices);
 
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {

@@ -10,6 +10,8 @@
 
 #include "components/PhysicsComponent.hpp"
 
+#include "physics/MyDebugDrawer.hpp"
+
 namespace ex = entityx;
 
 namespace sw {
@@ -33,7 +35,19 @@ namespace sw {
 
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
-            m_pWorld->setGravity(btVector3(0, -10, 0));
+
+            m_pWorld->setGravity(btVector3(0, 0, 0));
+
+
+            debugDrawer_ = new MyDebugDrawer();
+            m_pWorld->setDebugDrawer(debugDrawer_);
+
+            m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+
+
+
+
+
 
         }
 
@@ -66,10 +80,11 @@ namespace sw {
 
 
         ~PhysicsSystem() {
+            delete m_pWorld;
+            delete debugDrawer_;
             delete m_pBroadphase;
             delete m_pDispatcher;
             delete m_pCollisionConfiguration;
-            delete m_pWorld;
             delete m_pSolver;
         }
 
@@ -77,6 +92,7 @@ namespace sw {
         void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt,10);
+                //m_pWorld->debugDrawWorld();
             }
 
 //            for(int i = m_pWorld->getNumCollisionObjects()-1; i>=0; i--) {
@@ -115,6 +131,8 @@ namespace sw {
         btDefaultCollisionConfiguration *m_pCollisionConfiguration;
 
         btDynamicsWorld *m_pWorld;
+
+        MyDebugDrawer* debugDrawer_;
 
 
     };

@@ -39,6 +39,10 @@ namespace sw {
             uniform_P = uniform_V = uniform_P = 0;
         };
 
+        ~RenderSystem(){
+            delete shader_;
+        }
+
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
@@ -75,9 +79,6 @@ namespace sw {
                 // events_.emit<RenderEvent>(entityToRender, current_depth);
 
 
-                physics->body_->getCollisionShape()->
-
-
 
                 // TODO: Investigate what units should be used in blender
                 glm::mat4 model = transform->cached_world_;
@@ -87,6 +88,7 @@ namespace sw {
 
                 // Draw mesh
                 glBindVertexArray(mesh->VAO);
+                // TODO: Fix "Conditional jump or move depends on uninitialised value(s)"
                 glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
 
