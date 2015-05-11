@@ -2,13 +2,10 @@
 
 // Input data
 in vec3 Normal;
-in vec3 FragPos;
+in vec3 FragEyePos;
 
-// Ouput data
+// Output data
 out vec4 Color;
-
-// Uniforms
-uniform vec3 viewPos;
 
 struct Material {
     vec3 ambient;
@@ -18,33 +15,47 @@ struct Material {
 };
 
 struct Light {
+    int type;
     vec3 position;
+    vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 };
 
-uniform Light light;
+const int MAX_LIGHTS = 20;
+uniform Light lights[MAX_LIGHTS];
+uniform int num_lights;
 uniform Material material;
 
+uniform mat4 V;
 
 void main()
 {
-    // Ambient
-    vec3 ambient = light.ambient * material.ambient;
+    vec3 result = vec3(0.0, 0.0, 0.0);
 
-    // Diffuse
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = light.diffuse * (diff * material.diffuse);
+    // Calculate lighting for each light source independently
+    for (int i=0; i<num_lights; i++) {
+        Light light = lights[i];
 
-    // Specular
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = light.specular * (spec * material.specular);
+        /* Light dat biatch */
+        // Ambient
+        vec3 ambient = light.ambient * material.ambient;
 
-    vec3 result = ambient + diffuse + specular;
+        // Diffuse
+        vec3 norm = normalize(Normal);
+        vec3 lightDir = normalize(light.position - FragEyePos);
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = light.diffuse * (diff * material.diffuse);
+
+        // Specular
+        vec3 viewDir = normalize(- mat3(V)*FragEyePos);
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+        vec3 specular = light.specular * (spec * material.specular);
+
+        result += (ambient + diffuse + specular);
+    }
+
     Color = vec4(result, 1.0f);
 }

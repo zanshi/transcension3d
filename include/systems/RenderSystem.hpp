@@ -10,6 +10,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_inverse.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/matrix_decompose.hpp"
 
 #include "components/TransformComponent.hpp"
 #include "components/RenderComponent.hpp"
@@ -41,6 +42,7 @@ namespace sw {
                 : events_(events) {
             uniform_P = uniform_V = uniform_P = 0;
             camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 0.01f, 10.0f);
+            num_lights_currently_ = 0;
         };
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -63,6 +65,44 @@ namespace sw {
             }
 
             glUniformMatrix4fv(uniform_V, 1, GL_FALSE, glm::value_ptr(view_));
+
+            // Get all the lights
+            auto dimension = ex::ComponentHandle<DimensionComponent>();
+            auto light = ex::ComponentHandle<LightComponent>();
+
+            num_lights_currently_ = 0;
+            for (ex::Entity current_light : es.entities_with_components(graphNode, transform, dimension, light)) {
+                num_lights_currently_++;
+
+                // All these values are in the Eye's coordinate system
+                glm::mat4 l_transform = transform->cached_world_;
+                glm::vec3 l_pos;
+                glm::quat l_quat;
+                glm::vec3 temp3;
+                glm::vec4 temp4;
+                glm::decompose(l_transform, temp3, l_quat, l_pos, temp3, temp4);
+                //std::cout << "Light pos: x=" << lightEyePos[0] << ", y=" << lightEyePos[1] << ", z=" << lightEyePos[2] << std::endl;
+                glm::vec3 l_euler = glm::eulerAngles(l_quat);
+
+                /* Feed the light to the uniforms */
+                // TYPE
+                glUniform1i(lightsLoc[num_lights_currently_][0], (int)light->type_);
+
+                // POSITION
+                glUniform3f(lightsLoc[num_lights_currently_][1], l_pos.x, l_pos.y, l_pos.z);
+
+                // DIRECTION
+                // TODO: Get the direction of the light
+                glUniform3f(lightsLoc[num_lights_currently_][2], 0.0f, 0.0f, 0.0f);
+
+                Color &c = light->color_;
+                // AMBIENT, DIFFUSE, SPECULAR
+                glUniform3f(lightsLoc[num_lights_currently_][3], c.ambient_.x, c.ambient_.y, c.ambient_.z);
+                glUniform3f(lightsLoc[num_lights_currently_][4], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
+                glUniform3f(lightsLoc[num_lights_currently_][5], c.specular_.x, c.specular_.y, c.specular_.z);
+            }
+
+            glUniform1i(num_lights_loc, num_lights_currently_);
 
             // Start rendering at the top of the tree
             renderEntity(root_, false, alpha, 0);
@@ -198,29 +238,40 @@ namespace sw {
             uniform_V = glGetUniformLocation(*shader_, "V");
             uniform_M = glGetUniformLocation(*shader_, "M");
 
-            //Lightning
-            viewPosLoc     = glGetUniformLocation(*shader_, "viewPos");
+            //Lighting, get uniform locations for all lights in the scene
+            for (unsigned int light = 0; light < MAX_LIGHTS; ++light) {
+                for (unsigned int attr = 0; attr < LIGHT_ATTRIBUTES; ++attr) {
+                    std::string last_part = "";
+                    switch (attr) {
+                        case 0:
+                            last_part = "type"; break;
+                        case 1:
+                            last_part = "position"; break;
+                        case 2:
+                            last_part = "direction"; break;
+                        case 3:
+                            last_part = "ambient"; break;
+                        case 4:
+                            last_part = "diffuse"; break;
+                        case 5:
+                            last_part = "specular"; break;
+                        default:
+                            last_part = ""; break;
+                    }
+                    std::string uniform = "lights[" + std::to_string(light) + "]." + last_part;
+                    std::cout << uniform << std::endl;
+                    lightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
+                    std::cout << lightsLoc[light][attr] << std::endl;
+                }
+            }
 
-            lightAmbientLoc  = glGetUniformLocation(*shader_, "light.ambient");
-            lightDiffuseLoc  = glGetUniformLocation(*shader_, "light.diffuse");
-            lightSpecularLoc = glGetUniformLocation(*shader_, "light.specular");
+            num_lights_loc = glGetUniformLocation(*shader_, "num_lights");
 
             //Material
             matAmbientLoc  = glGetUniformLocation(*shader_, "material.ambient");
             matDiffuseLoc  = glGetUniformLocation(*shader_, "material.diffuse");
             matSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
             matShineLoc    = glGetUniformLocation(*shader_, "material.shininess");
-
-            glUniform3f(lightAmbientLoc,  0.2f, 0.2f, 0.2f);
-            glUniform3f(lightDiffuseLoc,  0.5f, 0.5f, 0.5f);
-            glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
-
-            glUniform3f(viewPosLoc,     1.0f, 1.0f, 1.0f);
-
-
-
-
-
         }
 
         void print_glmMatrix(glm::mat4 pMat4) {
@@ -256,11 +307,12 @@ namespace sw {
         glm::mat4 view_;
 
         // Lightning
-        GLint viewPosLoc;
+        const static unsigned int MAX_LIGHTS = 20;
+        const static unsigned int LIGHT_ATTRIBUTES = 6;
+        GLint lightsLoc[MAX_LIGHTS][LIGHT_ATTRIBUTES];
+        unsigned int num_lights_currently_;
 
-        GLint lightAmbientLoc;
-        GLint lightDiffuseLoc;
-        GLint lightSpecularLoc;
+        GLint num_lights_loc;
 
         //Material
         GLint matAmbientLoc;
