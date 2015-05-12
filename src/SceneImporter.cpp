@@ -103,10 +103,16 @@ namespace sw {
 
     const std::regex REGEX_MATCH_DIMENSION_TWO = std::regex("\\S+_dim2");
 
-    const std::regex REGEX_MATCH_LIGHT = std::regex("light_\\S+");
+    const std::regex REGEX_MATCH_LIGHT_1 = std::regex("light_\\S+");
+    const std::regex REGEX_MATCH_LIGHT_2 = std::regex("Light_\\S+");
+    const std::regex REGEX_MATCH_LIGHT_3 = std::regex("lights_\\S+");
+    const std::regex REGEX_MATCH_LIGHT_4 = std::regex("Lights_\\S+");
 
     const bool isLight(const char *str) {
-        return std::regex_match(str, REGEX_MATCH_LIGHT);
+        return std::regex_match(str, REGEX_MATCH_LIGHT_1) ||
+        std::regex_match(str, REGEX_MATCH_LIGHT_2) ||
+        std::regex_match(str, REGEX_MATCH_LIGHT_3) ||
+        std::regex_match(str, REGEX_MATCH_LIGHT_4);
     }
 
     const aiLight *SceneImporter::getLightWithName(const char *str) {
@@ -251,17 +257,13 @@ namespace sw {
     }
 
     void SceneImporter::addLightComponentToEntity(entityx::Entity entity, const aiLight *light) {
-
-
-        //not finished yet
-        const aiLight *light_index = (p_scene->mLights[0]);
-
-        sw::Color color(std::move(glm::vec3(light_index->mColorAmbient.r, light_index->mColorAmbient.g,
-                                            light_index->mColorAmbient.b)),
-                        std::move(glm::vec3(light_index->mColorDiffuse.r, light_index->mColorDiffuse.g,
-                                            light_index->mColorDiffuse.b)),
-                        std::move(glm::vec3(light_index->mColorSpecular.r, light_index->mColorSpecular.g,
-                                            light_index->mColorSpecular.b)));
+        
+        sw::Color color(std::move(glm::vec3(light->mColorAmbient.r, light->mColorAmbient.g,
+                                            light->mColorAmbient.b)),
+                        std::move(glm::vec3(light->mColorDiffuse.r, light->mColorDiffuse.g,
+                                            light->mColorDiffuse.b)),
+                        std::move(glm::vec3(light->mColorSpecular.r, light->mColorSpecular.g,
+                                            light->mColorSpecular.b)));
 
         LightComponent::LightType type;
         switch (light->mType) {

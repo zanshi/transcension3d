@@ -41,9 +41,11 @@ namespace sw {
         }
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) {
+            /*
             debugMovementEvents();
             debugViewChangedEvents();
             debugRenderEvents();
+             */
         }
 
         void receive(const RenderEvent &render_event) {

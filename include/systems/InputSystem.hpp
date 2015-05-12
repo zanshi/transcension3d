@@ -52,20 +52,30 @@ namespace sw {
                 }
 
                 if (e.type == SDL_KEYDOWN) {
+                    SDL_bool isRelMouseMode = SDL_GetRelativeMouseMode();
+                    int isMouseVisible = SDL_ShowCursor(SDL_QUERY);
 
                     switch (e.key.keysym.sym) {
-
                         case SDLK_SPACE:
                             events.emit<JumpEvent>();
+                            break;
+                        case SDLK_m:
+                            if (isRelMouseMode == SDL_TRUE)
+                                SDL_SetRelativeMouseMode(SDL_FALSE);
+                            else
+                                SDL_SetRelativeMouseMode(SDL_TRUE);
+
+                            if (isMouseVisible == SDL_ENABLE)
+                                SDL_ShowCursor(SDL_DISABLE);
+                            else
+                                SDL_ShowCursor(SDL_ENABLE);
                             break;
                         default:
                             break;
                     }
                 }
 
-
                 if (e.type == SDL_MOUSEBUTTONDOWN) {
-
                     switch (e.button.button) {
                         case SDL_BUTTON_LEFT:
                             std::cout << "pew" << std::endl;

@@ -75,7 +75,6 @@ namespace sw {
 
             num_lights_currently_ = 0;
             for (ex::Entity current_light : es.entities_with_components(graphNode, transform, dimension, light)) {
-                num_lights_currently_++;
 
                 // See if we need to update the current light's cached world transform
                 if (transform->is_dirty_) {
@@ -108,6 +107,8 @@ namespace sw {
                 glUniform3f(lightsLoc[num_lights_currently_][3], c.ambient_.x, c.ambient_.y, c.ambient_.z);
                 glUniform3f(lightsLoc[num_lights_currently_][4], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
                 glUniform3f(lightsLoc[num_lights_currently_][5], c.specular_.x, c.specular_.y, c.specular_.z);
+
+                num_lights_currently_++;
             }
 
             glUniform1i(num_lights_loc, num_lights_currently_);
@@ -115,8 +116,6 @@ namespace sw {
             // Pass the position of the eye in world coordinates
             glm::vec3 viewPos;
             glm::decompose(view_, temp3, tempquat, viewPos, temp3, temp4);
-            std::cout << "Test of where viewport is: " << std::endl;
-            print_glmVec3(viewPos);
             glUniform3f(viewPosLoc, viewPos.x, viewPos.y, viewPos.z);
 
             // Start rendering at the top of the tree
@@ -216,9 +215,7 @@ namespace sw {
                             last_part = ""; break;
                     }
                     std::string uniform = "lights[" + std::to_string(light) + "]." + last_part;
-                    std::cout << uniform << std::endl;
                     lightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
-                    std::cout << lightsLoc[light][attr] << std::endl;
                 }
             }
 

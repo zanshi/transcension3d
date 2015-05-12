@@ -81,9 +81,6 @@ bool sw::Application::init() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
 
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-    SDL_ShowCursor(0);
-
     return true;
 
 }
