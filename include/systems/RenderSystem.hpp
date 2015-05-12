@@ -40,8 +40,8 @@ namespace sw {
     class RenderSystem : public ex::System<RenderSystem>, public ex::Receiver<RenderSystem> {
     public:
         RenderSystem(ex::EventManager &events) {
-            uniform_P = uniform_V = uniform_P = 0;
-            camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 0.01f, 10.0f);
+            P_loc = V_loc = P_loc = 0;
+            camera_projection_ = glm::perspective(glm::radians(60.f * 0.75f), 800.0f / 600.0f, 0.01f, 10.0f);
             num_lights_currently_ = 0;
 
             current_dim_ = Dim::DIMENSION_ONE;
@@ -53,7 +53,7 @@ namespace sw {
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
-            glUniformMatrix4fv(uniform_P, 1, GL_FALSE, glm::value_ptr(camera_projection_));
+            glUniformMatrix4fv(P_loc, 1, GL_FALSE, glm::value_ptr(camera_projection_));
 
             // Get the player's position, i.e. the camera's position
             auto player = ex::ComponentHandle<PlayerComponent>();
@@ -65,12 +65,13 @@ namespace sw {
 
                 glm::mat4 player_transform_world = transform->cached_world_;
 
-                view_ = player_transform_world*glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f)*glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f);
+                view_ = player_transform_world * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f) *
+                        glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f);
             }
 
-            glUniformMatrix4fv(uniform_V, 1, GL_FALSE, glm::value_ptr(view_));
+            glUniformMatrix4fv(V_loc, 1, GL_FALSE, glm::value_ptr(view_));
             glm::mat4 view_inverse = glm::affineInverse(view_);
-            glUniformMatrix4fv(uniform_V_inverse, 1, GL_FALSE, glm::value_ptr(view_inverse));
+            glUniformMatrix4fv(V_inv_loc, 1, GL_FALSE, glm::value_ptr(view_inverse));
 
             /* LIGHTS */
             // Get all the lights
@@ -100,7 +101,7 @@ namespace sw {
 
                 /* Feed the light to the uniforms */
                 // TYPE
-                glUniform1i(lightsLoc[num_lights_currently_][0], (int)light->type_);
+                glUniform1i(lightsLoc[num_lights_currently_][0], (int) light->type_);
 
                 // POSITION
                 glUniform3f(lightsLoc[num_lights_currently_][1], l_pos.x, l_pos.y, l_pos.z);
@@ -155,13 +156,16 @@ namespace sw {
                 // TODO: Investigate what units should be used in blender
                 // Get the model matrix and send it to the shader.
                 glm::mat4 model = transform->cached_world_;
-                glUniformMatrix4fv(uniform_M, 1, GL_FALSE, glm::value_ptr(model));
+                glUniformMatrix4fv(M_loc, 1, GL_FALSE, glm::value_ptr(model));
 
                 // Set object material properties
-                glUniform3f(matAmbientLoc,  shading->color_.ambient_.r, shading->color_.ambient_.g, shading->color_.ambient_.b );
-                glUniform3f(matDiffuseLoc,  shading->color_.diffuse_.r, shading->color_.diffuse_.g, shading->color_.diffuse_.b );
-                glUniform3f(matSpecularLoc, shading->color_.specular_.r,shading->color_.specular_.g,shading->color_.specular_.b );
-                glUniform1f(matShineLoc,    shading->shininess_);
+                glUniform3f(matAmbientLoc, shading->color_.ambient_.r, shading->color_.ambient_.g,
+                            shading->color_.ambient_.b);
+                glUniform3f(matDiffuseLoc, shading->color_.diffuse_.r, shading->color_.diffuse_.g,
+                            shading->color_.diffuse_.b);
+                glUniform3f(matSpecularLoc, shading->color_.specular_.r, shading->color_.specular_.g,
+                            shading->color_.specular_.b);
+                glUniform1f(matShineLoc, shading->shininess_);
 
                 // Draw mesh
                 glBindVertexArray(mesh->VAO);
@@ -202,10 +206,10 @@ namespace sw {
             (*shader_)(); //glUseProgram
 
             //Model-View-Projection
-            uniform_P = glGetUniformLocation(*shader_, "P");
-            uniform_V = glGetUniformLocation(*shader_, "V");
-            uniform_V_inverse = glGetUniformLocation(*shader_, "V_inv");
-            uniform_M = glGetUniformLocation(*shader_, "M");
+            P_loc = glGetUniformLocation(*shader_, "P");
+            V_loc = glGetUniformLocation(*shader_, "V");
+            V_inv_loc = glGetUniformLocation(*shader_, "V_inv");
+            M_loc = glGetUniformLocation(*shader_, "M");
 
             //Lighting, get uniform locations for all lights in the scene
             for (unsigned int light = 0; light < MAX_LIGHTS; ++light) {
@@ -213,19 +217,26 @@ namespace sw {
                     std::string last_part = "";
                     switch (attr) {
                         case 0:
-                            last_part = "type"; break;
+                            last_part = "type";
+                            break;
                         case 1:
-                            last_part = "position"; break;
+                            last_part = "position";
+                            break;
                         case 2:
-                            last_part = "direction"; break;
+                            last_part = "direction";
+                            break;
                         case 3:
-                            last_part = "ambient"; break;
+                            last_part = "ambient";
+                            break;
                         case 4:
-                            last_part = "diffuse"; break;
+                            last_part = "diffuse";
+                            break;
                         case 5:
-                            last_part = "specular"; break;
+                            last_part = "specular";
+                            break;
                         default:
-                            last_part = ""; break;
+                            last_part = "";
+                            break;
                     }
                     std::string uniform = "lights[" + std::to_string(light) + "]." + last_part;
                     lightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
@@ -235,10 +246,10 @@ namespace sw {
             num_lights_loc = glGetUniformLocation(*shader_, "num_lights");
 
             //Material
-            matAmbientLoc  = glGetUniformLocation(*shader_, "material.ambient");
-            matDiffuseLoc  = glGetUniformLocation(*shader_, "material.diffuse");
+            matAmbientLoc = glGetUniformLocation(*shader_, "material.ambient");
+            matDiffuseLoc = glGetUniformLocation(*shader_, "material.diffuse");
             matSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
-            matShineLoc    = glGetUniformLocation(*shader_, "material.shininess");
+            matShineLoc = glGetUniformLocation(*shader_, "material.shininess");
 
             viewPosLoc = glGetUniformLocation(*shader_, "viewPos");
         }
@@ -247,60 +258,40 @@ namespace sw {
             current_dim_ = (current_dim_ == Dim::DIMENSION_ONE) ? Dim::DIMENSION_TWO : Dim::DIMENSION_ONE;
         }
 
-        void print_glmMatrix(glm::mat4 pMat4) {
-
-            double dArray[16] = {0.0};
-            const float *pSource = (const float *) glm::value_ptr(glm::transpose(pMat4));
-            for (int i = 0; i < 16; ++i) {
-                dArray[i] = pSource[i];
-                std::cout << std::fixed << std::setprecision(2);
-                std::cout << dArray[i] << " ";
-                if (i == 3 || i == 7 || i == 11)
-                    std::cout << std::endl;
-            }
-            std::cout << std::endl << "--------------------" << std::endl;
-
-        }
-
-        void print_glmVec3(glm::vec3 vec) {
-            for (int i = 0; i < 3; ++i) {
-                std::cout << std::fixed << std::setprecision(2);
-                std::cout << vec[i] << " ";
-            }
-            std::cout << std::endl << "--------------------" << std::endl;
-        }
-
     private:
+        /* GAME-RELATED VARIABLES */
         Dim current_dim_;
+
+        /* RENDER-RELATED VARIABLES */
+        ShaderProgram *shader_;
 
         // Reference to the top node in the tree, where rendering ALWAYS starts
         ex::Entity root_;
-
-        // Camera Matrix
+        // Projection matrix and view / camera / player matrix transform
         glm::mat4 camera_projection_;
+
         glm::mat4 view_;
-
-        // Lightning
+        // Lighting
         const static unsigned int MAX_LIGHTS = 20;
-        const static unsigned int LIGHT_ATTRIBUTES = 6;
-        GLint lightsLoc[MAX_LIGHTS][LIGHT_ATTRIBUTES];
-        unsigned int num_lights_currently_;
 
+        const static unsigned int LIGHT_ATTRIBUTES = 6;
+
+        unsigned int num_lights_currently_;
+        // Uniform variables locations
+        GLint lightsLoc[MAX_LIGHTS][LIGHT_ATTRIBUTES];
         GLint num_lights_loc;
 
         GLint viewPosLoc;
-
         //Material
         GLint matAmbientLoc;
         GLint matDiffuseLoc;
         GLint matSpecularLoc;
+
         GLint matShineLoc;
+        // Matrices
+        GLint P_loc, V_loc, V_inv_loc, M_loc;
 
-        //
-        GLint uniform_P, uniform_V, uniform_V_inverse, uniform_M;
-        ShaderProgram *shader_;
-
-        // Used for GLM decomposition
+        // Temp variables, used (and reused) for GLM decomposition. Reused to remove need to redeclare them each time
         glm::vec3 temp3;
         glm::vec4 temp4;
         glm::quat tempquat;
@@ -323,40 +314,29 @@ namespace sw {
             }
         }
 
+        /* DEBUGGING FUNCTIONS */
 
-        // this is not used for now
-        void setCamera(glm::vec3 world_cameraPosition, glm::vec3 world_cameraLookAt) {
-            // TODO: Validate this
-            //
-            //world_cameraPosition = world_cameraPosition + glm::vec3(-15.0f, 0.0f, 0.0f);
+        void print_glmMatrix(glm::mat4 pMat4) {
 
-            // For now set the camera
-            //world_cameraPosition = glm::vec3(1.0f, 1.0f, 1.0f);
-            //world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
+            double dArray[16] = {0.0};
+            const float *pSource = (const float *) glm::value_ptr(glm::transpose(pMat4));
+            for (int i = 0; i < 16; ++i) {
+                dArray[i] = pSource[i];
+                std::cout << std::fixed << std::setprecision(2);
+                std::cout << dArray[i] << " ";
+                if (i == 3 || i == 7 || i == 11)
+                    std::cout << std::endl;
+            }
+            std::cout << std::endl << "--------------------" << std::endl;
 
-            std::cout << "hello" << std::endl;
-            view_ = glm::lookAt(world_cameraPosition,       // Camera is at (???), in World Space
-                                world_cameraLookAt,         // and looks at the origin?
-                                {0.0f, 1.0f, 0.0f});        // Head is up (set to 0,-1,0 to look upside-down)
+        }
 
-            //view_ = glm::affineInverse(view_);
-
-            /*
-            view_ = glm::lookAt(
-                    world_cameraPosition,
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec3(0.0f, 0.0f, 1.0f)
-            );
-             */
-
-            std::cout << "World lookAt " << std::endl;
-            print_glmVec3(world_cameraLookAt);
-
-            std::cout << "Camera position " << std::endl;
-            print_glmVec3(world_cameraPosition);
-
-            std::cout << "View matrix " << std::endl;
-            print_glmMatrix(view_);
+        void print_glmVec3(glm::vec3 vec) {
+            for (int i = 0; i < 3; ++i) {
+                std::cout << std::fixed << std::setprecision(2);
+                std::cout << vec[i] << " ";
+            }
+            std::cout << std::endl << "--------------------" << std::endl;
         }
 
     };
