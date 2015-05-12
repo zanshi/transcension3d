@@ -18,6 +18,7 @@
 #include "components/MovementComponent.hpp"
 
 #include "events/RenderEvent.hpp"
+#include "events/DimensionChangedEvent.hpp"
 
 #include "common/Shader.h"
 
@@ -36,13 +37,16 @@ namespace sw {
  *  It logs the BodyComponent's position and rotation vectors as well as the RenderComponent's debug string
  *  **/
 
-    class RenderSystem : public ex::System<RenderSystem> {
+    class RenderSystem : public ex::System<RenderSystem>, public ex::Receiver<RenderSystem> {
     public:
-        RenderSystem(ex::EventManager &events)
-                : events_(events) {
+        RenderSystem(ex::EventManager &events) {
             uniform_P = uniform_V = uniform_P = 0;
             camera_projection_ = glm::perspective(glm::radians(60.f*0.75f), 800.0f / 600.0f, 0.01f, 10.0f);
             num_lights_currently_ = 0;
+
+            current_dim_ = Dim::DIMENSION_ONE;
+
+            events.subscribe<DimensionChangedEvent>(*this);
         };
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -75,6 +79,9 @@ namespace sw {
 
             num_lights_currently_ = 0;
             for (ex::Entity current_light : es.entities_with_components(graphNode, transform, dimension, light)) {
+                // Early bailout: is the current light in the current dimension?
+                if (!(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
+                    continue;
 
                 // See if we need to update the current light's cached world transform
                 if (transform->is_dirty_) {
@@ -123,6 +130,12 @@ namespace sw {
         }
 
         void renderEntity(ex::Entity entityToRender, bool dirty, float alpha, unsigned int current_depth) {
+            auto dimension = entityToRender.component<DimensionComponent>();
+
+            // Early bailout: is the current entity in the current dimension?
+            if (dimension && !(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
+                return;
+
             auto transform = entityToRender.component<TransformComponent>();
             auto render = entityToRender.component<RenderComponent>();
             auto graphNode = entityToRender.component<GraphNodeComponent>();
@@ -174,7 +187,7 @@ namespace sw {
             //camera_projection_ = proj;
 
             // For now hardcoded perspective matrix
-            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 100.0f);
+            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 10000.0f);
 
             // Print the perspective matrices
             std::cout << "Projection matrix " << std::endl;
@@ -230,6 +243,10 @@ namespace sw {
             viewPosLoc = glGetUniformLocation(*shader_, "viewPos");
         }
 
+        void receive(const DimensionChangedEvent &dimChanged) {
+            current_dim_ = (current_dim_ == Dim::DIMENSION_ONE) ? Dim::DIMENSION_TWO : Dim::DIMENSION_ONE;
+        }
+
         void print_glmMatrix(glm::mat4 pMat4) {
 
             double dArray[16] = {0.0};
@@ -254,7 +271,8 @@ namespace sw {
         }
 
     private:
-        ex::EventManager &events_;
+        Dim current_dim_;
+
         // Reference to the top node in the tree, where rendering ALWAYS starts
         ex::Entity root_;
 

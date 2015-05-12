@@ -361,5 +361,7 @@ DerivedData
 *.pbxproj
 *.xcworkspacedata
 
-
 *.dae
+
+### res folder ###
+res

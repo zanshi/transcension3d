@@ -43,5 +43,8 @@ namespace sw {
 
         // Setup function to initiate the RenderSystem with a root node
         void initSceneGraphRoot(ex::Entity root);
+
+        // Utilities
+        void updateFPS(float newFPS);
     };
 }

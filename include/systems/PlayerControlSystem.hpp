@@ -11,6 +11,7 @@
 #include "events/JumpEvent.hpp"
 #include "events/MovementEvent.hpp"
 #include "events/ViewChangedEvent.hpp"
+#include "events/DimensionChangedEvent.hpp"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/euler_angles.hpp"
@@ -26,6 +27,7 @@ namespace sw {
             events.subscribe<JumpEvent>(*this);
             events.subscribe<MovementEvent>(*this);
             events.subscribe<ViewChangedEvent>(*this);
+            events.subscribe<DimensionChangedEvent>(*this);
         }
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -52,6 +54,7 @@ namespace sw {
                     glm::mat4 transl = glm::translate(glm::mat4(1), {move_right_*MOVE_SCALE_FACTOR, 0.0f, -move_forward_*MOVE_SCALE_FACTOR});
 
                     transform->local_ = transform->local_ * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f) * transl * glm::yawPitchRoll(player->yaw_, 0.0f, 0.0f);
+                    transform->is_dirty_ = true;
 
                     will_move_ = false;
                 }
@@ -59,9 +62,8 @@ namespace sw {
             }
         }
 
-        void receive(const JumpEvent &jump) {
-
-        }
+        void receive(const DimensionChangedEvent &dimChanged) { }
+        void receive(const JumpEvent &jump) { }
 
         void receive(const MovementEvent &move) {
             const float SPRINTING = 1.5f;
