@@ -66,7 +66,7 @@ vec3 pointLightShading(Light pointLight) {
 
 vec3 directionalLightShading(Light dirLight) {
     // Ambient
-    vec3 ambient = pointLight.ambient * material.ambient;
+    vec3 ambient = dirLight.ambient * material.ambient;
 
     // Diffuse
     vec3 norm = normalize(Normal);
