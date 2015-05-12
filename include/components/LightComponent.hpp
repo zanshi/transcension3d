@@ -8,17 +8,18 @@
 #include <string>
 
 namespace sw {
-
-
     struct LightComponent : public ex::Component<LightComponent> {
-        LightComponent(Color color = {}, glm::vec3 position = {})
-                : color_(color), position_(position) { }
+        enum LightType {
+            POINT,
+            DIRECTIONAL,
+            SPOT
+        };
+
+        LightComponent(Color color = {}, LightType type = POINT)
+                : color_(color) { }
 
         Color color_;
-        std::string name_;
-        glm::vec3 position_;
-
-
+        LightType type_;
     };
 
 

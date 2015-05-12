@@ -16,16 +16,17 @@
 #include "systems/DebugSystem.hpp"
 #include "systems/PhysicsSystem.hpp"
 #include "systems/InputSystem.hpp"
+#include "systems/PlayerControlSystem.hpp"
 
 
 
 
 sw::Application::Application() {
     systems.add<InputSystem>();
-    systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
     systems.add<PhysicsSystem>();
+    systems.add<PlayerControlSystem>();
 
     systems.configure();
 
@@ -34,7 +35,7 @@ sw::Application::Application() {
 
 void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
-    systems.update<MovementSystem>(dt);
+    systems.update<PlayerControlSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
 }
@@ -106,7 +107,7 @@ void sw::Application::initScene() {
 
     auto renderSystem = systems.system < RenderSystem > ();
 
-    renderSystem->setCamera(sceneImporter.getCamera());
+    //renderSystem->setCamera(sceneImporter.getCamera());
 }
 
 void sw::Application::run() {
@@ -171,6 +172,5 @@ void sw::Application::initSceneGraphRoot(ex::Entity root) {
 }
 
 void sw::Application::receive(const QuitEvent &quitEvent) {
-    std::cout << "Quit pls, from Application" << std::endl;
     isRunning = false;
 }
