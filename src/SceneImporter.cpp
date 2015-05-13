@@ -279,6 +279,8 @@ namespace sw {
                 break;
         }
 
+        std::cout << "Light is of type: " << type << "\n";
+
         entity.assign<LightComponent>(std::move(color), type);
     }
 }

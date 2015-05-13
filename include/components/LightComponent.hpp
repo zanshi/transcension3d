@@ -16,11 +16,9 @@ namespace sw {
         };
 
         LightComponent(Color color = {}, LightType type = POINT)
-                : color_(color) { }
+                : color_(color), type_(type) { }
 
         Color color_;
         LightType type_;
     };
-
-
 }

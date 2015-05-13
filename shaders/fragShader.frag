@@ -22,7 +22,7 @@ struct PointLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-}
+};
 
 const int MAX_DIR_LIGHTS = 20;
 struct DirectionalLight {
@@ -33,7 +33,7 @@ struct DirectionalLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-}
+};
 
 /* TODO (bwiberg): Implement SpotLights
 struct SpotLight {}
@@ -77,7 +77,10 @@ vec3 directionalLightShading(DirectionalLight light) {
 
     // Diffuse
     vec3 norm = normalize(Normal);
-    vec3 lightDir = -light.direction;
+
+    // TODO (bwiberg): Should use '-light.direction', but is set to (0,0,0) so use position instead
+    vec3 lightDir = normalize(light.position);
+    //vec3 lightDir = -light.direction;
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
