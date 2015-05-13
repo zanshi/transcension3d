@@ -66,5 +66,12 @@ namespace sw {
             // TODO : Test this code snippet
             local_ = glm::translate(glm::mat4(1.0f), position_) * glm::mat4_cast(orientation_);
         }
+
+        void update_world_transform() {
+            cached_world_ = glm::translate(glm::mat4(1.0f), world_position_) * glm::mat4_cast(world_rotation_) *
+                    glm::scale(glm::mat4(1.0f), scale_);
+        }
+
+
     };
 }

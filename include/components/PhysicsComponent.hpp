@@ -27,8 +27,9 @@ namespace sw {
             delete body_;
         }
 
-        PhysicsComponent(ex::ComponentHandle<TransformComponent> transformComponent, glm::vec3 boundingVector, btScalar mass = 0.0f ) {
-            motionState_ = new MyMotionState(transformComponent);
+        PhysicsComponent(ex::Entity entity,
+                         glm::vec3 boundingVector, btScalar mass = 0.0f ) {
+            motionState_ = new MyMotionState(entity);
             shape_ = new btBoxShape(btVector3(boundingVector.x, boundingVector.y, boundingVector.z));
 
             //shape_ = new btBoxShape(btVector3(2.0f, 1.0f, 1.0f));

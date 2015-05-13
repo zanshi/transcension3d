@@ -143,8 +143,6 @@ namespace sw {
         current_entity.assign<TransformComponent>(aiMatrix4x4_to_glmMat4(node->mTransformation));
         current_entity.assign<GraphNodeComponent>(parent, current_entity);
 
-
-
         current_entity.assign<DimensionComponent>(dim_current);
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
@@ -168,7 +166,6 @@ namespace sw {
             auto graphNode = current_entity.component<GraphNodeComponent>();
 
             combine(transform, graphNode->parent_);
-
 
             unsigned int index_mesh = *(node->mMeshes);
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
@@ -253,13 +250,15 @@ namespace sw {
         auto mesh = entity.component<MeshComponent>();
         auto transform = entity.component<TransformComponent>();
 
-        entity.assign<PhysicsComponent>(transform, std::move(buildBoundingVector(mesh->vertices)), mass);
+        entity.assign<PhysicsComponent>(entity,
+                                        std::move(buildBoundingVector(transform->cached_world_, mesh->vertices)),
+                                        mass);
 
 
     }
 
 
-    glm::vec3 SceneImporter::buildBoundingVector(std::vector<Vertex> vertices)
+    glm::vec3 SceneImporter::buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices)
     {
         // Create initial variables to hold min and max xyz values for the mesh
         glm::vec3 vert_max(FLT_MIN);
@@ -268,13 +267,22 @@ namespace sw {
 
         for(Vertex vertex : vertices) {
 
-            vertex_position = vertex.Position;
             vert_min = glm::min(vert_min, vertex_position);
             vert_max = glm::max(vert_max, vertex_position);
 
         }
 
-        return (vert_max - vert_min)/2.0f;
+        glm::vec4 vert_min_temp(vert_min, 1);
+        glm::vec4 vert_max_temp(vert_max, 1);
+
+
+        vert_min_temp = world_transform * vert_min_temp;
+
+        vert_max_temp =  world_transform * vert_max_temp;
+
+        glm::vec3 diff(vert_max_temp - vert_min_temp);
+
+        return diff/2.0f;
 
 
     }

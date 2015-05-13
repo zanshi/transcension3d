@@ -36,13 +36,13 @@ namespace sw {
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
 
-            m_pWorld->setGravity(btVector3(0, 0, 0));
+            m_pWorld->setGravity(btVector3(0, -1, 0));
 
 
             debugDrawer_ = new MyDebugDrawer();
             m_pWorld->setDebugDrawer(debugDrawer_);
 
-            m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+            m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
 
 
 
@@ -92,7 +92,7 @@ namespace sw {
         void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt,10);
-                //m_pWorld->debugDrawWorld();
+                m_pWorld->debugDrawWorld();
             }
 
 //            for(int i = m_pWorld->getNumCollisionObjects()-1; i>=0; i--) {
