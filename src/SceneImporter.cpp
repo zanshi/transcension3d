@@ -169,7 +169,6 @@ namespace sw {
 
         // is a light source
         if (isLight(node->mName.C_Str())) {
-            std::cout << "Current node is a light with the name: '" << node->mName.C_Str() << "'" << std::endl;
             const aiLight *light = getLightWithName(node->mName.C_Str());
 
             addLightComponentToEntity(current_entity, light);
@@ -252,9 +251,7 @@ namespace sw {
                         std::move(glm::vec3(ai_specular.r, ai_specular.g, ai_specular.b)));
 
         entity.assign<ShadingComponent>(std::move(color), std::move(shininess));
-
-
-    }
+            }
 
     void SceneImporter::addLightComponentToEntity(entityx::Entity entity, const aiLight *light) {
         
@@ -278,8 +275,6 @@ namespace sw {
                 type = LightComponent::SPOT;
                 break;
         }
-
-        std::cout << "Light is of type: " << type << "\n";
 
         entity.assign<LightComponent>(std::move(color), type);
     }

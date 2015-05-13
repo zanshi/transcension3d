@@ -171,13 +171,15 @@ namespace sw {
                 glm::mat4 model = transform->cached_world_;
                 glUniformMatrix4fv(M_loc, 1, GL_FALSE, glm::value_ptr(model));
 
+                Color &c = shading->color_;
+
                 // Set object material properties
-                glUniform3f(matlAmbientLoc, shading->color_.ambient_.r, shading->color_.ambient_.g,
-                            shading->color_.ambient_.b);
-                glUniform3f(matlDiffuseLoc, shading->color_.diffuse_.r, shading->color_.diffuse_.g,
-                            shading->color_.diffuse_.b);
-                glUniform3f(matlSpecularLoc, shading->color_.specular_.r, shading->color_.specular_.g,
-                            shading->color_.specular_.b);
+                glUniform3f(matlAmbientLoc, c.ambient_.r, c.ambient_.g,
+                            c.ambient_.b);
+                glUniform3f(matlDiffuseLoc, c.diffuse_.r, c.diffuse_.g,
+                            c.diffuse_.b);
+                glUniform3f(matlSpecularLoc, c.specular_.r, c.specular_.g,
+                            c.specular_.b);
                 glUniform1f(matlShineLoc, shading->shininess_);
 
                 // Draw mesh
