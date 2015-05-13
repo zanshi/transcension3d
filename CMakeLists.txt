@@ -10,10 +10,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 include(ExternalProject)
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
-
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-
 set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(PROJECT_CXX_DIR ${PROJECT_SOURCE_DIR}/src)
 set(PROJECT_LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
@@ -51,7 +49,6 @@ add_definitions(
   -DGLEW_STATIC
   -D_CRT_SECURE_NO_WARNINGS
 )
-
 endif()
 
 
@@ -114,6 +111,11 @@ set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 set(ASSIMP_BUILD_TESTS OFF)
 set(ASSIMP_BUILD_SAMPLES OFF)
 
+set(BUILD_MULTITHREADING OFF)
+set(BUILD_DEMOS OFF)
+set(BUILD_UNIT_TESTS OFF)
+
+
 include(BuildAssimp)
 endif(UNIX)
 
@@ -159,9 +161,6 @@ set(ALL_LIBS
 )
 
 
-
-
-
 set(EXT_DEPS
     entityx
     ${BULLET_LIBRARIES}
@@ -180,10 +179,10 @@ add_dependencies(INT_LIBS
 
 
 file(GLOB PROJECT_CXX_FILES ${PROJECT_CXX_DIR}/*.cpp)
+
 add_executable(${PROJECT_NAME_STR}
   ${PROJECT_CXX_FILES}
-include/events/MovementEvent.hpp include/events/JumpEvent.hpp include/events/ViewChangedEvent.hpp include/systems/PlayerControlSystem.hpp)
-
+)
 
 target_link_libraries(${PROJECT_NAME_STR}
   ${ALL_LIBS}
