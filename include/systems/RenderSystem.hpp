@@ -159,13 +159,13 @@ namespace sw {
                 glUniformMatrix4fv(M_loc, 1, GL_FALSE, glm::value_ptr(model));
 
                 // Set object material properties
-                glUniform3f(matAmbientLoc, shading->color_.ambient_.r, shading->color_.ambient_.g,
+                glUniform3f(matlAmbientLoc, shading->color_.ambient_.r, shading->color_.ambient_.g,
                             shading->color_.ambient_.b);
-                glUniform3f(matDiffuseLoc, shading->color_.diffuse_.r, shading->color_.diffuse_.g,
+                glUniform3f(matlDiffuseLoc, shading->color_.diffuse_.r, shading->color_.diffuse_.g,
                             shading->color_.diffuse_.b);
-                glUniform3f(matSpecularLoc, shading->color_.specular_.r, shading->color_.specular_.g,
+                glUniform3f(matlSpecularLoc, shading->color_.specular_.r, shading->color_.specular_.g,
                             shading->color_.specular_.b);
-                glUniform1f(matShineLoc, shading->shininess_);
+                glUniform1f(matlShineLoc, shading->shininess_);
 
                 // Draw mesh
                 glBindVertexArray(mesh->VAO);
@@ -211,6 +211,58 @@ namespace sw {
             V_inv_loc = glGetUniformLocation(*shader_, "V_inv");
             M_loc = glGetUniformLocation(*shader_, "M");
 
+            /* LIGHTING SETUP */
+            // Uniform locations for point lights
+            for (unsigned int light = 0; light < MAX_POINT_LIGHTS; light++) {
+                for (unsigned int attr = 0; attr < POINT_LIGHT_ATTRS; ++attr) {
+                    std::string last_part = "";
+                    switch (attr) {
+                        case 0:
+                            last_part = "position";
+                            break;
+                        case 1:
+                            last_part = "ambient";
+                            break;
+                        case 2:
+                            last_part = "diffuse";
+                            break;
+                        case 3:
+                            last_part = "specular";
+                            break;
+                        default:
+                            last_part = "";
+                            break;
+                    }
+                    std::string uniform = "lights[" + std::to_string(light) + "]." + last_part;
+                    pointLightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
+                }
+            }
+            // Uniform locations for directional lights
+            for (unsigned int light = 0; light < MAX_DIR_LIGHTS; light++) {
+                for (unsigned int attr = 0; attr < DIR_LIGHT_ATTRS; ++attr) {
+                    std::string last_part = "";
+                    switch (attr) {
+                        case 0:
+                            last_part = "position";
+                            break;
+                        case 1:
+                            last_part = "ambient";
+                            break;
+                        case 2:
+                            last_part = "diffuse";
+                            break;
+                        case 3:
+                            last_part = "specular";
+                            break;
+                        default:
+                            last_part = "";
+                            break;
+                    }
+                    std::string uniform = "lights[" + std::to_string(light) + "]." + last_part;
+                    pointLightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
+                }
+            }
+
             //Lighting, get uniform locations for all lights in the scene
             for (unsigned int light = 0; light < MAX_LIGHTS; ++light) {
                 for (unsigned int attr = 0; attr < LIGHT_ATTRIBUTES; ++attr) {
@@ -246,10 +298,10 @@ namespace sw {
             num_lights_loc = glGetUniformLocation(*shader_, "num_lights");
 
             //Material
-            matAmbientLoc = glGetUniformLocation(*shader_, "material.ambient");
-            matDiffuseLoc = glGetUniformLocation(*shader_, "material.diffuse");
-            matSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
-            matShineLoc = glGetUniformLocation(*shader_, "material.shininess");
+            matlAmbientLoc = glGetUniformLocation(*shader_, "material.ambient");
+            matlDiffuseLoc = glGetUniformLocation(*shader_, "material.diffuse");
+            matlSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
+            matlShineLoc = glGetUniformLocation(*shader_, "material.shininess");
 
             viewPosLoc = glGetUniformLocation(*shader_, "viewPos");
         }
@@ -271,23 +323,22 @@ namespace sw {
         glm::mat4 camera_projection_;
 
         glm::mat4 view_;
-        // Lighting
-        const static unsigned int MAX_LIGHTS = 20;
+        /* Lighting */
+        static const int MAX_POINT_LIGHTS = 20, MAX_DIR_LIGHTS = 20;
+        static const int POINT_LIGHT_ATTRS = 4, DIR_LIGHT_ATTRS = 5;
 
-        const static unsigned int LIGHT_ATTRIBUTES = 6;
+        // Keeps track of how many lights of each type there are currently
+        int num_point_lights_, num_dir_lights_, num_spot_lights;
 
-        unsigned int num_lights_currently_;
         // Uniform variables locations
-        GLint lightsLoc[MAX_LIGHTS][LIGHT_ATTRIBUTES];
-        GLint num_lights_loc;
+        GLint pointLightsLoc[MAX_POINT_LIGHTS][POINT_LIGHT_ATTRS];
+        GLint dirLightsLoc[MAX_DIR_LIGHTS][DIR_LIGHT_ATTRS];
+        GLint num_point_lights_loc, num_dir_lights_loc;
 
         GLint viewPosLoc;
         //Material
-        GLint matAmbientLoc;
-        GLint matDiffuseLoc;
-        GLint matSpecularLoc;
-
-        GLint matShineLoc;
+        GLint matlAmbientLoc, matlDiffuseLoc, matlSpecularLoc, matlShineLoc;
+        
         // Matrices
         GLint P_loc, V_loc, V_inv_loc, M_loc;
 
