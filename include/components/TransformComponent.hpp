@@ -30,7 +30,7 @@ namespace sw {
                 : local_(local_transform) {
             glm::vec3 temp3;
             glm::vec4 temp4;
-            glm::decompose(local_, temp3, orientation_, position_, temp3, temp4);
+            glm::decompose(local_, scale_, orientation_, position_, temp3, temp4);
 
             /*
             std::cout << "Position extracted from transformation matrix: " << std::endl
@@ -49,7 +49,10 @@ namespace sw {
         /** Public member variables for convenience **/
         glm::vec3 position_;
         glm::quat orientation_;
+        glm::vec3 scale_;
         glm::mat4 local_;
+        glm::quat world_rotation_;
+        glm::vec3 world_position_;
         glm::mat4 cached_world_;
 
 
