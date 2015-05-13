@@ -3,7 +3,6 @@ set(PROJECT_NAME_STR swag3d)
 project(${PROJECT_NAME_STR} C CXX)
 
 
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
 #Set up the includes
@@ -114,6 +113,11 @@ set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 set(ASSIMP_BUILD_TESTS OFF)
 set(ASSIMP_BUILD_SAMPLES OFF)
 
+set(BUILD_MULTITHREADING OFF)
+set(BUILD_DEMOS OFF)
+set(BUILD_UNIT_TESTS OFF)
+
+
 include(BuildAssimp)
 endif(UNIX)
 
@@ -158,16 +162,11 @@ set(ALL_LIBS
   ${ZLIB_LIBRARY}
 )
 
-
-
-
-
 set(EXT_DEPS
     entityx
     ${BULLET_LIBRARIES}
     ${ASSIMP_LIBRARY}
 )
-
 
 file(GLOB PROJECT_LIBS_FILES ${PROJECT_LIBS_DIR}/*.cpp)
 add_library(INT_LIBS 
