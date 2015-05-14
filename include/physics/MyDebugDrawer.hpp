@@ -23,48 +23,30 @@ namespace sw {
         virtual void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) {
 
 
-            GLuint VertexArrayID;
-            glGenVertexArrays(1, &VertexArrayID);
-            glBindVertexArray(VertexArrayID);
+            /*vec3 elemens[] = {vec3(from.x(),from.y(), from.z()),  vec3(to.x(), to.y(), to.z())};
+
+            glUseProgram(_shader.getGLProgram());
+
+            GLuint pos = glGetAttribLocation(_shader.getGLProgram(), "a_position");
+            glEnableVertexAttribArray(pos);
+            glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, 0, &elemens[0]);
+
+            auto scene = KMDirector::getSharedDirector().getCurrenScene();
+            mat4 mvmMatrix = scene->modelViewMatrix(true);
+            mat4 projMatrix = KMDirector::getSharedDirector().getProjectionMatrix();
+            GLuint mvmUniform  = glGetUniformLocation(_shader.getGLProgram(), "u_mvMatrix");
+            GLuint projUniform = glGetUniformLocation(_shader.getGLProgram(), "u_pMatrix");
+
+            glUniformMatrix4fv(mvmUniform, 1, 0, mvmMatrix.Pointer());
+            glUniformMatrix4fv(projUniform, 1, 0, projMatrix.Pointer());
+
+            GLuint colorUniform =  glGetUniformLocation(_shader.getGLProgram(), "u_color");
+            glUniform4fv(colorUniform, 1, vec3(color.x(), color.y(), color.z()).Pointer());
+
+            glDrawArrays(GL_LINES, 0, 2);*/
 
 
-            const GLfloat g_vertex_buffer_data[] = {
-                    from.getX(), from.getY(), from.getZ(),
-                    to.getX(), to.getY(), to.getZ(),
-                    from.getX(), from.getY(), from.getZ()
-            };
 
-            // This will identify our vertex buffer
-            GLuint vertexbuffer;
-
-            // Generate 1 buffer, put the resulting identifier in vertexbuffer
-            glGenBuffers(1, &vertexbuffer);
-
-            // The following commands will talk about our 'vertexbuffer' buffer
-            glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-
-            // Give our vertices to OpenGL.
-            glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-
-            // 1rst attribute buffer : vertices
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-            glVertexAttribPointer(
-                    0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                    3,                  // size
-                    GL_FLOAT,           // type
-                    GL_FALSE,           // normalized?
-                    0,                  // stride
-                    (void*)0            // array buffer offset
-            );
-
-            // Draw the triangle !
-            glDrawArrays(GL_LINE_STRIP, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-
-            glDisableVertexAttribArray(0);
-
-            glBindVertexArray(0);
 
         }
 

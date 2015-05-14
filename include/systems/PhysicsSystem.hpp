@@ -40,11 +40,9 @@ namespace sw {
 
 
             debugDrawer_ = new MyDebugDrawer();
-            m_pWorld->setDebugDrawer(debugDrawer_);
+            //m_pWorld->setDebugDrawer(debugDrawer_);
 
-            m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
-
-
+            //m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
 
 
 
@@ -66,6 +64,10 @@ namespace sw {
 
             if(physicsComponent) {
                 std::cout << "populateworld" << std::endl;
+                std::cout << "Group: " << physicsComponent->group_ << std::endl;
+                std::cout << "Mask: " << physicsComponent->mask_ << std::endl;
+                std::cout << "Previous flags: " << physicsComponent->body_->getCollisionFlags() << std::endl;
+                //m_pWorld->addRigidBody(physicsComponent->body_, physicsComponent->group_, physicsComponent->mask_);
                 m_pWorld->addRigidBody(physicsComponent->body_);
             }
 
@@ -91,8 +93,8 @@ namespace sw {
 
         void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
             if (m_pWorld) {
-                m_pWorld->stepSimulation(dt,10);
-                m_pWorld->debugDrawWorld();
+                m_pWorld->stepSimulation(dt);
+
             }
 
 //            for(int i = m_pWorld->getNumCollisionObjects()-1; i>=0; i--) {

@@ -19,7 +19,7 @@ namespace sw {
         // When removing entity, call PhysicsSystem->m_pWorld->removebtRigidbody(?) with
         // the PhysicsComponent->body as argument
 
-        PhysicsComponent() {}
+        PhysicsComponent() { }
 
         ~PhysicsComponent() {
             delete motionState_;
@@ -27,10 +27,12 @@ namespace sw {
             delete body_;
         }
 
-        PhysicsComponent(ex::Entity entity,
-                         glm::vec3 boundingVector, btScalar mass = 0.0f ) {
+        PhysicsComponent(ex::Entity entity, btCollisionShape *collisionShape,
+                         btScalar mass = 0.0f, short group = sw::COL_DYNAMIC, short mask = sw::COL_STATIC)
+                : group_(group), mask_(mask) {
+
             motionState_ = new MyMotionState(entity);
-            shape_ = new btBoxShape(btVector3(boundingVector.x, boundingVector.y, boundingVector.z));
+            shape_ = collisionShape;
 
             //shape_ = new btBoxShape(btVector3(2.0f, 1.0f, 1.0f));
 
@@ -46,21 +48,23 @@ namespace sw {
                 shape_->calculateLocalInertia(mass, localInertia);
 
 
-            btRigidBody::btRigidBodyConstructionInfo bodyConstructionInfo(mass, motionState_, shape_,localInertia);
+            btRigidBody::btRigidBodyConstructionInfo bodyConstructionInfo(mass, motionState_, shape_, localInertia);
 
             body_ = new btRigidBody(bodyConstructionInfo);
+
 
 //            if ( mass != 0.0f) {
 //                body_->setCollisionFlags(body_->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 //                body_->setActivationState(DISABLE_DEACTIVATION);
 //            }
 
-            std::cout << "boundingvector xyz: " << boundingVector.x << " " << boundingVector.y << " "
-            << boundingVector.z << std::endl;
 
 
         }
 
+
+        short group_;
+        short mask_;
 
         MyMotionState *motionState_;
 
