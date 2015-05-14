@@ -11,7 +11,8 @@
 #include "events/JumpEvent.hpp"
 #include "events/MovementEvent.hpp"
 #include "events/ViewChangedEvent.hpp"
-#include "events/DimensionChangedEvent.hpp"
+#include "events/DimensionChangeInProgressEvent.hpp"
+#include "events/StartDimensionChangeEvent.hpp"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/euler_angles.hpp"
@@ -27,7 +28,8 @@ namespace sw {
             events.subscribe<JumpEvent>(*this);
             events.subscribe<MovementEvent>(*this);
             events.subscribe<ViewChangedEvent>(*this);
-            events.subscribe<DimensionChangedEvent>(*this);
+            events.subscribe<DimensionChangeInProgressEvent>(*this);
+            events.subscribe<StartDimensionChangeEvent>(*this);
         }
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -59,10 +61,32 @@ namespace sw {
                     will_move_ = false;
                 }
 
+                /* DIMENSION CHANGE */
+                if (dim_change_in_progress_) {
+                    dim_change_accumulator_ += dt;
+
+                    // If dimChange completed, set state to not changing
+                    if (dim_change_accumulator_ > TOTAL_DIM_CHANGE_DURATION) {
+                        dim_change_in_progress_ = false;
+                    }
+
+                    else {
+                        events.emit<DimensionChangeInProgressEvent>(dim_change_accumulator_ / TOTAL_DIM_CHANGE_DURATION);
+                    }
+                }
             }
         }
 
-        void receive(const DimensionChangedEvent &dimChanged) { }
+        void receive(const StartDimensionChangeEvent &startDimChange) {
+            // Don't change until last dimChange is completed
+            if (!dim_change_in_progress_) {
+                dim_change_in_progress_ = true;
+                dim_change_accumulator_ = 0.0;
+            }
+
+        }
+
+        void receive(const DimensionChangeInProgressEvent &dimChanged) { }
         void receive(const JumpEvent &jump) { }
 
         void receive(const MovementEvent &move) {
@@ -94,5 +118,12 @@ namespace sw {
         const float PITCH_MAX = (float) M_PI / 2, PITCH_MIN = -(float) M_PI / 2;
         const float ANGLE_SCALE_FACTOR = 0.0025f;
         const float MOVE_SCALE_FACTOR = 0.01f;
+
+        // Dimension Change shizniz
+        bool dim_change_in_progress_ = false;
+
+        const ex::TimeDelta TOTAL_DIM_CHANGE_DURATION = 1.0;
+        ex::TimeDelta dim_change_accumulator_;
     };
+
 }

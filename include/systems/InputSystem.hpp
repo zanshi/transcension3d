@@ -12,7 +12,7 @@
 #include "events/MovementEvent.hpp"
 #include "events/QuitEvent.hpp"
 #include "events/ViewChangedEvent.hpp"
-#include "events/DimensionChangedEvent.hpp"
+#include "events/StartDimensionChangeEvent.hpp"
 
 namespace ex = entityx;
 
@@ -72,7 +72,7 @@ namespace sw {
                                 SDL_ShowCursor(SDL_ENABLE);
                             break;
                         case SDLK_p:
-                            events.emit<DimensionChangedEvent>();
+                            events.emit<StartDimensionChangeEvent>();
                             break;
                         default:
                             break;
