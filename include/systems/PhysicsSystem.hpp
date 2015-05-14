@@ -68,6 +68,7 @@ namespace sw {
                 std::cout << "Mask: " << physicsComponent->mask_ << std::endl;
                 std::cout << "Previous flags: " << physicsComponent->body_->getCollisionFlags() << std::endl;
                 //m_pWorld->addRigidBody(physicsComponent->body_, physicsComponent->group_, physicsComponent->mask_);
+                physicsComponent->body_->setActivationState(DISABLE_DEACTIVATION);
                 m_pWorld->addRigidBody(physicsComponent->body_);
             }
 

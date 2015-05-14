@@ -39,7 +39,7 @@ namespace sw {
 
                                 auto physics = entity.component<PhysicsComponent>();
 
-                                physics->body_->setLinearVelocity(btVector3(1.0f, 1.0f, 0.0f));
+                                physics->body_->setLinearVelocity(btVector3(0.0f, 1.0f, 0.0f));
 
 
                                 //physics->body_->setWorldTransform()
