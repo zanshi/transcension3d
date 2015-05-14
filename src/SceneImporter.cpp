@@ -4,12 +4,15 @@
 
 #include "scene/SceneImporter.hpp"
 #include <regex>
+#include "game_constants.hpp"
 
 // GL Includes
 //#include <GL/glew.h>
 
 // GLM includes
 #include <assimp/postprocess.h>
+#include <BulletCollision/CollisionShapes/btShapeHull.h>
+
 
 // Bullet includes
 #include "btBulletDynamicsCommon.h"
@@ -143,8 +146,6 @@ namespace sw {
         current_entity.assign<TransformComponent>(aiMatrix4x4_to_glmMat4(node->mTransformation));
         current_entity.assign<GraphNodeComponent>(parent, current_entity);
 
-
-
         current_entity.assign<DimensionComponent>(dim_current);
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
@@ -169,7 +170,6 @@ namespace sw {
 
             combine(transform, graphNode->parent_);
 
-
             unsigned int index_mesh = *(node->mMeshes);
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
             addMeshComponentToEntity(current_entity, mesh);
@@ -178,13 +178,21 @@ namespace sw {
 
             float mass = 1.0f;
 
+            short group = btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK;
+            short mask = sw::COL_STATIC;
+
             if (std::string( node->mName.C_Str() ) == "Cube__2_") {
                 mass = 0.0f;
+                group = sw::COL_STATIC;
+                mask = sw::COL_DYNAMIC;
+
                 std::cout << "mass" << std::endl;
+
             }
 
+            addPhysicsComponentToEntity(current_entity, mesh, mass, group, mask);
 
-            addPhysicsComponentToEntity(current_entity, mesh, mass);
+
         }
 
         // Recursively process all its children nodes
@@ -248,18 +256,99 @@ namespace sw {
     }
 
 
-    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass) {
+    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass,
+                                                    short group,
+                                                    short mask) {
 
         auto mesh = entity.component<MeshComponent>();
         auto transform = entity.component<TransformComponent>();
 
-        entity.assign<PhysicsComponent>(transform, std::move(buildBoundingVector(mesh->vertices)), mass);
+        entity.assign<PhysicsComponent>(entity, buildCollisionShape(transform->scale_, mesh->vertices, mesh->indices),
+                                        mass, group, mask);
 
 
     }
 
+    btConvexHullShape * SceneImporter::buildCollisionShape(glm::vec3 scale, std::vector<Vertex> vertices,
+                                                          std::vector<GLuint> indices) {
 
-    glm::vec3 SceneImporter::buildBoundingVector(std::vector<Vertex> vertices)
+        /*btTriangleMesh *trimesh = new btTriangleMesh();
+
+        std::vector<glm::vec3> vertices_pos;
+
+        for(int i = 0; i < vertices.size(); i++) {
+            vertices_pos[i] = vertices[i].Position;
+        }
+
+
+
+        for(int i = 0; i < indices.size(); i++) {
+
+
+            btVector3 vertex0(vertices_pos[i].x,vertices_pos[i].y, vertices_pos[i].z);
+            i++;
+            btVector3 vertex1(vertices_pos[i].x,vertices_pos[i].y, vertices_pos[i].z);
+            i++;
+            btVector3 vertex2(vertices_pos[i].x,vertices_pos[i].y, vertices_pos[i].z);
+
+            trimesh->addTriangle(vertex0, vertex1, vertex2);
+
+        }
+
+
+        btConvexShape* originalCollisionShape = new btConvexTriangleMeshShape(trimesh);*/
+
+
+        btConvexHullShape *originalCollisionShape = new btConvexHullShape();
+
+
+        glm::vec4 temp_pos;
+        btVector3 current_position;
+        btVector3 scaling(scale.x, scale.y, scale.z);
+
+        bool updateLocalAabb = false;
+
+        for(Vertex vertex : vertices) {
+            //temp_pos = transform * glm::vec4(vertex.Position, 1.0f);
+            current_position = btVector3(vertex.Position.x, vertex.Position.y, vertex.Position.z);
+
+            current_position *= scaling;
+
+            std::cout << "current_position " << current_position.x() << " " << current_position.y()
+                    << " " << current_position.z() << std::endl;
+
+            originalCollisionShape->addPoint(current_position, updateLocalAabb);
+        }
+
+        //originalCollisionShape->setLocalScaling(scaling);
+
+
+        btShapeHull* hull = new btShapeHull(originalCollisionShape);
+        btScalar margin = originalCollisionShape->getMargin();
+        hull->buildHull(margin);
+        //originalCollisionShape->setUserPointer(hull);
+
+        btConvexHullShape* simplifiedConvexShape = new btConvexHullShape();
+
+        for(int i = 0; i < hull->numVertices(); i++) {
+            simplifiedConvexShape->addPoint(hull->getVertexPointer()[i], updateLocalAabb);
+        }
+
+        simplifiedConvexShape->recalcLocalAabb();
+
+        simplifiedConvexShape->initializePolyhedralFeatures();
+
+
+        delete originalCollisionShape;
+        delete hull;
+
+
+        return simplifiedConvexShape;
+
+    }
+
+
+    glm::vec3 SceneImporter::buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices)
     {
         // Create initial variables to hold min and max xyz values for the mesh
         glm::vec3 vert_max(FLT_MIN);
@@ -268,13 +357,22 @@ namespace sw {
 
         for(Vertex vertex : vertices) {
 
-            vertex_position = vertex.Position;
             vert_min = glm::min(vert_min, vertex_position);
             vert_max = glm::max(vert_max, vertex_position);
 
         }
 
-        return (vert_max - vert_min)/2.0f;
+        glm::vec4 vert_min_temp(vert_min, 1);
+        glm::vec4 vert_max_temp(vert_max, 1);
+
+
+        vert_min_temp = world_transform * vert_min_temp;
+
+        vert_max_temp =  world_transform * vert_max_temp;
+
+        glm::vec3 diff(vert_max_temp - vert_min_temp);
+
+        return diff/2.0f;
 
 
     }
