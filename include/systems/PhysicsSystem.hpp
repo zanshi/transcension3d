@@ -63,10 +63,10 @@ namespace sw {
             auto node = current_entity.component<GraphNodeComponent>();
 
             if(physicsComponent) {
-                std::cout << "populateworld" << std::endl;
-                std::cout << "Group: " << physicsComponent->group_ << std::endl;
-                std::cout << "Mask: " << physicsComponent->mask_ << std::endl;
-                std::cout << "Previous flags: " << physicsComponent->body_->getCollisionFlags() << std::endl;
+                //std::cout << "populateworld" << std::endl;
+                //std::cout << "Group: " << physicsComponent->group_ << std::endl;
+                //std::cout << "Mask: " << physicsComponent->mask_ << std::endl;
+                //std::cout << "Previous flags: " << physicsComponent->body_->getCollisionFlags() << std::endl;
                 //m_pWorld->addRigidBody(physicsComponent->body_, physicsComponent->group_, physicsComponent->mask_);
                 physicsComponent->body_->setActivationState(DISABLE_DEACTIVATION);
                 m_pWorld->addRigidBody(physicsComponent->body_);

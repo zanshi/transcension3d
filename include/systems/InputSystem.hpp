@@ -35,7 +35,7 @@ namespace sw {
 
                             for (ex::Entity entity : es.entities_with_components<PhysicsComponent>()) {
 
-                                std::cout << "hej" << std::endl;
+                                //std::cout << "hej" << std::endl;
 
                                 auto physics = entity.component<PhysicsComponent>();
 
@@ -50,22 +50,22 @@ namespace sw {
 
                         case SDLK_s:
                             y += -1;
-                            std::cout << "ner" << std::endl;
+                            //std::cout << "ner" << std::endl;
                             break;
 
                         case SDLK_a:
                             x += -1;
-                            std::cout << "vänster" << std::endl;
+                            //std::cout << "vänster" << std::endl;
                             break;
 
                         case SDLK_d:
                             x += 1;
-                            std::cout << "höger" << std::endl;
+                            //std::cout << "höger" << std::endl;
                             break;
 
                         case SDLK_SPACE:
                             events.emit<JumpEvent>();
-                            std::cout << "hopp" << std::endl;
+                            //std::cout << "hopp" << std::endl;
                             break;
 
                         default:
@@ -89,7 +89,7 @@ namespace sw {
                 }
                 if(e.type == SDL_MOUSEMOTION) {
 
-                    std::cout << "x:" << e.motion.xrel << std::endl << "y:" << e.motion.yrel << std::endl;
+                    //std::cout << "x:" << e.motion.xrel << std::endl << "y:" << e.motion.yrel << std::endl;
 
                 }
             }

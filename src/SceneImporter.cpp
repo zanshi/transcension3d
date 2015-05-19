@@ -86,6 +86,8 @@ namespace sw {
 
         createEntity = createEntityFunction;
 
+
+        std::cout << "-> populateInternalGraph " << std::endl;
         // Populate the graph
         processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
 
@@ -117,6 +119,10 @@ namespace sw {
                                           unsigned int current_depth,
                                           Dim dim_parent,
                                           ex::Entity parent) {
+
+
+        std::cout << "--> processAssimpNode " << std::endl;
+        std::cout << "name: " << std::string( node->mName.C_Str() ) << std::endl;
         if (std::string( node->mName.C_Str() ) == "Camera") {
             camera_node_ = node;
         }
@@ -150,17 +156,17 @@ namespace sw {
         current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
 
-
         // Add a MeshComponent to the entity
         if (node->mNumMeshes > 0) {
 
-
+            /*
             for(int i = 0; i < 4; i++) {
                 for(int j = 0; j < 4; j++) {
                     std::cout << node->mTransformation[i][j] << " ";
                 }
                 std::cout << std::endl;
             }
+             */
 
             //auto test = node->mMetaData->Get(0,);
 
@@ -169,6 +175,7 @@ namespace sw {
             auto graphNode = current_entity.component<GraphNodeComponent>();
 
             combine(transform, graphNode->parent_);
+
 
             unsigned int index_mesh = *(node->mMeshes);
             const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
@@ -186,7 +193,7 @@ namespace sw {
                 group = sw::COL_STATIC;
                 mask = sw::COL_DYNAMIC;
 
-                std::cout << "mass" << std::endl;
+                std::cout << "Cube 2 " << "mass" << std::endl;
 
             }
 
@@ -203,6 +210,8 @@ namespace sw {
     }
 
     void SceneImporter::addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh) {
+
+        std::cout << "---> addMeshComponentToEntity " << std::endl;
         unsigned int num = mesh->mNumVertices;
 
         //std::cout << "number of vertices" << num << std::endl;
@@ -235,6 +244,7 @@ namespace sw {
 
     void SceneImporter::addShadingComponentToEntity(entityx::Entity entity, const aiMesh *mesh) {
 
+        std::cout << "---> addShadingComponentToEntity " << std::endl;
         const aiMaterial *material = p_scene->mMaterials[mesh->mMaterialIndex];
         aiColor3D ai_ambient(0.f,0.f,0.f);
         aiColor3D ai_diffuse(0.f,0.f,0.f);
@@ -260,8 +270,23 @@ namespace sw {
                                                     short group,
                                                     short mask) {
 
+        std::cout << "---> addPhysicsComponentToEntity " << std::endl;
         auto mesh = entity.component<MeshComponent>();
         auto transform = entity.component<TransformComponent>();
+
+        //--------------------------------------------------------
+        // Print the scale
+        std::cout << "scale: " << transform->scale_.x << " : " << transform->scale_.y << " : " << transform->scale_.z << std::endl;
+
+        // Print the vertex positions
+        std::cout << "vertex: " << std::endl;
+        int vertex_count = 0;
+        for(std::vector<Vertex>::iterator it = mesh->vertices.begin(); it != mesh->vertices.end(); ++it) {
+             std::cout << "x: "<<  (*it).Position.x << " y: "<<  (*it).Position.y << " z: "<<  (*it).Position.z << std::endl;
+            ++vertex_count;
+        }
+        std::cout << "Antal vertex: " << vertex_count << std::endl;
+        //--------------------------------------------------------
 
         entity.assign<PhysicsComponent>(entity, buildCollisionShape(transform->scale_, mesh->vertices, mesh->indices),
                                         mass, group, mask);
@@ -271,6 +296,7 @@ namespace sw {
 
     btConvexHullShape * SceneImporter::buildCollisionShape(glm::vec3 scale, std::vector<Vertex> vertices,
                                                           std::vector<GLuint> indices) {
+        std::cout << "----> buildCollisionShape " << std::endl;
 
         /*btTriangleMesh *trimesh = new btTriangleMesh();
 
@@ -314,8 +340,8 @@ namespace sw {
 
             current_position *= scaling;
 
-            std::cout << "current_position " << current_position.x() << " " << current_position.y()
-                    << " " << current_position.z() << std::endl;
+            //std::cout << "current_position " << current_position.x() << " " << current_position.y()
+            //        << " " << current_position.z() << std::endl;
 
             originalCollisionShape->addPoint(current_position, updateLocalAabb);
         }

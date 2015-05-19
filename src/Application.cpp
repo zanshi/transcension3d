@@ -87,9 +87,9 @@ void sw::Application::initScene() {
     // TODO: handle scene loading more gracefully
     std::cout << "COLLADA file located in the /res folder:" << std::endl;
     std::string input;
-    std::cin >> input;
+    //std::cin >> input;
 
-    //input = "a1.dae"; // test file
+    input = "bullet.dae"; // test file
     const std::string filename = input;
 
     // SceneImporter shell

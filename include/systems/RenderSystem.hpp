@@ -114,9 +114,9 @@ namespace sw {
             camera_projection_ = glm::perspective(glm::radians(90.f*0.75f), 800.0f / 600.0f, 1.0f, 10.0f);
             view_ = glm::affineInverse(camera_transform);
 
-            std::cout << "View matrix " << std::endl;
+            //std::cout << "View matrix " << std::endl;
             print_glmMatrix(view_);
-            std::cout << "Projection" << std::endl;
+            //std::cout << "Projection" << std::endl;
             print_glmMatrix(camera_projection_);
 
 
@@ -132,7 +132,6 @@ namespace sw {
             //world_cameraPosition = glm::vec3(1.0f, 1.0f, 1.0f);
             //world_cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 
-            std::cout << "hello" << std::endl;
             view_ = glm::lookAt(world_cameraPosition,       // Camera is at (???), in World Space
                                 world_cameraLookAt,         // and looks at the origin?
                                 {0.0f, 1.0f, 0.0f});        // Head is up (set to 0,-1,0 to look upside-down)
@@ -147,13 +146,13 @@ namespace sw {
             );
              */
 
-            std::cout << "World lookAt " << std::endl;
+            //std::cout << "World lookAt " << std::endl;
             print_glmVec3(world_cameraLookAt);
 
-            std::cout << "Camera position " << std::endl;
+            //std::cout << "Camera position " << std::endl;
             print_glmVec3(world_cameraPosition);
 
-            std::cout << "View matrix " << std::endl;
+            //std::cout << "View matrix " << std::endl;
             print_glmMatrix(view_);
         }
 
@@ -166,9 +165,9 @@ namespace sw {
             camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 10.0f);
 
             // Print the perspective matrices
-            std::cout << "Projection matrix " << std::endl;
+            //std::cout << "Projection matrix " << std::endl;
             print_glmMatrix(camera_projection_);
-            std::cout << "Projection matrix (incoming) " << std::endl;
+            //std::cout << "Projection matrix (incoming) " << std::endl;
             print_glmMatrix(proj);
         }
 
