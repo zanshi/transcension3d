@@ -7,7 +7,7 @@
 #include "btBulletDynamicsCommon.h"
 #include "components/TransformComponent.hpp"
 #include "physics/MyMotionState.hpp"
-
+#include "btCharacterControllerInterface.h"
 namespace sw {
 
     struct PhysicsComponent : public ex::Component<PhysicsComponent> {
@@ -56,6 +56,7 @@ namespace sw {
 
 
             btRigidBody::btRigidBodyConstructionInfo bodyConstructionInfo(mass, motionState_, shape_, localInertia);
+
 
             body_ = new btRigidBody(bodyConstructionInfo);
 

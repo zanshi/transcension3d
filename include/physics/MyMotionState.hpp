@@ -12,6 +12,7 @@
 #include "glm/gtx/string_cast.hpp"
 #include "glm/gtc/matrix_inverse.hpp"
 
+#include <iomanip>
 namespace ex = entityx;
 
 namespace sw {
@@ -21,14 +22,30 @@ namespace sw {
 
     public:
 
-        MyMotionState(ex::Entity entity) : entity_(entity), transformComponent_(entity.component<TransformComponent>()),
+        MyMotionState(ex::Entity entity) : entity_(entity),
+                                           transformComponent_(entity.component<TransformComponent>()),
                                            node_(entity.component<GraphNodeComponent>()) {
 
             std::cout << "transformComponent: " << glm::to_string(transformComponent_->cached_world_) << std::endl;
 
-            transform_.setFromOpenGLMatrix(glm::value_ptr(transformComponent_->cached_world_));
 
-            glm::mat4 test;
+
+
+
+            transform_.setFromOpenGLMatrix(glm::value_ptr(glm::transpose(transformComponent_->cached_world_)));
+
+            glm::mat4 test = glm::mat4(1.0f);
+
+            double dArray[16] = { 0.0 };
+            const float *pSource = (const float*)glm::value_ptr(test);
+            //const float *pSource = (const float*)glm::value_ptr(glm::transpose(test));
+            for (int i = 0; i < 16; ++i) {
+                dArray[i] = pSource[i];
+                std::cout << std::fixed << std::setprecision(2);
+                std::cout << dArray[i] << "  ";
+                if (i == 3 || i == 7 || i == 11) std::cout << std::endl;
+            }
+            std::cout << std::endl << "---------------------" << std::endl;
 
             transform_.getOpenGLMatrix(glm::value_ptr(test));
 

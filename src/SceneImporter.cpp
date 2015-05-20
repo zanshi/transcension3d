@@ -277,7 +277,7 @@ namespace sw {
         //--------------------------------------------------------
         // Print the scale
         std::cout << "scale: " << transform->scale_.x << " : " << transform->scale_.y << " : " << transform->scale_.z << std::endl;
-
+        std::cout << "massa: " << mass  << std::endl;
         // Print the vertex positions
         std::cout << "vertex: " << std::endl;
         int vertex_count = 0;
@@ -288,9 +288,19 @@ namespace sw {
         std::cout << "Antal vertex: " << vertex_count << std::endl;
         //--------------------------------------------------------
 
-        entity.assign<PhysicsComponent>(entity, buildCollisionShape(transform->scale_, mesh->vertices, mesh->indices),
-                                        mass, group, mask);
+        if (mass == 0) {
+            entity.assign<PhysicsComponent>(entity, new btBoxShape(btVector3(100, 0.5, 100)),
+                                            mass, group, mask);
+        }
+        else {
+            entity.assign<PhysicsComponent>(entity, new btBoxShape(btVector3(0.5, 0.5, 0.5)),
+                                            mass, group, mask);
+        }
 
+        /*
+         entity.assign<PhysicsComponent>(entity, buildCollisionShape(transform->scale_, mesh->vertices, mesh->indices),
+                                        mass, group, mask);
+        */
 
     }
 
