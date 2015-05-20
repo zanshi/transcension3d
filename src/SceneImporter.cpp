@@ -100,6 +100,12 @@ namespace sw {
 
     const std::regex REGEX_MATCH_DIMENSION_TWO = std::regex("\\S+_dim2");
 
+    const std::regex REGEX_MATCH_STATIC = std::regex("static_\\S+");
+
+    const bool isStaticObject(const char *str) {
+        return std::regex_match(str, REGEX_MATCH_STATIC);
+    }
+
     const Dim getDimensionOfNodeName(const char *str) {
         if (*str == 0)
             return DIMENSION_BOTH;
@@ -181,7 +187,8 @@ namespace sw {
             short group = btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK;
             short mask = sw::COL_STATIC;
 
-            if (std::string( node->mName.C_Str() ) == "Cube__2_") {
+            //if (std::string( node->mName.C_Str() ) == "Cube__2_") {
+            if (isStaticObject(node->mName.C_Str())) {
                 mass = 0.0f;
                 group = sw::COL_STATIC;
                 mask = sw::COL_DYNAMIC;

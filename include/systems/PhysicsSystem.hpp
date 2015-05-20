@@ -36,7 +36,7 @@ namespace sw {
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
 
-            m_pWorld->setGravity(btVector3(0, -1, 0));
+            m_pWorld->setGravity(btVector3(0, 0, -1));
 
 
             debugDrawer_ = new MyDebugDrawer();
