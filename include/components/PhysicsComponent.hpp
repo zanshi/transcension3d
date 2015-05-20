@@ -34,6 +34,13 @@ namespace sw {
             motionState_ = new MyMotionState(entity);
             shape_ = collisionShape;
 
+            std::cout << "PhysicsComponent" << std::endl;
+            std::cout << "LocalScaling: " << (*shape_->getLocalScaling()) << std::endl;
+            std::cout << "getShapeType: " << (shape_->getShapeType()) << std::endl;
+            std::cout << "getName     : " << (shape_->getName()) << std::endl;
+            std::cout << "isNonMoving : " << (shape_->isNonMoving()) << std::endl;
+            std::cout << "getMargin   : " << (shape_->getMargin()) << std::endl;
+
             //shape_ = new btBoxShape(btVector3(2.0f, 1.0f, 1.0f));
 
             // calculate the local inertia
