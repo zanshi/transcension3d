@@ -11,21 +11,21 @@
 #include "assimp/Importer.hpp"
 #include "scene/SceneImporter.hpp"
 #include "components/all_components.hpp"
-#include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
 #include "systems/PhysicsSystem.hpp"
 #include "systems/InputSystem.hpp"
+#include "systems/PlayerControlSystem.hpp"
 
 
 
 
 sw::Application::Application() {
     systems.add<InputSystem>();
-    systems.add<MovementSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
     systems.add<PhysicsSystem>();
+    systems.add<PlayerControlSystem>();
 
     systems.configure();
 
@@ -34,8 +34,8 @@ sw::Application::Application() {
 
 void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
-    systems.update<MovementSystem>(dt);
-    systems.update<PhysicsSystem>(dt);
+    systems.update<PlayerControlSystem>(dt);
+	systems.update<PhysicsSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
 
@@ -58,9 +58,11 @@ bool sw::Application::init() {
      * You may need to change this to 16 or 32 for your system */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
 
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
-    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 640, 480, SDL_WINDOW_OPENGL);
+    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 1280, 960, SDL_WINDOW_OPENGL);
     //Make sure creating our window went ok
     if (win == nullptr) {
         std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -77,6 +79,7 @@ bool sw::Application::init() {
         printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
     }
 
+    glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
 
     return true;
@@ -106,12 +109,12 @@ void sw::Application::initScene() {
     auto renderSystem = systems.system < RenderSystem > ();
     renderSystem->setCamera(sceneImporter.getCamera());
 
-    auto sys = systems.system<PhysicsSystem>();
+    //renderSystem->setCamera(sceneImporter.getCamera());
+}
 
-    sys->populateWorld(root);
-
-
-
+void sw::Application::updateFPS(float newFPS) {
+    std::string FPS_str = "FPS: " + std::to_string(newFPS);
+    SDL_SetWindowTitle(win, FPS_str.c_str());
 }
 
 void sw::Application::run() {
@@ -120,22 +123,19 @@ void sw::Application::run() {
     std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point current;
 
-    int counter = 0;
-    int counter2 = 0;
+    std::chrono::duration<double> second_accumulator;
+    int frames_last_second = 0;
 
     isRunning = true;
 
     while (isRunning) {
-
         current = std::chrono::high_resolution_clock::now();
-
         std::chrono::duration<double> dt = std::chrono::duration_cast<std::chrono::duration<double>>(current - last);
-
         last = current;
 
         glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //glCullFace(GL_BACK); //TODO: Check
+        glCullFace(GL_BACK); //TODO: Check
 
         update(dt.count());
 
@@ -145,8 +145,17 @@ void sw::Application::run() {
 
         SDL_GL_SwapWindow(win);
 
+        /* FPS DISPLAY HANDLING */
+        second_accumulator += dt;
+        if (second_accumulator.count() >= 1.0) {
+            float newFPS = static_cast<float>( frames_last_second / second_accumulator.count() );
+            updateFPS(newFPS);
+            frames_last_second = 0;
+            second_accumulator = std::chrono::duration<double>(0);
+        }
 
-    } // Check if the ESC key was pressed or the window was closed
+        frames_last_second++;
+    } // Exits if a QuitEvent is received
 
     // Clean up
     SDL_GL_DeleteContext(glcontext);
@@ -179,6 +188,5 @@ void sw::Application::initSceneGraphRoot(ex::Entity root) {
 }
 
 void sw::Application::receive(const QuitEvent &quitEvent) {
-    std::cout << "Quit pls, from Application" << std::endl;
     isRunning = false;
 }

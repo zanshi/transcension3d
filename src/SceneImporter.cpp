@@ -10,6 +10,7 @@
 //#include <GL/glew.h>
 
 // GLM includes
+#include <glm/glm.hpp>
 #include <assimp/postprocess.h>
 #include <BulletCollision/CollisionShapes/btShapeHull.h>
 
@@ -89,6 +90,14 @@ namespace sw {
         // Populate the graph
         processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
 
+
+        if (p_scene->HasLights()) {
+            for (unsigned int i = 0; i < p_scene->mNumLights; ++i) {
+                std::cout << "Light in p_scene->mLights with name: '" << p_scene->mLights[i]->mName.C_Str() << "'" <<
+                std::endl;
+            }
+        }
+
         // Remove the read file from memory
         //importer.FreeScene();
 
@@ -97,14 +106,7 @@ namespace sw {
     /* Regular expressions to match object dimensions */
 
     const std::regex REGEX_MATCH_DIMENSION_ONE = std::regex("\\S+_dim1");
-
     const std::regex REGEX_MATCH_DIMENSION_TWO = std::regex("\\S+_dim2");
-
-    const std::regex REGEX_MATCH_STATIC = std::regex("static_\\S+");
-
-    const bool isStaticObject(const char *str) {
-        return std::regex_match(str, REGEX_MATCH_STATIC);
-    }
 
     const Dim getDimensionOfNodeName(const char *str) {
         if (*str == 0)
@@ -119,15 +121,38 @@ namespace sw {
         return DIMENSION_BOTH;
     }
 
+    const std::regex REGEX_MATCH_LIGHT_1 = std::regex("light_\\S+");
+    const std::regex REGEX_MATCH_LIGHT_2 = std::regex("Light_\\S+");
+    const std::regex REGEX_MATCH_LIGHT_3 = std::regex("lights_\\S+");
+    const std::regex REGEX_MATCH_LIGHT_4 = std::regex("Lights_\\S+");
+
+    const bool isLight(const char *str) {
+        return std::regex_match(str, REGEX_MATCH_LIGHT_1) ||
+        std::regex_match(str, REGEX_MATCH_LIGHT_2) ||
+        std::regex_match(str, REGEX_MATCH_LIGHT_3) ||
+        std::regex_match(str, REGEX_MATCH_LIGHT_4);
+    }
+
+    const bool isStaticObject(const char *str) {
+        return std::regex_match(str, REGEX_MATCH_STATIC);
+    }
+
+    const aiLight *SceneImporter::getLightWithName(const char *str) {
+        if (!p_scene->HasLights())
+            return nullptr;
+
+        for (unsigned int i = 0; i < p_scene->mNumLights; ++i) {
+            if (std::strcmp(p_scene->mLights[i]->mName.C_Str(), str) == 0)
+                return p_scene->mLights[i];
+        }
+
+        return nullptr;
+    }
+
     void SceneImporter::processAssimpNode(const aiNode *node,
                                           unsigned int current_depth,
                                           Dim dim_parent,
                                           ex::Entity parent) {
-        if (std::string( node->mName.C_Str() ) == "Camera") {
-            camera_node_ = node;
-        }
-
-
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
               dim_parent == Dim::DIMENSION_TWO)) {
@@ -151,55 +176,63 @@ namespace sw {
         ex::Entity current_entity = createEntity();
         current_entity.assign<TransformComponent>(aiMatrix4x4_to_glmMat4(node->mTransformation));
         current_entity.assign<GraphNodeComponent>(parent, current_entity);
-
         current_entity.assign<DimensionComponent>(dim_current);
-        current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
 
+        // is a light source
+        if (isLight(node->mName.C_Str())) {
+            const aiLight *light = getLightWithName(node->mName.C_Str());
 
-
-        // Add a MeshComponent to the entity
-        if (node->mNumMeshes > 0) {
-
-
-            for(int i = 0; i < 4; i++) {
-                for(int j = 0; j < 4; j++) {
-                    std::cout << node->mTransformation[i][j] << " ";
-                }
-                std::cout << std::endl;
+            addLightComponentToEntity(current_entity, light);
+        }
+        // not a light, proceed
+        else {
+			// If Camera node -> node is player
+            if (std::string(node->mName.C_Str()) == "Camera") {
+                camera_node_ = node;
+                current_entity.assign<PlayerComponent>();
             }
-
-            //auto test = node->mMetaData->Get(0,);
-
-
-            auto transform = current_entity.component<TransformComponent>();
-            auto graphNode = current_entity.component<GraphNodeComponent>();
-
-            combine(transform, graphNode->parent_);
-
-            unsigned int index_mesh = *(node->mMeshes);
-            const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
-            addMeshComponentToEntity(current_entity, mesh);
-            addShadingComponentToEntity(current_entity, mesh);
-
-
-            float mass = 1.0f;
-
-            short group = btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK;
-            short mask = sw::COL_STATIC;
-
-            //if (std::string( node->mName.C_Str() ) == "Cube__2_") {
-            if (isStaticObject(node->mName.C_Str())) {
-                mass = 0.0f;
-                group = sw::COL_STATIC;
-                mask = sw::COL_DYNAMIC;
-
-                std::cout << "mass" << std::endl;
-
+            else {
+                // Add a MeshComponent to the entity
+		        if (node->mNumMeshes > 0) {
+		            for(int i = 0; i < 4; i++) {
+		                for(int j = 0; j < 4; j++) {
+		                    std::cout << node->mTransformation[i][j] << " ";
+		                }
+		                std::cout << std::endl;
+		            }
+	
+		            //auto test = node->mMetaData->Get(0,);
+	
+	
+		            auto transform = current_entity.component<TransformComponent>();
+		            auto graphNode = current_entity.component<GraphNodeComponent>();
+	
+		            combine(transform, graphNode->parent_);
+	
+		            unsigned int index_mesh = *(node->mMeshes);
+		            const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
+		            addMeshComponentToEntity(current_entity, mesh);
+		            addShadingComponentToEntity(current_entity, mesh);
+	
+	
+		            float mass = 1.0f;	
+	
+		            short group = btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK;
+		            short mask = sw::COL_STATIC;
+	
+			        //if (std::string( node->mName.C_Str() ) == "Cube__2_") {
+		            if (isStaticObject(node->mName.C_Str())) {
+		                mass = 0.0f;
+	                	group = sw::COL_STATIC;
+	                	mask = sw::COL_DYNAMIC;
+	
+	                	std::cout << "mass" << std::endl;
+	
+	            	}
+	
+	            	addPhysicsComponentToEntity(current_entity, mesh, mass, group, mask);
+	        	}
             }
-
-            addPhysicsComponentToEntity(current_entity, mesh, mass, group, mask);
-
-
         }
 
         // Recursively process all its children nodes
@@ -207,6 +240,7 @@ namespace sw {
             if (*(node->mChildren + i))
                 processAssimpNode(*(node->mChildren + i), current_depth + 1, dim_current, current_entity);
         }
+
     }
 
     void SceneImporter::addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh) {
@@ -243,9 +277,9 @@ namespace sw {
     void SceneImporter::addShadingComponentToEntity(entityx::Entity entity, const aiMesh *mesh) {
 
         const aiMaterial *material = p_scene->mMaterials[mesh->mMaterialIndex];
-        aiColor3D ai_ambient(0.f,0.f,0.f);
-        aiColor3D ai_diffuse(0.f,0.f,0.f);
-        aiColor3D ai_specular(0.f,0.f,0.f);
+        aiColor3D ai_ambient(0.f, 0.f, 0.f);
+        aiColor3D ai_diffuse(0.f, 0.f, 0.f);
+        aiColor3D ai_specular(0.f, 0.f, 0.f);
         float shininess(0.0f);
 
         material->Get(AI_MATKEY_COLOR_AMBIENT, ai_ambient);
@@ -253,13 +287,37 @@ namespace sw {
         material->Get(AI_MATKEY_COLOR_SPECULAR, ai_specular);
         material->Get(AI_MATKEY_SHININESS, shininess);
 
-        sw::Color color(std::move(glm::vec3 (ai_ambient.r, ai_ambient.g, ai_ambient.b)),
-                        std::move(glm::vec3 (ai_diffuse.r, ai_diffuse.g, ai_diffuse.b)),
-                        std::move(glm::vec3 (ai_specular.r, ai_specular.g, ai_specular.b)));
+        sw::Color color(std::move(glm::vec3(ai_ambient.r, ai_ambient.g, ai_ambient.b)),
+                        std::move(glm::vec3(ai_diffuse.r, ai_diffuse.g, ai_diffuse.b)),
+                        std::move(glm::vec3(ai_specular.r, ai_specular.g, ai_specular.b)));
 
         entity.assign<ShadingComponent>(std::move(color), std::move(shininess));
+            }
 
+    void SceneImporter::addLightComponentToEntity(entityx::Entity entity, const aiLight *light) {
+        
+        sw::Color color(std::move(glm::vec3(light->mColorAmbient.r, light->mColorAmbient.g,
+                                            light->mColorAmbient.b)),
+                        std::move(glm::vec3(light->mColorDiffuse.r, light->mColorDiffuse.g,
+                                            light->mColorDiffuse.b)),
+                        std::move(glm::vec3(light->mColorSpecular.r, light->mColorSpecular.g,
+                                            light->mColorSpecular.b)));
 
+        LightComponent::LightType type;
+        switch (light->mType) {
+            case aiLightSource_POINT:
+                type = LightComponent::POINT;
+                break;
+            case aiLightSource_DIRECTIONAL:
+                type = LightComponent::DIRECTIONAL;
+                break;
+            case aiLightSource_SPOT:
+            default:
+                type = LightComponent::SPOT;
+                break;
+        }
+
+        entity.assign<LightComponent>(std::move(color), type);
     }
 
 

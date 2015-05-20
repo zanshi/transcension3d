@@ -32,17 +32,6 @@ namespace sw {
             glm::vec4 temp4;
             glm::decompose(local_, scale_, orientation_, position_, temp3, temp4);
 
-            /*
-            std::cout << "Position extracted from transformation matrix: " << std::endl
-                      << "{" << position_[0] << ", " << position_[1] << ", " << position_[2] << "}" << std::endl;
-
-            glm::vec3 temp_rot = glm::eulerAngles(orientation_) * 3.14159f / 180.f;
-
-            std::cout << "Rotation extracted from transformation matrix: " << std::endl
-                      << "{" << temp_rot[0] << ", " << temp_rot[1] << ", " << temp_rot[2] << "}" << std::endl;
-            std::cout << std::endl;
-            */
-
             is_dirty_ = true;
         }
 
