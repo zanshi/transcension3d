@@ -40,9 +40,9 @@ namespace sw {
 
 
             debugDrawer_ = new MyDebugDrawer();
-            //m_pWorld->setDebugDrawer(debugDrawer_);
+            m_pWorld->setDebugDrawer(debugDrawer_);
 
-            //m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
+            m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_MAX_DEBUG_DRAW_MODE);
 
 
 
@@ -53,6 +53,8 @@ namespace sw {
         void configure(ex::EventManager &events) override {
 
         }
+
+
 
 
         void populateWorld(ex::Entity current_entity) {
@@ -93,8 +95,12 @@ namespace sw {
 
 
         void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
+
+
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt);
+                m_pWorld->debugDrawWorld();
+                debugDrawer_->drawLines();
 
             }
 
