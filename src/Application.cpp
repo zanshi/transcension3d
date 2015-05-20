@@ -58,7 +58,7 @@ bool sw::Application::init() {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 32);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
 
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
     win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 1280, 960, SDL_WINDOW_OPENGL);

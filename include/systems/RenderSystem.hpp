@@ -42,7 +42,7 @@ namespace sw {
         RenderSystem(ex::EventManager &events) {
             P_loc = V_loc = P_loc = 0;
             camera_projection_ = glm::perspective(glm::radians(60.f * 0.75f), 800.0f / 600.0f, 0.01f, 10.0f);
-            num_lights_currently_ = 0;
+            num_dir_lights_ = num_point_lights_ = 0;
 
             current_dim_ = Dim::DIMENSION_ONE;
 
@@ -78,7 +78,7 @@ namespace sw {
             auto dimension = ex::ComponentHandle<DimensionComponent>();
             auto light = ex::ComponentHandle<LightComponent>();
 
-            num_lights_currently_ = 0;
+            num_point_lights_ = num_dir_lights_ = 0;
             for (ex::Entity current_light : es.entities_with_components(graphNode, transform, dimension, light)) {
                 // Early bailout: is the current light in the current dimension?
                 if (!(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
@@ -99,27 +99,40 @@ namespace sw {
                 //std::cout << "Light pos: x=" << lightEyePos[0] << ", y=" << lightEyePos[1] << ", z=" << lightEyePos[2] << std::endl;
                 glm::vec3 l_euler = glm::eulerAngles(l_quat);
 
-                /* Feed the light to the uniforms */
-                // TYPE
-                glUniform1i(lightsLoc[num_lights_currently_][0], (int) light->type_);
+                switch (light->type_) {
+                    case LightComponent::LightType::POINT: {
+                        // Position
+                        glUniform3f(pointLightsLoc[num_point_lights_][0], l_pos.x, l_pos.y, l_pos.z);
 
-                // POSITION
-                glUniform3f(lightsLoc[num_lights_currently_][1], l_pos.x, l_pos.y, l_pos.z);
+                        // Ambient, Diffuse, Specular
+                        Color &c = light->color_;
+                        glUniform3f(pointLightsLoc[num_point_lights_][1], c.ambient_.x, c.ambient_.y, c.ambient_.z);
+                        glUniform3f(pointLightsLoc[num_point_lights_][2], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
+                        glUniform3f(pointLightsLoc[num_point_lights_][3], c.specular_.x, c.specular_.y, c.specular_.z);
+                        };
+                        num_point_lights_++;
+                        break;
+                    case LightComponent::LightType::DIRECTIONAL: {
+                        // Position, Direction
+                        glUniform3f(dirLightsLoc[num_dir_lights_][0], l_pos.x, l_pos.y, l_pos.z);
+                        glUniform3f(dirLightsLoc[num_dir_lights_][1], 0.0f, 0.0f, 0.0f); //TODO (bwiberg): real vals
 
-                // DIRECTION
-                // TODO: Get the direction of the light
-                glUniform3f(lightsLoc[num_lights_currently_][2], 0.0f, 0.0f, 0.0f);
-
-                Color &c = light->color_;
-                // AMBIENT, DIFFUSE, SPECULAR
-                glUniform3f(lightsLoc[num_lights_currently_][3], c.ambient_.x, c.ambient_.y, c.ambient_.z);
-                glUniform3f(lightsLoc[num_lights_currently_][4], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
-                glUniform3f(lightsLoc[num_lights_currently_][5], c.specular_.x, c.specular_.y, c.specular_.z);
-
-                num_lights_currently_++;
+                        // Ambient, Diffuse, Specular
+                        Color &c = light->color_;
+                        glUniform3f(dirLightsLoc[num_dir_lights_][2], c.ambient_.x, c.ambient_.y, c.ambient_.z);
+                        glUniform3f(dirLightsLoc[num_dir_lights_][3], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
+                        glUniform3f(dirLightsLoc[num_dir_lights_][4], c.specular_.x, c.specular_.y, c.specular_.z);
+                        };
+                        num_dir_lights_++;
+                        break;
+                    default:
+                        break;
+                }
             }
 
-            glUniform1i(num_lights_loc, num_lights_currently_);
+            // Send how many lights of each type there are this frame
+            glUniform1i(num_point_lights_loc, num_point_lights_);
+            glUniform1i(num_dir_lights_loc, num_dir_lights_);
 
             // Pass the position of the eye in world coordinates
             glm::vec3 viewPos;
@@ -158,14 +171,16 @@ namespace sw {
                 glm::mat4 model = transform->cached_world_;
                 glUniformMatrix4fv(M_loc, 1, GL_FALSE, glm::value_ptr(model));
 
+                Color &c = shading->color_;
+
                 // Set object material properties
-                glUniform3f(matAmbientLoc, shading->color_.ambient_.r, shading->color_.ambient_.g,
-                            shading->color_.ambient_.b);
-                glUniform3f(matDiffuseLoc, shading->color_.diffuse_.r, shading->color_.diffuse_.g,
-                            shading->color_.diffuse_.b);
-                glUniform3f(matSpecularLoc, shading->color_.specular_.r, shading->color_.specular_.g,
-                            shading->color_.specular_.b);
-                glUniform1f(matShineLoc, shading->shininess_);
+                glUniform3f(matlAmbientLoc, c.ambient_.r, c.ambient_.g,
+                            c.ambient_.b);
+                glUniform3f(matlDiffuseLoc, c.diffuse_.r, c.diffuse_.g,
+                            c.diffuse_.b);
+                glUniform3f(matlSpecularLoc, c.specular_.r, c.specular_.g,
+                            c.specular_.b);
+                glUniform1f(matlShineLoc, shading->shininess_);
 
                 // Draw mesh
                 glBindVertexArray(mesh->VAO);
@@ -211,45 +226,69 @@ namespace sw {
             V_inv_loc = glGetUniformLocation(*shader_, "V_inv");
             M_loc = glGetUniformLocation(*shader_, "M");
 
-            //Lighting, get uniform locations for all lights in the scene
-            for (unsigned int light = 0; light < MAX_LIGHTS; ++light) {
-                for (unsigned int attr = 0; attr < LIGHT_ATTRIBUTES; ++attr) {
+            /* LIGHTING SETUP */
+            // Uniform locations for point lights
+            for (unsigned int light = 0; light < MAX_POINT_LIGHTS; light++) {
+                for (unsigned int attr = 0; attr < POINT_LIGHT_ATTRS; ++attr) {
                     std::string last_part = "";
                     switch (attr) {
                         case 0:
-                            last_part = "type";
-                            break;
-                        case 1:
                             last_part = "position";
                             break;
-                        case 2:
-                            last_part = "direction";
-                            break;
-                        case 3:
+                        case 1:
                             last_part = "ambient";
                             break;
-                        case 4:
+                        case 2:
                             last_part = "diffuse";
                             break;
-                        case 5:
+                        case 3:
                             last_part = "specular";
                             break;
                         default:
                             last_part = "";
                             break;
                     }
-                    std::string uniform = "lights[" + std::to_string(light) + "]." + last_part;
-                    lightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
+                    std::string uniform = "pointLights[" + std::to_string(light) + "]." + last_part;
+                    pointLightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
+                }
+            }
+            // Uniform locations for directional lights
+            for (unsigned int light = 0; light < MAX_DIR_LIGHTS; light++) {
+                for (unsigned int attr = 0; attr < DIR_LIGHT_ATTRS; ++attr) {
+                    std::string last_part = "";
+                    switch (attr) {
+                        case 0:
+                            last_part = "position";
+                            break;
+                        case 1:
+                            last_part = "direction";
+                            break;
+                        case 2:
+                            last_part = "ambient";
+                            break;
+                        case 3:
+                            last_part = "diffuse";
+                            break;
+                        case 4:
+                            last_part = "specular";
+                            break;
+                        default:
+                            last_part = "";
+                            break;
+                    }
+                    std::string uniform = "dirLights[" + std::to_string(light) + "]." + last_part;
+                    dirLightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
                 }
             }
 
-            num_lights_loc = glGetUniformLocation(*shader_, "num_lights");
+            num_point_lights_loc = glGetUniformLocation(*shader_, "numPointLights");
+            num_dir_lights_loc = glGetUniformLocation(*shader_, "numDirLights");
 
             //Material
-            matAmbientLoc = glGetUniformLocation(*shader_, "material.ambient");
-            matDiffuseLoc = glGetUniformLocation(*shader_, "material.diffuse");
-            matSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
-            matShineLoc = glGetUniformLocation(*shader_, "material.shininess");
+            matlAmbientLoc = glGetUniformLocation(*shader_, "material.ambient");
+            matlDiffuseLoc = glGetUniformLocation(*shader_, "material.diffuse");
+            matlSpecularLoc = glGetUniformLocation(*shader_, "material.specular");
+            matlShineLoc = glGetUniformLocation(*shader_, "material.shininess");
 
             viewPosLoc = glGetUniformLocation(*shader_, "viewPos");
         }
@@ -271,23 +310,22 @@ namespace sw {
         glm::mat4 camera_projection_;
 
         glm::mat4 view_;
-        // Lighting
-        const static unsigned int MAX_LIGHTS = 20;
+        /* Lighting */
+        static const int MAX_POINT_LIGHTS = 20, MAX_DIR_LIGHTS = 20;
+        static const int POINT_LIGHT_ATTRS = 4, DIR_LIGHT_ATTRS = 5;
 
-        const static unsigned int LIGHT_ATTRIBUTES = 6;
+        // Keeps track of how many lights of each type there are currently
+        int num_point_lights_, num_dir_lights_, num_spot_lights;
 
-        unsigned int num_lights_currently_;
         // Uniform variables locations
-        GLint lightsLoc[MAX_LIGHTS][LIGHT_ATTRIBUTES];
-        GLint num_lights_loc;
+        GLint pointLightsLoc[MAX_POINT_LIGHTS][POINT_LIGHT_ATTRS];
+        GLint dirLightsLoc[MAX_DIR_LIGHTS][DIR_LIGHT_ATTRS];
+        GLint num_point_lights_loc, num_dir_lights_loc;
 
         GLint viewPosLoc;
         //Material
-        GLint matAmbientLoc;
-        GLint matDiffuseLoc;
-        GLint matSpecularLoc;
-
-        GLint matShineLoc;
+        GLint matlAmbientLoc, matlDiffuseLoc, matlSpecularLoc, matlShineLoc;
+        
         // Matrices
         GLint P_loc, V_loc, V_inv_loc, M_loc;
 
