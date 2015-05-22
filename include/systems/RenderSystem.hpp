@@ -52,66 +52,32 @@ namespace sw {
             events.subscribe<DimensionChangeInProgressEvent>(*this);
         };
 
-        ~RenderSystem(){
+        ~RenderSystem() {
             delete shader_;
         }
 
-        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
-            if (!has_received_dimension_in_progress_event_) {
-                dim_change_in_progress_ = false;
-            }
-
-            // Calculate the interpolation factor alpha
-            float alpha = static_cast<float>(dt / TIME_STEP);
-
-            glUniformMatrix4fv(P_loc, 1, GL_FALSE, glm::value_ptr(camera_projection_));
-
-            // Get the player's position, i.e. the camera's position
-            auto player = ex::ComponentHandle<PlayerComponent>();
-            auto transform = ex::ComponentHandle<TransformComponent>();
-            auto graphNode = ex::ComponentHandle<GraphNodeComponent>();
-            auto physics = ex::ComponentHandle<PhysicsComponent>();
-
-            for (ex::Entity ex : es.entities_with_components(player, transform, physics, graphNode)) {
-                /*
-                combine(transform, graphNode->parent_);
-                transform->is_dirty_ = false;
-
-                glm::mat4 player_transform_world = transform->cached_world_;r
-                 */
-
-                btTransform worldTransform;
-                physics->motionState_->getWorldTransform(worldTransform);
-
-                glm::mat4 player_transform_world;
-
-                worldTransform.getOpenGLMatrix(glm::value_ptr(player_transform_world));
-
-                view_ = player_transform_world * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f) *
-                        glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f);
-            }
-
-            glUniformMatrix4fv(V_loc, 1, GL_FALSE, glm::value_ptr(view_));
-            glm::mat4 view_inverse = glm::affineInverse(view_);
-            glUniformMatrix4fv(V_inv_loc, 1, GL_FALSE, glm::value_ptr(view_inverse));
-
+        void updateSceneLightsData(ex::EntityManager &es, ex::TimeDelta dt) {
             /* LIGHTS */
             // Get all the lights
             auto dimension = ex::ComponentHandle<DimensionComponent>();
             auto light = ex::ComponentHandle<LightComponent>();
+            auto transform = ex::ComponentHandle<TransformComponent>();
+            // auto graphNode = ex::ComponentHandle<GraphNodeComponent>();
 
             num_point_lights_ = num_dir_lights_ = 0;
-            for (ex::Entity current_light : es.entities_with_components(graphNode, transform, dimension, light)) {
+            for (ex::Entity current_light : es.entities_with_components(transform, dimension, light)) {
                 // Early bailout: is the current light in the current dimension?
                 if (!(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
                     continue;
 
+                /*
                 // See if we need to update the current light's cached world transform
                 if (transform->is_dirty_) {
                     // If dirty, update its cached world transform
                     combine(transform, graphNode->parent_);
                     transform->is_dirty_ = false;
                 }
+                 */
 
                 // All these values are in the Eye's coordinate system
                 glm::mat4 l_transform = transform->cached_world_;
@@ -155,88 +121,115 @@ namespace sw {
             // Send how many lights of each type there are this frame
             glUniform1i(num_point_lights_loc, num_point_lights_);
             glUniform1i(num_dir_lights_loc, num_dir_lights_);
+        }
+
+        void updatePlayerData(ex::EntityManager &es, ex::TimeDelta dt) {
+            bool foundPlayer = false;
+
+            // Get the player's position, i.e. the camera's position
+            auto player = ex::ComponentHandle<PlayerComponent>();
+            auto transform = ex::ComponentHandle<TransformComponent>();
+            auto physics = ex::ComponentHandle<PhysicsComponent>();
+
+            for (ex::Entity ex : es.entities_with_components(player, transform, physics)) {
+                foundPlayer = true;
+
+                btTransform worldTransform;
+                physics->motionState_->getWorldTransform(worldTransform);
+
+                glm::mat4 player_transform_world;
+
+                worldTransform.getOpenGLMatrix(glm::value_ptr(player_transform_world));
+
+                view_ = player_transform_world * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f) *
+                        glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f);
+            }
+
+            assert(foundPlayer && "Error: No player in the scene, aborting.");
+
+            glUniformMatrix4fv(V_loc, 1, GL_FALSE, glm::value_ptr(view_));
+            glm::mat4 view_inverse = glm::affineInverse(view_);
+            glUniformMatrix4fv(V_inv_loc, 1, GL_FALSE, glm::value_ptr(view_inverse));
 
             // Pass the position of the eye in world coordinates
             glm::vec3 viewPos;
             glm::decompose(view_, temp3, tempquat, viewPos, temp3, temp4);
             glUniform3f(viewPosLoc, viewPos.x, viewPos.y, viewPos.z);
+        }
 
-            // Start rendering at the top of the tree
-            renderEntity(root_, false, alpha, 0);
+        void renderEntity(ex::ComponentHandle<DimensionComponent> dimension,
+                          ex::ComponentHandle<TransformComponent> transform,
+                          ex::ComponentHandle<PhysicsComponent> physics,
+                          ex::ComponentHandle<MeshComponent> mesh,
+                          ex::ComponentHandle<ShadingComponent> shading) {
+            // Houston, we can render.
+            btTransform worldTransform;
+
+            physics->motionState_->getWorldTransform(worldTransform);
+
+            glm::mat4 model;
+
+            worldTransform.getOpenGLMatrix(glm::value_ptr(model));
+
+            // Update it with scaling according to dimensional change! YEAH
+            if (dim_change_in_progress_) {
+                if (current_dim_ == dimension->dimension_) {
+                    model = model * dim_change_scale_mat_;
+                }
+            }
+            glUniformMatrix4fv(M_loc, 1, GL_FALSE, glm::value_ptr(model));
+
+            Color &c = shading->color_;
+
+            // Set object material properties
+            glUniform3f(matlAmbientLoc, c.ambient_.r, c.ambient_.g,
+                        c.ambient_.b);
+            glUniform3f(matlDiffuseLoc, c.diffuse_.r, c.diffuse_.g,
+                        c.diffuse_.b);
+            glUniform3f(matlSpecularLoc, c.specular_.r, c.specular_.g,
+                        c.specular_.b);
+            glUniform1f(matlShineLoc, shading->shininess_);
+
+            // Draw mesh
+            glBindVertexArray(mesh->VAO);
+            // TODO: Fix "Conditional jump or move depends on uninitialised value(s)"
+            glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+
+        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
+            if (!has_received_dimension_in_progress_event_) {
+                dim_change_in_progress_ = false;
+            }
+
+            // Calculate the interpolation factor alpha
+            float alpha = static_cast<float>(dt / TIME_STEP);
+
+            glUniformMatrix4fv(P_loc, 1, GL_FALSE, glm::value_ptr(camera_projection_));
+
+            updatePlayerData(es, dt);
+            updateSceneLightsData(es, dt);
+
+            auto dimension = ex::ComponentHandle<DimensionComponent>();
+            auto transform = ex::ComponentHandle<TransformComponent>();
+            auto physics = ex::ComponentHandle<PhysicsComponent>();
+            auto mesh = ex::ComponentHandle<MeshComponent>();
+            auto shading = ex::ComponentHandle<ShadingComponent>();
+
+            // Render all entities in the order determined by EntityX
+            for (ex::Entity e : es.entities_with_components(dimension, transform, physics, mesh, shading)) {
+                // Early bailout: is the current entity in the current dimension?
+                if (dimension && !(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
+                    continue;
+                // Don't render the player
+                if (e.component<PlayerComponent>().valid())
+                    continue;
+
+                renderEntity(dimension, transform, physics, mesh, shading);
+            }
 
             // Revert to old state
             has_received_dimension_in_progress_event_ = false;
-        }
-
-        void renderEntity(ex::Entity entityToRender, bool dirty, float alpha, unsigned int current_depth) {
-            auto dimension = entityToRender.component<DimensionComponent>();
-
-            // Early bailout: is the current entity in the current dimension?
-            if (dimension && !(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
-                return;
-
-            auto transform = entityToRender.component<TransformComponent>();
-            auto render = entityToRender.component<RenderComponent>();
-            auto graphNode = entityToRender.component<GraphNodeComponent>();
-            auto mesh = entityToRender.component<MeshComponent>();
-            auto shading = entityToRender.component<ShadingComponent>();
-            auto physics = entityToRender.component<PhysicsComponent>();
-            auto player = entityToRender.component<PlayerComponent>();
-
-            // See if we need to update the current entity's cached world transform
-            dirty |= transform->is_dirty_;
-            if (dirty) {
-                // If dirty, update its cached world transform
-                //combine(transform, graphNode->parent_);
-                transform->is_dirty_ = false;
-            }
-
-
-            // Render if the current entity has a RenderComponent
-            if (mesh && shading && !player) {
-                // TODO: Investigate what units should be used in blender
-                // Get the model matrix and send it to the shader.
-                //glm::mat4 model = transform->cached_world_;
-
-
-                btTransform worldTransform;
-
-                physics->motionState_->getWorldTransform(worldTransform);
-
-                glm::mat4 model;
-
-                worldTransform.getOpenGLMatrix(glm::value_ptr(model));
-
-                // Update it with scaling according to dimensional change! YEAH
-                if (dim_change_in_progress_) {
-                    if (current_dim_ == dimension->dimension_) {
-                        model = model * dim_change_scale_mat_;
-                    }
-                }
-                glUniformMatrix4fv(M_loc, 1, GL_FALSE, glm::value_ptr(model));
-
-                Color &c = shading->color_;
-
-                // Set object material properties
-                glUniform3f(matlAmbientLoc, c.ambient_.r, c.ambient_.g,
-                            c.ambient_.b);
-                glUniform3f(matlDiffuseLoc, c.diffuse_.r, c.diffuse_.g,
-                            c.diffuse_.b);
-                glUniform3f(matlSpecularLoc, c.specular_.r, c.specular_.g,
-                            c.specular_.b);
-                glUniform1f(matlShineLoc, shading->shininess_);
-
-                // Draw mesh
-                glBindVertexArray(mesh->VAO);
-                // TODO: Fix "Conditional jump or move depends on uninitialised value(s)"
-                glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
-                glBindVertexArray(0);
-            }
-
-            // Render its children
-            for (ex::Entity child : graphNode->children_) {
-                renderEntity(child, dirty, alpha, current_depth + 1);
-            }
         }
 
         // Root entity functions

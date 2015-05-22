@@ -111,10 +111,7 @@ void sw::Application::initScene() {
     auto renderSystem = systems.system < RenderSystem > ();
 
     auto physicsSystem = systems.system<PhysicsSystem>();
-    physicsSystem->populateWorld(root_);
-    //renderSystem->setCamera(sceneImporter.getCamera());
-
-    //renderSystem->setCamera(sceneImporter.getCamera());
+    physicsSystem->populateWorld(entities);
 }
 
 void sw::Application::updateFPS(float newFPS) {
@@ -175,7 +172,7 @@ void sw::Application::initSceneGraphRoot(ex::Entity root) {
 
     // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
     ex::Entity empty = entities.create();
-    root_.assign<GraphNodeComponent>(empty, root_);
+    //root_.assign<GraphNodeComponent>(empty, root_);
 
     // Initiate the root entity TransformComponent with an identity matrix
     root_.assign<TransformComponent>();

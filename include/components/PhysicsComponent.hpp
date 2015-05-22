@@ -54,6 +54,7 @@ namespace sw {
 
             if (group == sw::COL_PLAYER) {
                 body_->setAngularFactor(0.0);
+                body_->setActivationState(DISABLE_DEACTIVATION);
             }
 
 //            if ( mass != 0.0f) {

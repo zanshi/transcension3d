@@ -26,6 +26,16 @@ namespace sw {
             is_dirty_ = true;
         };
 
+        TransformComponent(glm::mat4 world_transform)
+                : cached_world_(world_transform) {
+            glm::vec3 temp3;
+            glm::vec4 temp4;
+            glm::decompose(cached_world_, scale_, orientation_, position_, temp3, temp4);
+
+            is_dirty_ = true;
+        }
+
+        /*
         TransformComponent(glm::mat4 local_transform)
                 : local_(local_transform) {
             glm::vec3 temp3;
@@ -34,6 +44,7 @@ namespace sw {
 
             is_dirty_ = true;
         }
+         */
 
         /** Public member variables for convenience **/
         glm::vec3 position_;

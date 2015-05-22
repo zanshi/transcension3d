@@ -120,7 +120,6 @@ namespace sw {
 
         void receive(const ViewChangedEvent &view) {
             delta_yaw_ = view.delta_right_ * ANGLE_SCALE_FACTOR;
-            std::cout << delta_yaw_ << "\n";
 
             pitch_ += view.delta_up_ * ANGLE_SCALE_FACTOR;
             if (pitch_ >= PITCH_MAX) {

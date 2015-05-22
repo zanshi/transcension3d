@@ -71,7 +71,8 @@ namespace sw {
         void processAssimpNode(const aiNode *node,
                                unsigned int current_depth,
                                Dim dim_parent,
-                               ex::Entity parent);
+                               ex::Entity parent,
+                               glm::mat4 parent_transform);
 
         void addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh);
 
@@ -81,7 +82,7 @@ namespace sw {
 
         const aiLight *getLightWithName(const char *str);
 
-        void addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass, short group,
+        void addPhysicsComponentToEntity(entityx::Entity entity, float mass, short group,
                                          short mask);
 
         glm::vec3 buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices);

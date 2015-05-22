@@ -26,7 +26,7 @@ namespace sw {
 
     SceneImporter::SceneImporter(std::string filename) {
         filename = relative_path_to_scene_folder_ + filename;
-        p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate );
+        p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate);
         if (p_scene == nullptr) {
             std::cout << "The file could not be loaded. Exiting." << std::endl;
             assert(p_scene);
@@ -88,7 +88,7 @@ namespace sw {
         createEntity = createEntityFunction;
 
         // Populate the graph
-        processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity);
+        processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity, glm::mat4(1));
 
 
         if (p_scene->HasLights()) {
@@ -100,7 +100,6 @@ namespace sw {
 
         // Remove the read file from memory
         //importer.FreeScene();
-
     }
 
     /* Regular expressions to match object dimensions */
@@ -128,9 +127,9 @@ namespace sw {
 
     const bool isLight(const char *str) {
         return std::regex_match(str, REGEX_MATCH_LIGHT_1) ||
-        std::regex_match(str, REGEX_MATCH_LIGHT_2) ||
-        std::regex_match(str, REGEX_MATCH_LIGHT_3) ||
-        std::regex_match(str, REGEX_MATCH_LIGHT_4);
+               std::regex_match(str, REGEX_MATCH_LIGHT_2) ||
+               std::regex_match(str, REGEX_MATCH_LIGHT_3) ||
+               std::regex_match(str, REGEX_MATCH_LIGHT_4);
     }
 
     const std::regex REGEX_MATCH_STATIC = std::regex("static_\\S+");
@@ -154,7 +153,8 @@ namespace sw {
     void SceneImporter::processAssimpNode(const aiNode *node,
                                           unsigned int current_depth,
                                           Dim dim_parent,
-                                          ex::Entity parent) {
+                                          ex::Entity parent,
+                                          glm::mat4 parent_transform) {
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
               dim_parent == Dim::DIMENSION_TWO)) {
@@ -172,10 +172,12 @@ namespace sw {
             dim_current = dim_parent;
         }
 
+        glm::mat4 current_transform = parent_transform * aiMatrix4x4_to_glmMat4(node->mTransformation);
+
         /* Add the current node to its parent */
         ex::Entity current_entity = createEntity();
-        current_entity.assign<TransformComponent>(aiMatrix4x4_to_glmMat4(node->mTransformation));
-        current_entity.assign<GraphNodeComponent>(parent, current_entity);
+        current_entity.assign<TransformComponent>(current_transform);
+        //current_entity.assign<GraphNodeComponent>(parent, current_entity);
         current_entity.assign<DimensionComponent>(dim_current);
 
         // is a light source
@@ -184,9 +186,9 @@ namespace sw {
 
             addLightComponentToEntity(current_entity, light);
         }
-        // not a light, proceed
+            // not a light, proceed
         else {
-			// If Camera node -> node is player
+            // If Camera node -> node is player
             if (std::string(node->mName.C_Str()) == "Camera") {
                 camera_node_ = node;
                 current_entity.assign<PlayerComponent>();
@@ -194,20 +196,8 @@ namespace sw {
 
             // Add a MeshComponent to the entity
             if (node->mNumMeshes > 0) {
-                for(int i = 0; i < 4; i++) {
-                    for(int j = 0; j < 4; j++) {
-                        std::cout << node->mTransformation[i][j] << " ";
-                    }
-                    std::cout << std::endl;
-                }
-
-                //auto test = node->mMetaData->Get(0,);
-
-
                 auto transform = current_entity.component<TransformComponent>();
-                auto graphNode = current_entity.component<GraphNodeComponent>();
-
-                combine(transform, graphNode->parent_);
+                //auto graphNode = current_entity.component<GraphNodeComponent>();
 
                 unsigned int index_mesh = *(node->mMeshes);
                 const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
@@ -236,14 +226,14 @@ namespace sw {
                     group = sw::COL_PLAYER;
                 }
 
-                addPhysicsComponentToEntity(current_entity, mesh, mass, group, mask);
+                addPhysicsComponentToEntity(current_entity, mass, group, mask);
             }
         }
 
         // Recursively process all its children nodes
         for (unsigned int i = 0; i < node->mNumChildren; ++i) {
             if (*(node->mChildren + i))
-                processAssimpNode(*(node->mChildren + i), current_depth + 1, dim_current, current_entity);
+                processAssimpNode(*(node->mChildren + i), current_depth + 1, dim_current, current_entity, current_transform);
         }
 
     }
@@ -297,10 +287,10 @@ namespace sw {
                         std::move(glm::vec3(ai_specular.r, ai_specular.g, ai_specular.b)));
 
         entity.assign<ShadingComponent>(std::move(color), std::move(shininess));
-            }
+    }
 
     void SceneImporter::addLightComponentToEntity(entityx::Entity entity, const aiLight *light) {
-        
+
         sw::Color color(std::move(glm::vec3(light->mColorAmbient.r, light->mColorAmbient.g,
                                             light->mColorAmbient.b)),
                         std::move(glm::vec3(light->mColorDiffuse.r, light->mColorDiffuse.g,
@@ -326,20 +316,25 @@ namespace sw {
     }
 
 
-    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass,
-                                                    short group,
-                                                    short mask) {
+    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, float mass, short group, short mask) {
 
         auto mesh = entity.component<MeshComponent>();
         auto transform = entity.component<TransformComponent>();
 
-        entity.assign<PhysicsComponent>(entity, buildCollisionShape(transform->scale_, mesh->vertices, mesh->indices),
-                                        mass, group, mask);
+        if (mesh) {
+            entity.assign<PhysicsComponent>(entity, buildCollisionShape(transform->scale_, mesh->vertices, mesh->indices),
+                                            mass, group, mask);
+        }
+        else {
+            // No mesh
+
+        }
+
 
 
     }
 
-    btConvexHullShape * SceneImporter::buildCollisionShape(glm::vec3 scale, std::vector<Vertex> vertices,
+    btConvexHullShape *SceneImporter::buildCollisionShape(glm::vec3 scale, std::vector<Vertex> vertices,
                                                           std::vector<GLuint> indices) {
 
         /*btTriangleMesh *trimesh = new btTriangleMesh();
@@ -378,14 +373,16 @@ namespace sw {
 
         bool updateLocalAabb = false;
 
-        for(Vertex vertex : vertices) {
+        for (Vertex vertex : vertices) {
             //temp_pos = transform * glm::vec4(vertex.Position, 1.0f);
             current_position = btVector3(vertex.Position.x, vertex.Position.y, vertex.Position.z);
 
             current_position *= scaling;
 
+            /*
             std::cout << "current_position " << current_position.x() << " " << current_position.y()
-                    << " " << current_position.z() << std::endl;
+            << " " << current_position.z() << std::endl;
+             */
 
             originalCollisionShape->addPoint(current_position, updateLocalAabb);
         }
@@ -393,15 +390,15 @@ namespace sw {
         //originalCollisionShape->setLocalScaling(scaling);
 
 
-        btShapeHull* hull = new btShapeHull(originalCollisionShape);
+        btShapeHull *hull = new btShapeHull(originalCollisionShape);
         //btScalar margin = originalCollisionShape->getMargin();
         btScalar margin = 0.f;
         hull->buildHull(margin);
         //originalCollisionShape->setUserPointer(hull);
 
-        btConvexHullShape* simplifiedConvexShape = new btConvexHullShape();
+        btConvexHullShape *simplifiedConvexShape = new btConvexHullShape();
 
-        for(int i = 0; i < hull->numVertices(); i++) {
+        for (int i = 0; i < hull->numVertices(); i++) {
             simplifiedConvexShape->addPoint(hull->getVertexPointer()[i], updateLocalAabb);
         }
 
@@ -419,14 +416,13 @@ namespace sw {
     }
 
 
-    glm::vec3 SceneImporter::buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices)
-    {
+    glm::vec3 SceneImporter::buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices) {
         // Create initial variables to hold min and max xyz values for the mesh
         glm::vec3 vert_max(FLT_MIN);
         glm::vec3 vert_min(FLT_MAX);
         glm::vec3 vertex_position;
 
-        for(Vertex vertex : vertices) {
+        for (Vertex vertex : vertices) {
 
             vert_min = glm::min(vert_min, vertex_position);
             vert_max = glm::max(vert_max, vertex_position);
@@ -439,15 +435,14 @@ namespace sw {
 
         vert_min_temp = world_transform * vert_min_temp;
 
-        vert_max_temp =  world_transform * vert_max_temp;
+        vert_max_temp = world_transform * vert_max_temp;
 
         glm::vec3 diff(vert_max_temp - vert_min_temp);
 
-        return diff/2.0f;
+        return diff / 2.0f;
 
 
     }
-
 
 
 }

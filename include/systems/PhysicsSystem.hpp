@@ -12,12 +12,14 @@
 
 #include "physics/MyDebugDrawer.hpp"
 
+#include "systems/PlayerControlSystem.hpp"
+
 namespace ex = entityx;
 
 namespace sw {
 
-    class PhysicsSystem : public ex::System<PhysicsSystem> {
-        public:
+    class PhysicsSystem : public ex::System<PhysicsSystem>/*, public ex::Receiver<PhysicsSystem>*/ {
+    public:
 
         PhysicsSystem() {
             // create the collision configuration
@@ -36,7 +38,7 @@ namespace sw {
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
 
-            m_pWorld->setGravity(btVector3(0, 0, -60));
+            m_pWorld->setGravity(btVector3(0, -10, 0));
 
             debugDrawer_ = new MyDebugDrawer();
             m_pWorld->setDebugDrawer(debugDrawer_);
@@ -47,37 +49,22 @@ namespace sw {
 
 
         void configure(ex::EventManager &events) override {
-
+            //events.subscribe<DimensionChangeInProgressEvent>(*this);
         }
 
 
-
-
-        void populateWorld(ex::Entity current_entity) {
-
-
-
-            auto physicsComponent = current_entity.component<PhysicsComponent>();
-            auto node = current_entity.component<GraphNodeComponent>();
-
-            if(physicsComponent) {
+        void populateWorld(ex::EntityManager &es) {
+            auto physics = ex::ComponentHandle<PhysicsComponent>();
+            for (ex::Entity e : es.entities_with_components(physics)) {
                 std::cout << "populateworld" << std::endl;
-                std::cout << "Group: " << physicsComponent->group_ << std::endl;
-                std::cout << "Mask: " << physicsComponent->mask_ << std::endl;
-                std::cout << "Previous flags: " << physicsComponent->body_->getCollisionFlags() << std::endl;
-                //m_pWorld->addRigidBody(physicsComponent->body_, physicsComponent->group_, physicsComponent->mask_);
-                physicsComponent->body_->setActivationState(DISABLE_DEACTIVATION);
-                m_pWorld->addRigidBody(physicsComponent->body_);
+                std::cout << "Group: " << physics->group_ << std::endl;
+                std::cout << "Mask: " << physics->mask_ << std::endl;
+                std::cout << "Previous flags: " << physics->body_->getCollisionFlags() << std::endl;
+                //m_pWorld->addRigidBody(physics->body_, physics->group_, physics->mask_);
+                physics->body_->setActivationState(DISABLE_DEACTIVATION);
+                m_pWorld->addRigidBody(physics->body_);
             }
-
-            if(!node->children_.empty()) {
-                for(ex::Entity child : node->children_) {
-                    populateWorld(child);
-                }
-            }
-
         }
-
 
 
         ~PhysicsSystem() {
@@ -90,52 +77,48 @@ namespace sw {
         }
 
 
-        void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
+        void update(entityx::EntityManager &entityManager, entityx::EventManager &eventManager, entityx::TimeDelta dt) {
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt);
                 //m_pWorld->debugDrawWorld();
                 //debugDrawer_->drawLines();
 
             }
-
-//            for(int i = m_pWorld->getNumCollisionObjects()-1; i>=0; i--) {
-//
-//                btCollisionObject *obj = m_pWorld->getCollisionObjectArray()[i];
-//                btRigidBody *body = btRigidBody::upcast(obj);
-//                btTransform trans;
-//
-//                if (body && body->getMotionState()) {
-//                    body->getMotionState()->getWorldTransform(trans);
-//                } else {
-//                    trans = obj->getWorldTransform();
-//                }
-//
-//
-//                std::cout << "world pos obj: " << i << ", " << static_cast<float>(trans.getOrigin().getX())
-//                        << ", " << static_cast<float>(trans.getOrigin().getY()) << ", " <<
-//                        static_cast<float>(trans.getOrigin().getZ()) << std::endl;
-//
-//            }
-
-
-
         }
 
+/*
+        void receive(const DimensionChangeInProgressEvent &dimChange) {
+            if (dimChange.completion_factor_ >= 0.5f) {
+                // The dimension change has occurred
+                auto dimension = ex::ComponentHandle<DimensionComponent>();
+                auto physics = ex::ComponentHandle<PhysicsComponent>();
+
+                for (ex::Entity e : entityManager.entities_with_components(dimension, physics)) {
+                    if (dimension->dimension_ == Dim::DIMENSION_BOTH)
+                        continue;
+
+                    if (dimension->dimension_ == Dim::DIMENSION_ONE) {
+
+                    }
+
+                    m_pWorld->add
 
 
-        private:
+                }
+            }
+        }
+        */
 
+
+    private:
         btBroadphaseInterface *m_pBroadphase;
-
         btCollisionDispatcher *m_pDispatcher;
-
         btSequentialImpulseConstraintSolver *m_pSolver;
-
         btDefaultCollisionConfiguration *m_pCollisionConfiguration;
 
         btDynamicsWorld *m_pWorld;
 
-        MyDebugDrawer* debugDrawer_;
+        MyDebugDrawer *debugDrawer_;
 
 
     };
