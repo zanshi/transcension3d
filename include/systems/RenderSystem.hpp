@@ -70,11 +70,22 @@ namespace sw {
             auto player = ex::ComponentHandle<PlayerComponent>();
             auto transform = ex::ComponentHandle<TransformComponent>();
             auto graphNode = ex::ComponentHandle<GraphNodeComponent>();
-            for (ex::Entity ex : es.entities_with_components(player, transform, graphNode)) {
+            auto physics = ex::ComponentHandle<PhysicsComponent>();
+
+            for (ex::Entity ex : es.entities_with_components(player, transform, physics, graphNode)) {
+                /*
                 combine(transform, graphNode->parent_);
                 transform->is_dirty_ = false;
 
-                glm::mat4 player_transform_world = transform->cached_world_;
+                glm::mat4 player_transform_world = transform->cached_world_;r
+                 */
+
+                btTransform worldTransform;
+                physics->motionState_->getWorldTransform(worldTransform);
+
+                glm::mat4 player_transform_world;
+
+                worldTransform.getOpenGLMatrix(glm::value_ptr(player_transform_world));
 
                 view_ = player_transform_world * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f) *
                         glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f);
@@ -170,6 +181,7 @@ namespace sw {
             auto mesh = entityToRender.component<MeshComponent>();
             auto shading = entityToRender.component<ShadingComponent>();
             auto physics = entityToRender.component<PhysicsComponent>();
+            auto player = entityToRender.component<PlayerComponent>();
 
             // See if we need to update the current entity's cached world transform
             dirty |= transform->is_dirty_;
@@ -181,10 +193,19 @@ namespace sw {
 
 
             // Render if the current entity has a RenderComponent
-            if (mesh && shading) {
+            if (mesh && shading && !player) {
                 // TODO: Investigate what units should be used in blender
                 // Get the model matrix and send it to the shader.
-                glm::mat4 model = transform->cached_world_;
+                //glm::mat4 model = transform->cached_world_;
+
+
+                btTransform worldTransform;
+
+                physics->motionState_->getWorldTransform(worldTransform);
+
+                glm::mat4 model;
+
+                worldTransform.getOpenGLMatrix(glm::value_ptr(model));
 
                 // Update it with scaling according to dimensional change! YEAH
                 if (dim_change_in_progress_) {

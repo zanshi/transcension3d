@@ -133,6 +133,8 @@ namespace sw {
         std::regex_match(str, REGEX_MATCH_LIGHT_4);
     }
 
+    const std::regex REGEX_MATCH_STATIC = std::regex("static_\\S+");
+
     const bool isStaticObject(const char *str) {
         return std::regex_match(str, REGEX_MATCH_STATIC);
     }
@@ -170,8 +172,6 @@ namespace sw {
             dim_current = dim_parent;
         }
 
-
-
         /* Add the current node to its parent */
         ex::Entity current_entity = createEntity();
         current_entity.assign<TransformComponent>(aiMatrix4x4_to_glmMat4(node->mTransformation));
@@ -191,47 +191,52 @@ namespace sw {
                 camera_node_ = node;
                 current_entity.assign<PlayerComponent>();
             }
-            else {
-                // Add a MeshComponent to the entity
-		        if (node->mNumMeshes > 0) {
-		            for(int i = 0; i < 4; i++) {
-		                for(int j = 0; j < 4; j++) {
-		                    std::cout << node->mTransformation[i][j] << " ";
-		                }
-		                std::cout << std::endl;
-		            }
-	
-		            //auto test = node->mMetaData->Get(0,);
-	
-	
-		            auto transform = current_entity.component<TransformComponent>();
-		            auto graphNode = current_entity.component<GraphNodeComponent>();
-	
-		            combine(transform, graphNode->parent_);
-	
-		            unsigned int index_mesh = *(node->mMeshes);
-		            const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
-		            addMeshComponentToEntity(current_entity, mesh);
-		            addShadingComponentToEntity(current_entity, mesh);
-	
-	
-		            float mass = 1.0f;	
-	
-		            short group = btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK;
-		            short mask = sw::COL_STATIC;
-	
-			        //if (std::string( node->mName.C_Str() ) == "Cube__2_") {
-		            if (isStaticObject(node->mName.C_Str())) {
-		                mass = 0.0f;
-	                	group = sw::COL_STATIC;
-	                	mask = sw::COL_DYNAMIC;
-	
-	                	std::cout << "mass" << std::endl;
-	
-	            	}
-	
-	            	addPhysicsComponentToEntity(current_entity, mesh, mass, group, mask);
-	        	}
+
+            // Add a MeshComponent to the entity
+            if (node->mNumMeshes > 0) {
+                for(int i = 0; i < 4; i++) {
+                    for(int j = 0; j < 4; j++) {
+                        std::cout << node->mTransformation[i][j] << " ";
+                    }
+                    std::cout << std::endl;
+                }
+
+                //auto test = node->mMetaData->Get(0,);
+
+
+                auto transform = current_entity.component<TransformComponent>();
+                auto graphNode = current_entity.component<GraphNodeComponent>();
+
+                combine(transform, graphNode->parent_);
+
+                unsigned int index_mesh = *(node->mMeshes);
+                const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
+                addMeshComponentToEntity(current_entity, mesh);
+                addShadingComponentToEntity(current_entity, mesh);
+
+                float mass = 1.0f;
+
+                short group = btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK;
+                short mask = sw::COL_STATIC;
+
+                //if (std::string( node->mName.C_Str() ) == "Cube__2_") {
+                if (isStaticObject(node->mName.C_Str())) {
+                    std::cout << "STATIC\n";
+                    mass = 0.0f;
+                    group = sw::COL_STATIC;
+                    mask = sw::COL_DYNAMIC;
+
+                    std::cout << "mass" << std::endl;
+
+                } else {
+                    group = sw::COL_DYNAMIC;
+                }
+
+                if (current_entity.component<PlayerComponent>()) {
+                    group = sw::COL_PLAYER;
+                }
+
+                addPhysicsComponentToEntity(current_entity, mesh, mass, group, mask);
             }
         }
 

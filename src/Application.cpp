@@ -107,7 +107,10 @@ void sw::Application::initScene() {
     sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
 
     auto renderSystem = systems.system < RenderSystem > ();
-    renderSystem->setCamera(sceneImporter.getCamera());
+
+    auto physicsSystem = systems.system<PhysicsSystem>();
+    physicsSystem->populateWorld(root_);
+    //renderSystem->setCamera(sceneImporter.getCamera());
 
     //renderSystem->setCamera(sceneImporter.getCamera());
 }

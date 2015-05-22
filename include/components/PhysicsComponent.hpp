@@ -52,6 +52,9 @@ namespace sw {
 
             body_ = new btRigidBody(bodyConstructionInfo);
 
+            if (group == sw::COL_PLAYER) {
+                body_->setAngularFactor(0.0);
+            }
 
 //            if ( mass != 0.0f) {
 //                body_->setCollisionFlags(body_->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);

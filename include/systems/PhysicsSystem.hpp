@@ -36,7 +36,7 @@ namespace sw {
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
 
-            m_pWorld->setGravity(btVector3(0, 0, -1));
+            m_pWorld->setGravity(btVector3(0, 0, -10));
 
 
             debugDrawer_ = new MyDebugDrawer();
@@ -95,12 +95,10 @@ namespace sw {
 
 
         void update(entityx::EntityManager& entityManager, entityx::EventManager& eventManager, entityx::TimeDelta dt) {
-
-
             if (m_pWorld) {
                 m_pWorld->stepSimulation(dt);
-                m_pWorld->debugDrawWorld();
-                debugDrawer_->drawLines();
+                //m_pWorld->debugDrawWorld();
+                //debugDrawer_->drawLines();
 
             }
 

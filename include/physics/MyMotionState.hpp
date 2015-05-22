@@ -40,7 +40,7 @@ namespace sw {
 
 
         virtual void getWorldTransform(btTransform &worldTrans) const {
-            std::cout << "getworldtransform" << std::endl;
+            //std::cout << "getworldtransform" << std::endl;
 
             worldTrans = transform_;
         }
