@@ -19,5 +19,6 @@ namespace sw {
         COL_PLAYER = 1 << 3
     };
 
-
+    const int WINDOW_WIDTH = 640,
+              WINDOW_HEIGHT = 480;
 }

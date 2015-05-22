@@ -62,7 +62,7 @@ bool sw::Application::init() {
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
 
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
-    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 1280, 960, SDL_WINDOW_OPENGL);
+    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
     //Make sure creating our window went ok
     if (win == nullptr) {
         std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -81,6 +81,8 @@ bool sw::Application::init() {
 
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
+
+    systems.system<InputSystem>()->setWindowSize(sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT);
 
     return true;
 

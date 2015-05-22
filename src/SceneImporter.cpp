@@ -394,7 +394,8 @@ namespace sw {
 
 
         btShapeHull* hull = new btShapeHull(originalCollisionShape);
-        btScalar margin = originalCollisionShape->getMargin();
+        //btScalar margin = originalCollisionShape->getMargin();
+        btScalar margin = 0.f;
         hull->buildHull(margin);
         //originalCollisionShape->setUserPointer(hull);
 

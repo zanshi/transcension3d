@@ -120,6 +120,7 @@ namespace sw {
 
         void receive(const ViewChangedEvent &view) {
             delta_yaw_ = view.delta_right_ * ANGLE_SCALE_FACTOR;
+            std::cout << delta_yaw_ << "\n";
 
             pitch_ += view.delta_up_ * ANGLE_SCALE_FACTOR;
             if (pitch_ >= PITCH_MAX) {
@@ -138,7 +139,7 @@ namespace sw {
 
         // ROTATION MATRIX CONSTANTS
         const float PITCH_MAX = (float) M_PI / 2, PITCH_MIN = -(float) M_PI / 2;
-        const float ANGLE_SCALE_FACTOR = 0.0025f;
+        const float ANGLE_SCALE_FACTOR = 2.f;
         const float MOVE_SCALE_FACTOR = 1.f;
 
         // Dimension Change shizniz

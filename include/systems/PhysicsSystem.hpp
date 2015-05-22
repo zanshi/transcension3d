@@ -36,16 +36,12 @@ namespace sw {
             // create the world
             m_pWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
 
-            m_pWorld->setGravity(btVector3(0, 0, -10));
-
+            m_pWorld->setGravity(btVector3(0, 0, -60));
 
             debugDrawer_ = new MyDebugDrawer();
             m_pWorld->setDebugDrawer(debugDrawer_);
 
             m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_MAX_DEBUG_DRAW_MODE);
-
-
-
 
         }
 

@@ -20,6 +20,11 @@ namespace sw {
     class InputSystem : public ex::System<InputSystem> {
     public:
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
+            assert(window_w != -1 && window_h != -1 &&
+                   "InputSystem::setWindowSize(w, h) must be called before first Appl. update");
+
+            mouse_xrel_ = mouse_yrel_ = 0;
+
             SDL_Event e;
 
             const Uint8 *currentKeyStates = SDL_GetKeyboardState(NULL);
@@ -89,13 +94,42 @@ namespace sw {
                     }
                 }
                 if (e.type == SDL_MOUSEMOTION) {
-                    events.emit<ViewChangedEvent>(e.motion.xrel, e.motion.yrel);
+                    mouse_xrel_ = e.motion.xrel;
+                    mouse_yrel_ = e.motion.yrel;
+                }
+
+                // Window state handling
+                if (e.type == SDL_WINDOWEVENT) {
+                    switch (e.window.event) {
+                        case SDL_WINDOWEVENT_RESIZED: {
+                            window_w = e.window.data1;
+                            window_h = e.window.data2;
+                        };
+                            break;
+
+                        default:
+                            break;
+                    }
                 }
             }
+
+            // If mouse moved
+            if (mouse_xrel_ != 0 || mouse_yrel_ != 0) {
+                events.emit<ViewChangedEvent>((float)mouse_xrel_ / (float)window_w,
+                                              (float)mouse_yrel_ / (float)window_w);
+            }
+        }
+
+        void setWindowSize(const int w, const int h) {
+            window_w = w;
+            window_h = h;
         }
 
     private:
         float right, forward;
+        int mouse_xrel_, mouse_yrel_;
+        int window_w = -1, window_h = -1;
+
         bool is_sprinting;
     };
 }
