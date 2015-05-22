@@ -4,13 +4,19 @@
 
 #include "scene/SceneImporter.hpp"
 #include <regex>
+#include "game_constants.hpp"
 
 // GL Includes
-#include <GL/glew.h>
+//#include <GL/glew.h>
 
 // GLM includes
 #include <glm/glm.hpp>
 #include <assimp/postprocess.h>
+#include <BulletCollision/CollisionShapes/btShapeHull.h>
+
+
+// Bullet includes
+#include "btBulletDynamicsCommon.h"
 
 // Project-related imports
 #include "components/all_components.hpp"
@@ -20,7 +26,7 @@ namespace sw {
 
     SceneImporter::SceneImporter(std::string filename) {
         filename = relative_path_to_scene_folder_ + filename;
-        p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate);
+        p_scene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate );
         if (p_scene == nullptr) {
             std::cout << "The file could not be loaded. Exiting." << std::endl;
             assert(p_scene);
@@ -65,7 +71,7 @@ namespace sw {
     }
 
     glm::mat4 SceneImporter::getCamera() {
-        if (camera_node_) {
+        if (camera_node_ != nullptr) {
             return aiMatrix4x4_to_glmMat4(camera_node_->mTransformation);
         } else {
             return glm::mat4(1);
@@ -93,15 +99,27 @@ namespace sw {
         }
 
         // Remove the read file from memory
-        importer.FreeScene();
+        //importer.FreeScene();
 
     }
 
     /* Regular expressions to match object dimensions */
 
     const std::regex REGEX_MATCH_DIMENSION_ONE = std::regex("\\S+_dim1");
-
     const std::regex REGEX_MATCH_DIMENSION_TWO = std::regex("\\S+_dim2");
+
+    const Dim getDimensionOfNodeName(const char *str) {
+        if (*str == 0)
+            return DIMENSION_BOTH;
+
+        if (std::regex_match(str, REGEX_MATCH_DIMENSION_ONE))
+            return DIMENSION_ONE;
+
+        if (std::regex_match(str, REGEX_MATCH_DIMENSION_TWO))
+            return DIMENSION_TWO;
+
+        return DIMENSION_BOTH;
+    }
 
     const std::regex REGEX_MATCH_LIGHT_1 = std::regex("light_\\S+");
     const std::regex REGEX_MATCH_LIGHT_2 = std::regex("Light_\\S+");
@@ -115,6 +133,12 @@ namespace sw {
         std::regex_match(str, REGEX_MATCH_LIGHT_4);
     }
 
+    const std::regex REGEX_MATCH_STATIC = std::regex("static_\\S+");
+
+    const bool isStaticObject(const char *str) {
+        return std::regex_match(str, REGEX_MATCH_STATIC);
+    }
+
     const aiLight *SceneImporter::getLightWithName(const char *str) {
         if (!p_scene->HasLights())
             return nullptr;
@@ -125,19 +149,6 @@ namespace sw {
         }
 
         return nullptr;
-    }
-
-    const Dim getDimensionOfNodeName(const char *str) {
-        if (*str == 0)
-            return DIMENSION_BOTH;
-
-        if (std::regex_match(str, REGEX_MATCH_DIMENSION_ONE))
-            return DIMENSION_ONE;
-
-        if (std::regex_match(str, REGEX_MATCH_DIMENSION_TWO))
-            return DIMENSION_TWO;
-
-        return DIMENSION_BOTH;
     }
 
     void SceneImporter::processAssimpNode(const aiNode *node,
@@ -175,22 +186,57 @@ namespace sw {
         }
         // not a light, proceed
         else {
-            current_entity.assign<RenderComponent>(std::string(node->mName.C_Str()));
-            current_entity.assign<PhysicsComponent>();
-
-            // If Camera node -> node is player
+			// If Camera node -> node is player
             if (std::string(node->mName.C_Str()) == "Camera") {
                 camera_node_ = node;
                 current_entity.assign<PlayerComponent>();
             }
-            else {
-                // Add a MeshComponent to the entity
-                if (node->mNumMeshes > 0) {
-                    unsigned int index_mesh = *(node->mMeshes);
-                    const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
-                    addMeshComponentToEntity(current_entity, mesh);
-                    addShadingComponentToEntity(current_entity, mesh);
+
+            // Add a MeshComponent to the entity
+            if (node->mNumMeshes > 0) {
+                for(int i = 0; i < 4; i++) {
+                    for(int j = 0; j < 4; j++) {
+                        std::cout << node->mTransformation[i][j] << " ";
+                    }
+                    std::cout << std::endl;
                 }
+
+                //auto test = node->mMetaData->Get(0,);
+
+
+                auto transform = current_entity.component<TransformComponent>();
+                auto graphNode = current_entity.component<GraphNodeComponent>();
+
+                combine(transform, graphNode->parent_);
+
+                unsigned int index_mesh = *(node->mMeshes);
+                const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
+                addMeshComponentToEntity(current_entity, mesh);
+                addShadingComponentToEntity(current_entity, mesh);
+
+                float mass = 1.0f;
+
+                short group = btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK;
+                short mask = sw::COL_STATIC;
+
+                //if (std::string( node->mName.C_Str() ) == "Cube__2_") {
+                if (isStaticObject(node->mName.C_Str())) {
+                    std::cout << "STATIC\n";
+                    mass = 0.0f;
+                    group = sw::COL_STATIC;
+                    mask = sw::COL_DYNAMIC;
+
+                    std::cout << "mass" << std::endl;
+
+                } else {
+                    group = sw::COL_DYNAMIC;
+                }
+
+                if (current_entity.component<PlayerComponent>()) {
+                    group = sw::COL_PLAYER;
+                }
+
+                addPhysicsComponentToEntity(current_entity, mesh, mass, group, mask);
             }
         }
 
@@ -278,4 +324,129 @@ namespace sw {
 
         entity.assign<LightComponent>(std::move(color), type);
     }
+
+
+    void SceneImporter::addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass,
+                                                    short group,
+                                                    short mask) {
+
+        auto mesh = entity.component<MeshComponent>();
+        auto transform = entity.component<TransformComponent>();
+
+        entity.assign<PhysicsComponent>(entity, buildCollisionShape(transform->scale_, mesh->vertices, mesh->indices),
+                                        mass, group, mask);
+
+
+    }
+
+    btConvexHullShape * SceneImporter::buildCollisionShape(glm::vec3 scale, std::vector<Vertex> vertices,
+                                                          std::vector<GLuint> indices) {
+
+        /*btTriangleMesh *trimesh = new btTriangleMesh();
+
+        std::vector<glm::vec3> vertices_pos;
+
+        for(int i = 0; i < vertices.size(); i++) {
+            vertices_pos[i] = vertices[i].Position;
+        }
+
+
+
+        for(int i = 0; i < indices.size(); i++) {
+
+
+            btVector3 vertex0(vertices_pos[i].x,vertices_pos[i].y, vertices_pos[i].z);
+            i++;
+            btVector3 vertex1(vertices_pos[i].x,vertices_pos[i].y, vertices_pos[i].z);
+            i++;
+            btVector3 vertex2(vertices_pos[i].x,vertices_pos[i].y, vertices_pos[i].z);
+
+            trimesh->addTriangle(vertex0, vertex1, vertex2);
+
+        }
+
+
+        btConvexShape* originalCollisionShape = new btConvexTriangleMeshShape(trimesh);*/
+
+
+        btConvexHullShape *originalCollisionShape = new btConvexHullShape();
+
+
+        glm::vec4 temp_pos;
+        btVector3 current_position;
+        btVector3 scaling(scale.x, scale.y, scale.z);
+
+        bool updateLocalAabb = false;
+
+        for(Vertex vertex : vertices) {
+            //temp_pos = transform * glm::vec4(vertex.Position, 1.0f);
+            current_position = btVector3(vertex.Position.x, vertex.Position.y, vertex.Position.z);
+
+            current_position *= scaling;
+
+            std::cout << "current_position " << current_position.x() << " " << current_position.y()
+                    << " " << current_position.z() << std::endl;
+
+            originalCollisionShape->addPoint(current_position, updateLocalAabb);
+        }
+
+        //originalCollisionShape->setLocalScaling(scaling);
+
+
+        btShapeHull* hull = new btShapeHull(originalCollisionShape);
+        btScalar margin = originalCollisionShape->getMargin();
+        hull->buildHull(margin);
+        //originalCollisionShape->setUserPointer(hull);
+
+        btConvexHullShape* simplifiedConvexShape = new btConvexHullShape();
+
+        for(int i = 0; i < hull->numVertices(); i++) {
+            simplifiedConvexShape->addPoint(hull->getVertexPointer()[i], updateLocalAabb);
+        }
+
+        simplifiedConvexShape->recalcLocalAabb();
+
+        simplifiedConvexShape->initializePolyhedralFeatures();
+
+
+        delete originalCollisionShape;
+        delete hull;
+
+
+        return simplifiedConvexShape;
+
+    }
+
+
+    glm::vec3 SceneImporter::buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices)
+    {
+        // Create initial variables to hold min and max xyz values for the mesh
+        glm::vec3 vert_max(FLT_MIN);
+        glm::vec3 vert_min(FLT_MAX);
+        glm::vec3 vertex_position;
+
+        for(Vertex vertex : vertices) {
+
+            vert_min = glm::min(vert_min, vertex_position);
+            vert_max = glm::max(vert_max, vertex_position);
+
+        }
+
+        glm::vec4 vert_min_temp(vert_min, 1);
+        glm::vec4 vert_max_temp(vert_max, 1);
+
+
+        vert_min_temp = world_transform * vert_min_temp;
+
+        vert_max_temp =  world_transform * vert_max_temp;
+
+        glm::vec3 diff(vert_max_temp - vert_min_temp);
+
+        return diff/2.0f;
+
+
+    }
+
+
+
 }

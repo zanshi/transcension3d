@@ -30,7 +30,7 @@ namespace sw {
                 : local_(local_transform) {
             glm::vec3 temp3;
             glm::vec4 temp4;
-            glm::decompose(local_, temp3, orientation_, position_, temp3, temp4);
+            glm::decompose(local_, scale_, orientation_, position_, temp3, temp4);
 
             is_dirty_ = true;
         }
@@ -38,7 +38,10 @@ namespace sw {
         /** Public member variables for convenience **/
         glm::vec3 position_;
         glm::quat orientation_;
+        glm::vec3 scale_;
         glm::mat4 local_;
+        glm::quat world_rotation_;
+        glm::vec3 world_position_;
         glm::mat4 cached_world_;
 
 
@@ -52,5 +55,12 @@ namespace sw {
             // TODO : Test this code snippet
             local_ = glm::translate(glm::mat4(1.0f), position_) * glm::mat4_cast(orientation_);
         }
+
+        void update_world_transform() {
+            cached_world_ = glm::translate(glm::mat4(1.0f), world_position_) * glm::mat4_cast(world_rotation_) *
+                    glm::scale(glm::mat4(1.0f), scale_);
+        }
+
+
     };
 }

@@ -12,19 +12,20 @@
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 
-#include "components/TransformComponent.hpp"
-#include "components/RenderComponent.hpp"
-#include "components/GraphNodeComponent.hpp"
-#include "components/MovementComponent.hpp"
+#include "components/all_components.hpp"
 
 #include "events/RenderEvent.hpp"
-#include "events/DimensionChangedEvent.hpp"
+#include "events/StartDimensionChangeEvent.hpp"
+#include "events/DimensionChangeInProgressEvent.hpp"
 
 #include "common/Shader.h"
 
 #include "game_constants.hpp"
+#include "PhysicsSystem.hpp"
 
 #include <iomanip>
+// for pow(float, float)
+#include <math.h>
 
 namespace ex = entityx;
 
@@ -45,11 +46,21 @@ namespace sw {
             num_dir_lights_ = num_point_lights_ = 0;
 
             current_dim_ = Dim::DIMENSION_ONE;
+            dim_change_in_progress_ = false;
 
-            events.subscribe<DimensionChangedEvent>(*this);
+            events.subscribe<StartDimensionChangeEvent>(*this);
+            events.subscribe<DimensionChangeInProgressEvent>(*this);
         };
 
+        ~RenderSystem(){
+            delete shader_;
+        }
+
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
+            if (!has_received_dimension_in_progress_event_) {
+                dim_change_in_progress_ = false;
+            }
+
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
@@ -59,11 +70,22 @@ namespace sw {
             auto player = ex::ComponentHandle<PlayerComponent>();
             auto transform = ex::ComponentHandle<TransformComponent>();
             auto graphNode = ex::ComponentHandle<GraphNodeComponent>();
-            for (ex::Entity ex : es.entities_with_components(player, transform, graphNode)) {
+            auto physics = ex::ComponentHandle<PhysicsComponent>();
+
+            for (ex::Entity ex : es.entities_with_components(player, transform, physics, graphNode)) {
+                /*
                 combine(transform, graphNode->parent_);
                 transform->is_dirty_ = false;
 
-                glm::mat4 player_transform_world = transform->cached_world_;
+                glm::mat4 player_transform_world = transform->cached_world_;r
+                 */
+
+                btTransform worldTransform;
+                physics->motionState_->getWorldTransform(worldTransform);
+
+                glm::mat4 player_transform_world;
+
+                worldTransform.getOpenGLMatrix(glm::value_ptr(player_transform_world));
 
                 view_ = player_transform_world * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f) *
                         glm::yawPitchRoll(0.0f, -player->pitch_, 0.0f);
@@ -109,7 +131,7 @@ namespace sw {
                         glUniform3f(pointLightsLoc[num_point_lights_][1], c.ambient_.x, c.ambient_.y, c.ambient_.z);
                         glUniform3f(pointLightsLoc[num_point_lights_][2], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
                         glUniform3f(pointLightsLoc[num_point_lights_][3], c.specular_.x, c.specular_.y, c.specular_.z);
-                        };
+                    };
                         num_point_lights_++;
                         break;
                     case LightComponent::LightType::DIRECTIONAL: {
@@ -122,7 +144,7 @@ namespace sw {
                         glUniform3f(dirLightsLoc[num_dir_lights_][2], c.ambient_.x, c.ambient_.y, c.ambient_.z);
                         glUniform3f(dirLightsLoc[num_dir_lights_][3], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
                         glUniform3f(dirLightsLoc[num_dir_lights_][4], c.specular_.x, c.specular_.y, c.specular_.z);
-                        };
+                    };
                         num_dir_lights_++;
                         break;
                     default:
@@ -141,6 +163,9 @@ namespace sw {
 
             // Start rendering at the top of the tree
             renderEntity(root_, false, alpha, 0);
+
+            // Revert to old state
+            has_received_dimension_in_progress_event_ = false;
         }
 
         void renderEntity(ex::Entity entityToRender, bool dirty, float alpha, unsigned int current_depth) {
@@ -155,20 +180,39 @@ namespace sw {
             auto graphNode = entityToRender.component<GraphNodeComponent>();
             auto mesh = entityToRender.component<MeshComponent>();
             auto shading = entityToRender.component<ShadingComponent>();
+            auto physics = entityToRender.component<PhysicsComponent>();
+            auto player = entityToRender.component<PlayerComponent>();
 
             // See if we need to update the current entity's cached world transform
             dirty |= transform->is_dirty_;
             if (dirty) {
                 // If dirty, update its cached world transform
-                combine(transform, graphNode->parent_);
+                //combine(transform, graphNode->parent_);
                 transform->is_dirty_ = false;
             }
 
+
             // Render if the current entity has a RenderComponent
-            if (mesh && shading) {
+            if (mesh && shading && !player) {
                 // TODO: Investigate what units should be used in blender
                 // Get the model matrix and send it to the shader.
-                glm::mat4 model = transform->cached_world_;
+                //glm::mat4 model = transform->cached_world_;
+
+
+                btTransform worldTransform;
+
+                physics->motionState_->getWorldTransform(worldTransform);
+
+                glm::mat4 model;
+
+                worldTransform.getOpenGLMatrix(glm::value_ptr(model));
+
+                // Update it with scaling according to dimensional change! YEAH
+                if (dim_change_in_progress_) {
+                    if (current_dim_ == dimension->dimension_) {
+                        model = model * dim_change_scale_mat_;
+                    }
+                }
                 glUniformMatrix4fv(M_loc, 1, GL_FALSE, glm::value_ptr(model));
 
                 Color &c = shading->color_;
@@ -184,6 +228,7 @@ namespace sw {
 
                 // Draw mesh
                 glBindVertexArray(mesh->VAO);
+                // TODO: Fix "Conditional jump or move depends on uninitialised value(s)"
                 glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
             }
@@ -293,13 +338,52 @@ namespace sw {
             viewPosLoc = glGetUniformLocation(*shader_, "viewPos");
         }
 
-        void receive(const DimensionChangedEvent &dimChanged) {
-            current_dim_ = (current_dim_ == Dim::DIMENSION_ONE) ? Dim::DIMENSION_TWO : Dim::DIMENSION_ONE;
+        void receive(const StartDimensionChangeEvent &startChange) {
+            if (!dim_change_in_progress_) {
+                dim_from_ = current_dim_;
+            }
+        }
+
+        float generateEaseScale(float time) {
+            return 0.5f + 0.5f * cosf(2 * M_PI * time);
+            //return 0.5f + 0.5f * cosf(M_PI * (1.0f - scale));
+        }
+
+        void receive(const DimensionChangeInProgressEvent &dimChange) {
+            has_received_dimension_in_progress_event_ = true;
+            dim_change_in_progress_ = true;
+
+            if (current_dim_ == dim_from_ && dimChange.completion_factor_ >= 0.5f) {
+                current_dim_ = (current_dim_ == Dim::DIMENSION_ONE) ? Dim::DIMENSION_TWO : Dim::DIMENSION_ONE;
+            }
+
+            // Generate the scale matrix to use
+            /*
+            float scale = 0.0f;
+            if (dimChange.completion_factor_ < 0.5f) {
+                scale = (0.5f - dimChange.completion_factor_) / 0.5f;
+            }
+            else if (dimChange.completion_factor_ >= 0.5f) {
+                scale = (dimChange.completion_factor_ - 0.5f) / 0.5f;
+            }
+            else {
+                scale = 1.0f;
+            }
+             */
+
+            float scale = generateEaseScale(dimChange.completion_factor_);
+
+            dim_change_scale_mat_ = glm::scale(glm::mat4(1), glm::vec3(scale, scale, scale));
         }
 
     private:
         /* GAME-RELATED VARIABLES */
         Dim current_dim_;
+
+        Dim dim_from_;
+        bool dim_change_in_progress_;
+        bool has_received_dimension_in_progress_event_ = false;
+        glm::mat4 dim_change_scale_mat_;
 
         /* RENDER-RELATED VARIABLES */
         ShaderProgram *shader_;
@@ -325,7 +409,7 @@ namespace sw {
         GLint viewPosLoc;
         //Material
         GLint matlAmbientLoc, matlDiffuseLoc, matlSpecularLoc, matlShineLoc;
-        
+
         // Matrices
         GLint P_loc, V_loc, V_inv_loc, M_loc;
 
@@ -335,21 +419,22 @@ namespace sw {
         glm::quat tempquat;
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
-            glm::mat4 &local = transform->local_;
+            glm::mat4 local = transform->local_;
 
             // Make sure the parent has a TransformComponent
             // TODO: Fix entity dependencies so all entities have Transform- and GraphNodeComponents
             auto transform_parent = parent_entity.component<TransformComponent>();
 
             if (transform_parent) {
-                glm::mat4 &parent_world = transform_parent->cached_world_;
-                // Multiply the local transform with the parent's world transform
+                glm::mat4 parent_world = transform_parent->cached_world_;
                 transform->cached_world_ = parent_world * local;
             } else {
                 glm::mat4 parent_world(1.0f);
                 // Multiply the local transform with the parent's world transform
                 transform->cached_world_ = parent_world * local;
             }
+            // Multiply the local transform with the parent's world transform
+
         }
 
         /* DEBUGGING FUNCTIONS */

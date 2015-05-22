@@ -13,12 +13,18 @@
 
 // EntityX imports
 #include <entityx/entityx.h>
+#include <BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <BulletCollision/CollisionShapes/btConvexHullShape.h>
+#include <sys/cdefs.h>
+#include <game_constants.hpp>
 
 // AssImp imports
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 
 #include "components/DimensionComponent.hpp"
+#include "components/MeshComponent.hpp"
+#include "components/TransformComponent.hpp"
 
 namespace ex = entityx;
 
@@ -34,7 +40,10 @@ namespace sw {
 
         SceneImporter() = delete;
 
-        ~SceneImporter() { };
+        ~SceneImporter() {
+            //delete camera_node_;
+            //delete p_scene;
+        };
 
         static std::string relative_path_to_scene_folder_;
 
@@ -71,5 +80,35 @@ namespace sw {
         void addLightComponentToEntity(entityx::Entity entity, const aiLight *light);
 
         const aiLight *getLightWithName(const char *str);
+
+        void addPhysicsComponentToEntity(entityx::Entity entity, const aiMesh *pMesh, float mass, short group,
+                                         short mask);
+
+        glm::vec3 buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices);
+
+        btConvexHullShape *buildCollisionShape(glm::vec3 scale, std::vector<Vertex> vertices,
+                                                              std::vector<GLuint> indices);
+
+
+        void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
+            glm::mat4 local = transform->local_;
+
+            // Make sure the parent has a TransformComponent
+            // TODO: Fix entity dependencies so all entities have Transform- and GraphNodeComponents
+            auto transform_parent = parent_entity.component<TransformComponent>();
+
+            if (transform_parent) {
+                glm::mat4 parent_world = transform_parent->cached_world_;
+                transform->cached_world_ = parent_world * local;
+            } else {
+                glm::mat4 parent_world(1.0f);
+                // Multiply the local transform with the parent's world transform
+                transform->cached_world_ = parent_world * local;
+            }
+            // Multiply the local transform with the parent's world transform
+
+        }
+
+
     };
 }

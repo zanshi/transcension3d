@@ -11,7 +11,6 @@
 #include "assimp/Importer.hpp"
 #include "scene/SceneImporter.hpp"
 #include "components/all_components.hpp"
-#include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
 #include "systems/PhysicsSystem.hpp"
@@ -36,8 +35,10 @@ sw::Application::Application() {
 void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
     systems.update<PlayerControlSystem>(dt);
+	systems.update<PhysicsSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
+
 }
 
 bool sw::Application::init() {
@@ -107,6 +108,10 @@ void sw::Application::initScene() {
 
     auto renderSystem = systems.system < RenderSystem > ();
 
+    auto physicsSystem = systems.system<PhysicsSystem>();
+    physicsSystem->populateWorld(root_);
+    //renderSystem->setCamera(sceneImporter.getCamera());
+
     //renderSystem->setCamera(sceneImporter.getCamera());
 }
 
@@ -118,8 +123,8 @@ void sw::Application::updateFPS(float newFPS) {
 void sw::Application::run() {
     initScene();
 
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point current, last;
+    std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point current;
 
     std::chrono::duration<double> second_accumulator;
     int frames_last_second = 0;
@@ -138,8 +143,8 @@ void sw::Application::run() {
         update(dt.count());
 
         // TODO: check if this is done correct
-        //glDisableVertexAttribArray(0);
-        //glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
 
         SDL_GL_SwapWindow(win);
 

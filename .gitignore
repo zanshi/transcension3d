@@ -361,7 +361,8 @@ DerivedData
 *.pbxproj
 *.xcworkspacedata
 
-*.dae
 
+*.dae
+external/assimp/packaging/windows-innosetup/LICENSE.rtf
 ### res folder ###
 res

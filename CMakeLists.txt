@@ -29,8 +29,8 @@ if( CMAKE_BINARY_DIR MATCHES " " )
 endif()
 
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -w")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -w")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -O2")
 
@@ -111,11 +111,6 @@ set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 set(ASSIMP_BUILD_TESTS OFF)
 set(ASSIMP_BUILD_SAMPLES OFF)
 
-set(BUILD_MULTITHREADING OFF)
-set(BUILD_DEMOS OFF)
-set(BUILD_UNIT_TESTS OFF)
-
-
 include(BuildAssimp)
 endif(UNIX)
 
@@ -181,8 +176,7 @@ add_dependencies(INT_LIBS
 file(GLOB PROJECT_CXX_FILES ${PROJECT_CXX_DIR}/*.cpp)
 
 add_executable(${PROJECT_NAME_STR}
-  ${PROJECT_CXX_FILES}
-)
+  ${PROJECT_CXX_FILES})
 
 target_link_libraries(${PROJECT_NAME_STR}
   ${ALL_LIBS}
