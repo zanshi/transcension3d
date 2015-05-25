@@ -6,10 +6,13 @@
 #pragma once
 
 #include <entityx/config.h>
+#include "components/DimensionComponent.hpp"
 
 namespace ex = entityx;
 
 namespace sw {
+    const Dim STARTING_DIMENSION = Dim::DIMENSION_ONE;
+
     const ex::TimeDelta TIME_STEP = 0.01;
 
     enum Collisiontypes {
@@ -19,6 +22,6 @@ namespace sw {
         COL_PLAYER = 1 << 3
     };
 
-    const int WINDOW_WIDTH = 640,
-              WINDOW_HEIGHT = 480;
+    const int WINDOW_WIDTH = 1280,
+              WINDOW_HEIGHT = 960;
 }
