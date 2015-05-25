@@ -11,7 +11,6 @@
 #include "assimp/Importer.hpp"
 #include "scene/SceneImporter.hpp"
 #include "components/all_components.hpp"
-#include "systems/MovementSystem.hpp"
 #include "systems/RenderSystem.hpp"
 #include "systems/DebugSystem.hpp"
 #include "systems/PhysicsSystem.hpp"
@@ -36,8 +35,10 @@ sw::Application::Application() {
 void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
     systems.update<PlayerControlSystem>(dt);
+	systems.update<PhysicsSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
+
 }
 
 bool sw::Application::init() {
@@ -55,13 +56,15 @@ bool sw::Application::init() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     /* Turn on double buffering with a 24bit Z buffer.
      * You may need to change this to 16 or 32 for your system */
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 32);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
 
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
-    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, 1280, 960, SDL_WINDOW_OPENGL);
+    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
     //Make sure creating our window went ok
     if (win == nullptr) {
         std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -70,6 +73,8 @@ bool sw::Application::init() {
 
     glcontext = SDL_GL_CreateContext(win);
     SDL_GL_MakeCurrent(win, glcontext);
+
+    SDL_GL_SetSwapInterval(0);
 
     //Initialize GLEW
     glewExperimental = GL_TRUE;
@@ -81,15 +86,26 @@ bool sw::Application::init() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
 
+    systems.system<InputSystem>()->setWindowSize(sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT);
+
     return true;
 
 }
 
-void sw::Application::initScene() {
-    // TODO: handle scene loading more gracefully
-    std::cout << "COLLADA file located in the /res folder:" << std::endl;
+void sw::Application::initScene(std::vector<std::string> args) {
+
     std::string input;
-    std::cin >> input;
+
+    //std::cout << args.size() << std::endl;
+
+    if(args.size() == 2) {
+        input = args[1];
+        std::cout << "Input: " << input << std::endl;
+    } else {
+        // TODO: handle scene loading more gracefully
+        std::cout << "COLLADA file located in the /res folder:" << std::endl;
+        std::cin >> input;
+    }
 
     //input = "a1.dae"; // test file
     const std::string filename = input;
@@ -107,7 +123,8 @@ void sw::Application::initScene() {
 
     auto renderSystem = systems.system < RenderSystem > ();
 
-    //renderSystem->setCamera(sceneImporter.getCamera());
+    auto physicsSystem = systems.system<PhysicsSystem>();
+    physicsSystem->populateWorld(entities);
 }
 
 void sw::Application::updateFPS(float newFPS) {
@@ -115,11 +132,11 @@ void sw::Application::updateFPS(float newFPS) {
     SDL_SetWindowTitle(win, FPS_str.c_str());
 }
 
-void sw::Application::run() {
-    initScene();
+void sw::Application::run(std::vector<std::string> args) {
+    initScene(args);
 
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point current, last;
+    std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point current;
 
     std::chrono::duration<double> second_accumulator;
     int frames_last_second = 0;
@@ -138,8 +155,8 @@ void sw::Application::run() {
         update(dt.count());
 
         // TODO: check if this is done correct
-        //glDisableVertexAttribArray(0);
-        //glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
 
         SDL_GL_SwapWindow(win);
 
@@ -168,7 +185,7 @@ void sw::Application::initSceneGraphRoot(ex::Entity root) {
 
     // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
     ex::Entity empty = entities.create();
-    root_.assign<GraphNodeComponent>(empty, root_);
+    //root_.assign<GraphNodeComponent>(empty, root_);
 
     // Initiate the root entity TransformComponent with an identity matrix
     root_.assign<TransformComponent>();

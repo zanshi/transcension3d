@@ -11,7 +11,8 @@
 #include "events/JumpEvent.hpp"
 #include "events/MovementEvent.hpp"
 #include "events/ViewChangedEvent.hpp"
-#include "events/DimensionChangedEvent.hpp"
+#include "events/DimensionChangeInProgressEvent.hpp"
+#include "events/StartDimensionChangeEvent.hpp"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/euler_angles.hpp"
@@ -27,7 +28,8 @@ namespace sw {
             events.subscribe<JumpEvent>(*this);
             events.subscribe<MovementEvent>(*this);
             events.subscribe<ViewChangedEvent>(*this);
-            events.subscribe<DimensionChangedEvent>(*this);
+            events.subscribe<DimensionChangeInProgressEvent>(*this);
+            events.subscribe<StartDimensionChangeEvent>(*this);
         }
 
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
@@ -51,24 +53,68 @@ namespace sw {
 
                 /* Movement */
                 if (will_move_) {
-                    glm::mat4 transl = glm::translate(glm::mat4(1), {move_right_*MOVE_SCALE_FACTOR, 0.0f, -move_forward_*MOVE_SCALE_FACTOR});
+                    btTransform worldTransform;
+                    physics->motionState_->getWorldTransform(worldTransform);
+
+                    glm::mat4 player_transform_world;
+
+                    worldTransform.getOpenGLMatrix(glm::value_ptr(player_transform_world));
+
+                    glm::mat4 view_mat = player_transform_world * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f);
+
+                    glm::vec3 player_move =
+                            move_forward_ * glm::vec3(0.0f, 0.0f, - 1.0f) + move_right_ * glm::vec3(1.0f, 0.0f, 0.0f);
+
+                    glm::vec3 world_move = glm::mat3(view_mat) * player_move;
+
+                    physics->body_->setLinearVelocity(btVector3(world_move[0], world_move[1], world_move[2]));
+
+                    /*
+                    MyMotionState *motionState = physics->body_->getMotionState();
+                    motionState->
 
                     transform->local_ = transform->local_ * glm::yawPitchRoll(-player->yaw_, 0.0f, 0.0f) * transl * glm::yawPitchRoll(player->yaw_, 0.0f, 0.0f);
                     transform->is_dirty_ = true;
-
+                     */
                     will_move_ = false;
+                } else {
+                    physics->body_->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
                 }
 
+                /* DIMENSION CHANGE */
+                if (dim_change_in_progress_) {
+                    dim_change_accumulator_ += dt;
+
+                    // If dimChange completed, set state to not changing
+                    if (dim_change_accumulator_ > TOTAL_DIM_CHANGE_DURATION) {
+                        dim_change_in_progress_ = false;
+                    }
+
+                    else {
+                        events.emit<DimensionChangeInProgressEvent>(
+                                dim_change_accumulator_ / TOTAL_DIM_CHANGE_DURATION);
+                    }
+                }
             }
         }
 
-        void receive(const DimensionChangedEvent &dimChanged) { }
+        void receive(const StartDimensionChangeEvent &startDimChange) {
+            // Don't change until last dimChange is completed
+            if (!dim_change_in_progress_) {
+                dim_change_in_progress_ = true;
+                dim_change_accumulator_ = 0.0;
+            }
+
+        }
+
+        void receive(const DimensionChangeInProgressEvent &dimChanged) { }
+
         void receive(const JumpEvent &jump) { }
 
         void receive(const MovementEvent &move) {
             const float SPRINTING = 1.5f;
-            move_forward_ = move.forward_ + move.is_sprinting_*move.forward_*SPRINTING;
-            move_right_ = move.right_ + move.is_sprinting_*move.right_*SPRINTING;
+            move_forward_ = move.forward_ + move.is_sprinting_ * move.forward_ * SPRINTING;
+            move_right_ = move.right_ + move.is_sprinting_ * move.right_ * SPRINTING;
             will_move_ = true;
         }
 
@@ -92,7 +138,14 @@ namespace sw {
 
         // ROTATION MATRIX CONSTANTS
         const float PITCH_MAX = (float) M_PI / 2, PITCH_MIN = -(float) M_PI / 2;
-        const float ANGLE_SCALE_FACTOR = 0.0025f;
-        const float MOVE_SCALE_FACTOR = 0.01f;
+        const float ANGLE_SCALE_FACTOR = 2.f;
+        const float MOVE_SCALE_FACTOR = 1.f;
+
+        // Dimension Change shizniz
+        bool dim_change_in_progress_ = false;
+
+        const ex::TimeDelta TOTAL_DIM_CHANGE_DURATION = 1.0;
+        ex::TimeDelta dim_change_accumulator_;
     };
+
 }
