@@ -28,11 +28,12 @@ namespace sw {
         }
 
         PhysicsComponent(ex::Entity entity, btCollisionShape *collisionShape,
-                         btScalar mass = 0.0f, short group = sw::COL_DYNAMIC, short mask = sw::COL_STATIC)
-                : group_(group), mask_(mask) {
+                         btScalar mass = 0.0f, short group = sw::COL_DYNAMIC, short mask = sw::COL_STATIC, btScalar height = 0.0f)
+                : group_(group), mask_(mask), height_(height) {
 
             motionState_ = new MyMotionState(entity);
             shape_ = collisionShape;
+            height_ = (height/2.f);
 
             //shape_ = new btBoxShape(btVector3(2.0f, 1.0f, 1.0f));
 
@@ -69,6 +70,7 @@ namespace sw {
 
         short group_;
         short mask_;
+        btScalar height_;
 
         MyMotionState *motionState_;
 

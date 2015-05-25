@@ -94,7 +94,7 @@ namespace sw {
                     btTo = res.m_hitPointWorld;
                     btScalar p = playerMin.distance(btTo);
 
-                    player->distance_to_bottom_ = p;
+                    player->distance_to_bottom_ = physics->height_;
 
                     std::cout << "Distance to bottom: " << p << std::endl;
 
@@ -172,6 +172,10 @@ namespace sw {
 
                 playerMin = temp.getOrigin();
 
+                playerMin.setY(playerMin.getY()-(physics->height_));
+
+                std::cout << "playerMin: " << playerMin.getY() << std::endl;
+
                 btVector3 btTo(playerMin.x(), -500.0f, playerMin.z());
 
                 btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
@@ -198,13 +202,13 @@ namespace sw {
 
                     //std::cout << "Distance to collision point: " << p << std::endl;
 
-                    if(p > player->distance_to_bottom_) {
+                    std::cout << "p: " << p << " ,distance_to_bottom_: " << player->distance_to_bottom_ << std::endl;
+
+                    if(p > 0.05) {
                         player->is_on_ground_ = false;
-                    } else {
+                    } else if (p > 0.f) {
                         player->is_on_ground_ = true;
                     }
-
-
 
                 }
 
