@@ -132,10 +132,12 @@ namespace sw {
                std::regex_match(str, REGEX_MATCH_LIGHT_4);
     }
 
-    const std::regex REGEX_MATCH_STATIC = std::regex("static_\\S+");
+    const std::regex REGEX_MATCH_STATIC1 = std::regex("static_\\S+");
+    const std::regex REGEX_MATCH_STATIC2 = std::regex("\\S*static\\S*");
 
     const bool isStaticObject(const char *str) {
-        return std::regex_match(str, REGEX_MATCH_STATIC);
+        return std::regex_match(str, REGEX_MATCH_STATIC1) ||
+               std::regex_match(str, REGEX_MATCH_STATIC2);
     }
 
     const aiLight *SceneImporter::getLightWithName(const char *str) {
@@ -192,12 +194,12 @@ namespace sw {
             if (std::string(node->mName.C_Str()) == "Camera") {
                 camera_node_ = node;
                 current_entity.assign<PlayerComponent>();
+                current_entity.component<DimensionComponent>()->dimension_ = sw::STARTING_DIMENSION;
             }
 
             // Add a MeshComponent to the entity
             if (node->mNumMeshes > 0) {
                 auto transform = current_entity.component<TransformComponent>();
-                //auto graphNode = current_entity.component<GraphNodeComponent>();
 
                 unsigned int index_mesh = *(node->mMeshes);
                 const aiMesh *mesh = *(p_scene->mMeshes + index_mesh);
@@ -409,11 +411,11 @@ namespace sw {
         simplifiedConvexShape->initializePolyhedralFeatures();
 
 
-        delete originalCollisionShape;
+        //delete originalCollisionShape;
         delete hull;
 
 
-        return simplifiedConvexShape;
+        return originalCollisionShape;
 
     }
 

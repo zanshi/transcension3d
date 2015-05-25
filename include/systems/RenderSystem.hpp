@@ -45,7 +45,7 @@ namespace sw {
             camera_projection_ = glm::perspective(glm::radians(60.f * 0.75f), 800.0f / 600.0f, 0.01f, 10.0f);
             num_dir_lights_ = num_point_lights_ = 0;
 
-            current_dim_ = Dim::DIMENSION_ONE;
+            current_dim_ = sw::STARTING_DIMENSION;
             dim_change_in_progress_ = false;
 
             events.subscribe<StartDimensionChangeEvent>(*this);
@@ -244,7 +244,7 @@ namespace sw {
             //camera_projection_ = proj;
 
             // For now hardcoded perspective matrix
-            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 10000.0f);
+            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 50.0f);
 
             // Print the perspective matrices
             std::cout << "Projection matrix " << std::endl;
