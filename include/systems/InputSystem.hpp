@@ -13,6 +13,7 @@
 #include "events/QuitEvent.hpp"
 #include "events/ViewChangedEvent.hpp"
 #include "events/StartDimensionChangeEvent.hpp"
+#include "events/DebugdrawerEvent.hpp"
 
 namespace ex = entityx;
 
@@ -31,6 +32,7 @@ namespace sw {
 
             forward = right = 0;
             is_sprinting = false;
+
 
 
             if (currentKeyStates[SDL_SCANCODE_W]) {
@@ -78,6 +80,14 @@ namespace sw {
                             break;
                         case SDLK_p:
                             events.emit<StartDimensionChangeEvent>();
+                            break;
+                        case SDLK_o:
+                            debug_draw = true;
+                            events.emit<DebugdrawerEvent>(debug_draw);
+                            break;
+                        case SDLK_i:
+                            debug_draw = false;
+                            events.emit<DebugdrawerEvent>(debug_draw);
                             break;
                         default:
                             break;
@@ -131,5 +141,7 @@ namespace sw {
         int window_w = -1, window_h = -1;
 
         bool is_sprinting;
+
+        bool debug_draw;
     };
 }

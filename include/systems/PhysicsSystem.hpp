@@ -5,23 +5,19 @@
 #pragma once
 
 #include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
+#include <events/DebugdrawerEvent.hpp>
 #include "entityx/entityx.h"
-
 #include "btBulletDynamicsCommon.h"
-
 #include "components/PhysicsComponent.hpp"
-
 #include "physics/MyDebugDrawer.hpp"
-
 #include "systems/PlayerControlSystem.hpp"
-
 #include "HelperFunctions.hpp"
 
 namespace ex = entityx;
 
 namespace sw {
 
-    class PhysicsSystem : public ex::System<PhysicsSystem>/*, public ex::Receiver<PhysicsSystem>*/ {
+    class PhysicsSystem : public ex::System<PhysicsSystem>, public ex::Receiver<PhysicsSystem> {
     public:
 
         PhysicsSystem() {
@@ -53,6 +49,7 @@ namespace sw {
 
         void configure(ex::EventManager &events) override {
             //events.subscribe<DimensionChangeInProgressEvent>(*this);
+            events.subscribe<DebugdrawerEvent>(*this);
         }
 
 
@@ -85,8 +82,12 @@ namespace sw {
         void update(entityx::EntityManager &entityManager, entityx::EventManager &eventManager, entityx::TimeDelta dt) {
 
             m_pWorld->stepSimulation(dt);
-            //m_pWorld->debugDrawWorld();
-            //debugDrawer_->drawLines();
+
+            if (m_debugMode) {
+                m_pWorld->debugDrawWorld();
+                debugDrawer_->drawLines();
+            }
+
 
 //            auto player = ex::ComponentHandle<PlayerComponent>();
 //            auto physics = ex::ComponentHandle<PhysicsComponent>();
@@ -129,7 +130,10 @@ namespace sw {
 
 
         }
+        void receive(const DebugdrawerEvent &debugdraw) {
+            m_debugMode = debugdraw.debugMode_;
 
+        }
 /*
         void receive(const DimensionChangeInProgressEvent &dimChange) {
             if (dimChange.completion_factor_ >= 0.5f) {
@@ -163,6 +167,8 @@ namespace sw {
         btDynamicsWorld *m_pWorld;
 
         MyDebugDrawer *debugDrawer_;
+
+        bool m_debugMode = false;
 
 
     };
