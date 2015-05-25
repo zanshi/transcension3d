@@ -66,21 +66,13 @@ namespace sw {
             auto dimension = ex::ComponentHandle<DimensionComponent>();
             auto light = ex::ComponentHandle<LightComponent>();
             auto transform = ex::ComponentHandle<TransformComponent>();
+            auto psdb = ex::ComponentHandle<PointShadowDepthBuffer>();
 
             num_point_lights_ = num_dir_lights_ = 0;
-            for (ex::Entity current_light : es.entities_with_components(transform, dimension, light)) {
+            for (ex::Entity current_light : es.entities_with_components(transform, dimension, light, psdb)) {
                 // Early bailout: is the current light in the current dimension?
                 if (!(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
                     continue;
-
-                /*
-                // See if we need to update the current light's cached world transform
-                if (transform->is_dirty_) {
-                    // If dirty, update its cached world transform
-                    combine(transform, graphNode->parent_);
-                    transform->is_dirty_ = false;
-                }
-                 */
 
                 // All these values are in the Eye's coordinate system
                 glm::mat4 l_transform = transform->cached_world_;
@@ -100,6 +92,16 @@ namespace sw {
                         glUniform3f(pointLightsLoc[num_point_lights_][1], c.ambient_.x, c.ambient_.y, c.ambient_.z);
                         glUniform3f(pointLightsLoc[num_point_lights_][2], c.diffuse_.x, c.diffuse_.y, c.diffuse_.z);
                         glUniform3f(pointLightsLoc[num_point_lights_][3], c.specular_.x, c.specular_.y, c.specular_.z);
+
+                        /* Shadow Mapping uniforms */
+                        // samplerCube i.e. the Cubemap
+                        glUniform1i(depthCubemaps_loc[0], 4);
+                        glActiveTexture(GL_TEXTURE0 + 4);
+                        glBindTexture(GL_TEXTURE_CUBE_MAP, psdb->Cubemap());
+                        /*
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_CUBE_MAP, psdb->Cubemap());
+                         */
                     };
                         num_point_lights_++;
                         break;
@@ -120,6 +122,9 @@ namespace sw {
                         break;
                 }
             }
+
+            // Send the shadow mapping far_plane clipping distance
+            glUniform1f(shadowMapping_far_plane_loc, psdb->FAR_PLANE_);
 
             // Send how many lights of each type there are this frame
             glUniform1i(num_point_lights_loc, num_point_lights_);
@@ -244,14 +249,16 @@ namespace sw {
                 renderAllEntities(es);
                 psdb->unbind(); // glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            // Use the "standard" shader for rendering the stuff seen on screen
+            (*shader_)();
             glUniformMatrix4fv(P_loc, 1, GL_FALSE, glm::value_ptr(camera_projection_));
 
             updatePlayerData(es, dt);
             updateSceneLightsData(es, dt);
 
             // Render all entities in the order determined by EntityX
-            (*shader_)();
             renderAllEntities(es);
 
             // Revert to old state
@@ -336,6 +343,9 @@ namespace sw {
                     }
                     std::string uniform = "pointLights[" + std::to_string(light) + "]." + last_part;
                     pointLightsLoc[light][attr] = glGetUniformLocation(*shader_, uniform.c_str());
+
+                    uniform = "depthCubeMaps[" + std::to_string(light) + "]";
+                    depthCubemaps_loc[light] = glGetUniformLocation(*shader_, uniform.c_str());
                 }
             }
             // Uniform locations for directional lights
@@ -377,6 +387,10 @@ namespace sw {
             matlShineLoc = glGetUniformLocation(*shader_, "material.shininess");
 
             viewPosLoc = glGetUniformLocation(*shader_, "viewPos");
+
+            // Shadow mapping
+            shadowMapping_far_plane_loc = glGetUniformLocation(*shader_, "shadowMapping_far_plane");
+
         }
 
         void receive(const StartDimensionChangeEvent &startChange) {
@@ -436,6 +450,9 @@ namespace sw {
         GLint viewPosLoc;
         //Material
         GLint matlAmbientLoc, matlDiffuseLoc, matlSpecularLoc, matlShineLoc;
+
+        GLint depthCubemaps_loc[MAX_POINT_LIGHTS];
+        GLint shadowMapping_far_plane_loc;
 
         // Matrices
         GLint P_loc, V_loc, V_inv_loc, M_loc;

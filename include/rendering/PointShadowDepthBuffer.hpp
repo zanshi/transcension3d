@@ -45,9 +45,7 @@ namespace sw {
 
             // Generate projection matrix
             GLfloat aspect = (GLfloat) WIDTH_ / (GLfloat) HEIGHT_;
-            GLfloat near = 1.0f;
-            GLfloat far = 25.0f;
-            projection_ = glm::perspective(90.0f, aspect, near, far);
+            projection_ = glm::perspective(90.0f, aspect, NEAR_PLANE_, FAR_PLANE_);
         }
 
         void configureMatrices() {
@@ -94,6 +92,12 @@ namespace sw {
             light_world_pos_ = new_world_pos;
             has_updated_light_pos_ = true;
         }
+
+        GLuint Cubemap() {
+            return depthCubemap;
+        }
+
+        const float NEAR_PLANE_ = 1.0f, FAR_PLANE_ = 25.0f;
 
         const GLuint WIDTH_, HEIGHT_;
 

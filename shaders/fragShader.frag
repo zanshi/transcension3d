@@ -44,7 +44,11 @@ struct SpotLight {}
 */
 
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform samplerCube depthCubemaps[MAX_POINT_LIGHTS];
+uniform samplerCube depthMap;
 uniform int numPointLights;
+
+uniform float shadowMapping_far_plane;
 
 uniform DirectionalLight dirLights[MAX_DIR_LIGHTS];
 uniform int numDirLights;
@@ -56,7 +60,25 @@ uniform mat4 V_inv;
 
 uniform vec3 viewPos;
 
-vec3 pointLightShading(PointLight light) {
+float ShadowCalculation(vec3 fragPos, int index)
+{
+    // Get vector between fragment position and light position
+    vec3 fragToLight = fragPos - pointLights[index].position;
+    // Use the light to fragment vector to sample from the depth map
+    float closestDepth = texture(depthCubemaps[index], fragToLight).r;
+    // It is currently in linear range between [0,1]. Re-transform back to original value
+    closestDepth *= shadowMapping_far_plane;
+    // Now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // Now test for shadows
+    float bias = 0.05;
+    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
+
+    return shadow;
+}
+
+vec3 pointLightShading(int index) {
+    PointLight light = pointLights[index];
     // Attenuation
     float distance = length(light.position - FragPos);
     float attenuation = 1.0f / (ATT_CONST + ATT_LINEAR * distance + ATT_QUAD * (distance * distance));
@@ -76,7 +98,11 @@ vec3 pointLightShading(PointLight light) {
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
-    return (ambient+diffuse+specular)*attenuation;
+    // Shadow calculations
+    float shadow = ShadowCalculation(FragPos, index);
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));
+
+    return (lighting)*attenuation;
 }
 
 vec3 directionalLightShading(DirectionalLight light) {
@@ -112,12 +138,13 @@ void main() {
 
     // Calculate shading for all lights of each type
     for (int i = 0; i < numPointLights; i++) {
-        result += pointLightShading(pointLights[i]);
+        result += pointLightShading(i);
     }
 
     for (int i = 0; i < numDirLights; i++) {
         result += directionalLightShading(dirLights[i]);
     }
 
-    Color = vec4(result*2.5f, 1.0f);
+    Color = vec4(result*1.f, 1.0f);
+    //Color = vec4(FragPos.z, FragPos.z, FragPos.z, 1.0f);
 }
