@@ -88,7 +88,7 @@ namespace sw {
         glm::vec3 buildBoundingVector(glm::mat4 world_transform, std::vector<Vertex> vertices);
 
         btConvexHullShape *buildCollisionShape(glm::vec3 scale, std::vector<Vertex> vertices,
-                                                              std::vector<GLuint> indices);
+                                                              std::vector<GLuint> indices, btScalar &height);
 
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {

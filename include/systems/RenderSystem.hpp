@@ -21,7 +21,6 @@
 #include "common/Shader.h"
 
 #include "game_constants.hpp"
-#include "PhysicsSystem.hpp"
 
 #include <iomanip>
 // for pow(float, float)
