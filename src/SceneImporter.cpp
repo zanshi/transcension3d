@@ -389,11 +389,13 @@ namespace sw {
 
         //originalCollisionShape->setLocalScaling(scaling);
 
+        originalCollisionShape->recalcLocalAabb();
+        originalCollisionShape->setMargin(0.001f);
+
 
         btShapeHull *hull = new btShapeHull(originalCollisionShape);
         //btScalar margin = originalCollisionShape->getMargin();
-        btScalar margin = 0.f;
-        hull->buildHull(margin);
+        hull->buildHull(originalCollisionShape->getMargin());
         //originalCollisionShape->setUserPointer(hull);
 
         btConvexHullShape *simplifiedConvexShape = new btConvexHullShape();

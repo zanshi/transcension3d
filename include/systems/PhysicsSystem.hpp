@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 #include "entityx/entityx.h"
 
 #include "btBulletDynamicsCommon.h"
@@ -13,6 +14,8 @@
 #include "physics/MyDebugDrawer.hpp"
 
 #include "systems/PlayerControlSystem.hpp"
+
+#include "HelperFunctions.hpp"
 
 namespace ex = entityx;
 
@@ -67,6 +70,8 @@ namespace sw {
         }
 
 
+
+
         ~PhysicsSystem() {
             delete m_pWorld;
             delete debugDrawer_;
@@ -78,12 +83,51 @@ namespace sw {
 
 
         void update(entityx::EntityManager &entityManager, entityx::EventManager &eventManager, entityx::TimeDelta dt) {
-            if (m_pWorld) {
-                m_pWorld->stepSimulation(dt);
-                //m_pWorld->debugDrawWorld();
-                //debugDrawer_->drawLines();
 
-            }
+            m_pWorld->stepSimulation(dt);
+            //m_pWorld->debugDrawWorld();
+            //debugDrawer_->drawLines();
+
+//            auto player = ex::ComponentHandle<PlayerComponent>();
+//            auto physics = ex::ComponentHandle<PhysicsComponent>();
+//
+//            for(ex::Entity e : entityManager.entities_with_components(player, physics)) {
+//
+//                btTransform temp;
+//                btVector3 tempVec;
+//                btVector3 playerMin;
+//
+//                physics->body_->getCollisionShape()->getAabb(physics->body_->getWorldTransform(), playerMin, tempVec);
+//
+//                //sw::printMatVec("PlayerMin", playerMin);
+//
+//                btVector3 btTo(playerMin.x(), playerMin.y(), playerMin.z()-5000.0f);
+//
+//                btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
+//
+//                m_pWorld->rayTest(playerMin, btTo, res);
+//
+//                res.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+//
+//
+//                if(res.hasHit()) {
+//
+//                    btTo = res.m_hitPointWorld;
+//                    btVector3 normal = res.m_hitNormalWorld;
+//
+//                    btVector3 p = playerMin.lerp(btTo,res.m_closestHitFraction);
+//
+//                    sw::printMatVec("Collision, p: ", p);
+//
+//
+//
+//
+//                }
+//
+//            }
+
+
+
         }
 
 /*
