@@ -7,6 +7,7 @@
 #include "entityx/entityx.h"
 
 #include "components/PlayerComponent.hpp"
+#include "components/DimensionComponent.hpp"
 
 #include "events/JumpEvent.hpp"
 #include "events/MovementEvent.hpp"
@@ -24,6 +25,13 @@ namespace sw {
     class PlayerControlSystem : public ex::System<PlayerControlSystem>, public ex::Receiver<PlayerControlSystem> {
 
     public:
+        PlayerControlSystem() {
+            current_dim_ = sw::STARTING_DIMENSION;
+            dim_from_ = current_dim_;
+            dim_change_counter_ = 0;
+            last_dim_change_ = -1;
+        }
+
         void configure(ex::EventManager &events) override {
             events.subscribe<JumpEvent>(*this);
             events.subscribe<MovementEvent>(*this);
@@ -36,8 +44,9 @@ namespace sw {
             auto player = ex::ComponentHandle<PlayerComponent>();
             auto transform = ex::ComponentHandle<TransformComponent>();
             auto physics = ex::ComponentHandle<PhysicsComponent>();
+            auto dimension = ex::ComponentHandle<DimensionComponent>();
 
-            for (ex::Entity entity : es.entities_with_components(player, transform, physics)) {
+            for (ex::Entity entity : es.entities_with_components(player, transform, physics, dimension)) {
                 //Update the player
 
                 /* Rotation */
@@ -50,9 +59,11 @@ namespace sw {
 
                     will_change_view_ = false;
                 }
+                float oldY = physics->body_->getLinearVelocity().y();
 
                 /* Movement */
                 if (will_move_) {
+
                     btTransform worldTransform;
                     physics->motionState_->getWorldTransform(worldTransform);
 
@@ -67,7 +78,7 @@ namespace sw {
 
                     glm::vec3 world_move = glm::mat3(view_mat) * player_move;
 
-                    physics->body_->setLinearVelocity(btVector3(world_move[0], world_move[1], world_move[2]));
+                    physics->body_->setLinearVelocity(btVector3(world_move[0], oldY, world_move[2]));
 
                     /*
                     MyMotionState *motionState = physics->body_->getMotionState();
@@ -77,8 +88,8 @@ namespace sw {
                     transform->is_dirty_ = true;
                      */
                     will_move_ = false;
-                } else {
-                    // physics->body_->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+                }  else /*if (is_on_ground) */ {
+                    physics->body_->setLinearVelocity(btVector3(0.0f, oldY, 0.0f));
                 }
 
                 if(will_jump_ && player->is_on_ground_) {
@@ -98,7 +109,13 @@ namespace sw {
 
                     else {
                         events.emit<DimensionChangeInProgressEvent>(
-                                dim_change_accumulator_ / TOTAL_DIM_CHANGE_DURATION);
+                                dim_change_accumulator_ / TOTAL_DIM_CHANGE_DURATION, dim_from_, dim_change_counter_);
+                    }
+
+                    if (dim_change_accumulator_ >= TOTAL_DIM_CHANGE_DURATION/2 && last_dim_change_ != dim_change_counter_) {
+                        Dim &d = dimension->dimension_;
+                        d = (d == DIMENSION_ONE) ? DIMENSION_TWO : DIMENSION_ONE;
+                        last_dim_change_ = dim_change_counter_;
                     }
                 }
             }
@@ -109,6 +126,8 @@ namespace sw {
             if (!dim_change_in_progress_) {
                 dim_change_in_progress_ = true;
                 dim_change_accumulator_ = 0.0;
+                dim_from_ = current_dim_;
+                dim_change_counter_++;
             }
 
         }
@@ -140,6 +159,8 @@ namespace sw {
         }
 
     private:
+        Dim current_dim_, dim_from_;
+
         bool will_move_ = false, will_change_view_ = false;
         bool will_jump_ = false;
         float move_forward_, move_right_;
@@ -155,6 +176,9 @@ namespace sw {
 
         const ex::TimeDelta TOTAL_DIM_CHANGE_DURATION = 1.0;
         ex::TimeDelta dim_change_accumulator_;
+
+        int dim_change_counter_;
+        int last_dim_change_;
     };
 
 }

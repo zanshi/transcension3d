@@ -9,9 +9,9 @@ namespace ex = entityx;
 
 namespace sw {
     enum Dim {
-        DIMENSION_BOTH = 0,
-        DIMENSION_ONE = 1,
-        DIMENSION_TWO = 2
+        DIMENSION_ONE = 1 << 0,
+        DIMENSION_TWO = 1 << 1,
+        DIMENSION_BOTH = DIMENSION_ONE | DIMENSION_TWO
     };
 
     /**
@@ -26,5 +26,4 @@ namespace sw {
         DimensionComponent(Dim dim = Dim::DIMENSION_BOTH)
                 : dimension_(dim) { };
     };
-
 }

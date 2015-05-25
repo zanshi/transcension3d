@@ -21,7 +21,7 @@ namespace ex = entityx;
 
 namespace sw {
 
-    class PhysicsSystem : public ex::System<PhysicsSystem>/*, public ex::Receiver<PhysicsSystem>*/ {
+    class PhysicsSystem : public ex::System<PhysicsSystem>, public ex::Receiver<PhysicsSystem> {
     public:
 
         PhysicsSystem() {
@@ -48,25 +48,34 @@ namespace sw {
 
             m_pWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_MAX_DEBUG_DRAW_MODE);
 
+            will_update_current_bodies_ = false;
+            dim_from_ = Dim::DIMENSION_ONE;
+            last_dim_change_num = -1;
         }
 
 
         void configure(ex::EventManager &events) override {
-            //events.subscribe<DimensionChangeInProgressEvent>(*this);
+            events.subscribe<DimensionChangeInProgressEvent>(*this);
         }
 
 
         void populateWorld(ex::EntityManager &es) {
             auto physics = ex::ComponentHandle<PhysicsComponent>();
-            for (ex::Entity e : es.entities_with_components(physics)) {
+            auto dimension = ex::ComponentHandle<DimensionComponent>();
+
+            for (ex::Entity e : es.entities_with_components(physics, dimension)) {
+                Dim d = dimension->dimension_;
+
                 std::cout << "populateworld" << std::endl;
+                /*
                 std::cout << "Group: " << physics->group_ << std::endl;
                 std::cout << "Mask: " << physics->mask_ << std::endl;
                 std::cout << "Previous flags: " << physics->body_->getCollisionFlags() << std::endl;
-                //m_pWorld->addRigidBody(physics->body_, physics->group_, physics->mask_);
-                //physics->body_->setActivationState(DISABLE_DEACTIVATION);
-                m_pWorld->addRigidBody(physics->body_);
-                m_pWorld->updateAabbs();
+                 */
+                std::cout << "  dimension: " << d << "\n";
+                physics->body_->activate(true);
+
+                m_pWorld->addRigidBody(physics->body_, d, d);
             }
 
             auto player = ex::ComponentHandle<PlayerComponent>();
@@ -112,8 +121,45 @@ namespace sw {
             delete m_pSolver;
         }
 
-
         void update(entityx::EntityManager &entityManager, entityx::EventManager &eventManager, entityx::TimeDelta dt) {
+            if (will_update_current_bodies_) {
+                /*std::cout << "Will update bitches\n";
+                auto dimension = ex::ComponentHandle<DimensionComponent>();
+                auto physics = ex::ComponentHandle<PhysicsComponent>();
+
+                for (ex::Entity e : entityManager.entities_with_components(dimension, physics)) {
+                    Dim d = dimension->dimension_;
+
+                    if (d == Dim::DIMENSION_BOTH)
+                        continue;
+
+                    if (d == dim_from_) {
+                        //m_pWorld->removeRigidBody(physics->body_);
+                        physics->body_->setActivationState(ISLAND_SLEEPING);
+                        //physics->body_->setActivationState(DISABLE_SIMULATION);
+                        std::cout << "Disabled a bitch\n";
+                    }
+
+                    else {
+                        //m_pWorld->addRigidBody(physics->body_);
+                        //physics->body_->setActivationState(DISABLE_DEACTIVATION);
+                        physics->body_->activate(true);
+                        std::cout << "Enabled a bitch\n";
+                    }
+                }*/
+                auto physics = ex::ComponentHandle<PhysicsComponent>();
+                auto dimension = ex::ComponentHandle<DimensionComponent>();
+                auto player = ex::ComponentHandle<PlayerComponent>();
+
+                for (ex::Entity p : entityManager.entities_with_components(player, physics, dimension)) {
+                    Dim d = dimension->dimension_;
+                    m_pWorld->removeRigidBody(physics->body_);
+                    m_pWorld->addRigidBody(physics->body_, d, d);
+                    std::cout << "Current player dimension is: " << d << "\n";
+                }
+
+                will_update_current_bodies_ = false;
+            }
 
             m_pWorld->stepSimulation(dt);
             //m_pWorld->debugDrawWorld();
@@ -174,40 +220,32 @@ namespace sw {
 
         }
 
-/*
         void receive(const DimensionChangeInProgressEvent &dimChange) {
+            if (last_dim_change_num == dimChange.NUM_)
+                return;
+
             if (dimChange.completion_factor_ >= 0.5f) {
+                dim_from_ = dimChange.dim_from_;
+                last_dim_change_num = dimChange.NUM_;
+
                 // The dimension change has occurred
-                auto dimension = ex::ComponentHandle<DimensionComponent>();
-                auto physics = ex::ComponentHandle<PhysicsComponent>();
-
-                for (ex::Entity e : entityManager.entities_with_components(dimension, physics)) {
-                    if (dimension->dimension_ == Dim::DIMENSION_BOTH)
-                        continue;
-
-                    if (dimension->dimension_ == Dim::DIMENSION_ONE) {
-
-                    }
-
-                    m_pWorld->add
-
-
-                }
+                will_update_current_bodies_ = true;
             }
         }
-        */
-
 
     private:
         btBroadphaseInterface *m_pBroadphase;
+
         btCollisionDispatcher *m_pDispatcher;
         btSequentialImpulseConstraintSolver *m_pSolver;
         btDefaultCollisionConfiguration *m_pCollisionConfiguration;
-
         btDynamicsWorld *m_pWorld;
 
         MyDebugDrawer *debugDrawer_;
 
-
+        /* DIMENSION CHANGE */
+        Dim dim_from_;
+        bool will_update_current_bodies_;
+        int last_dim_change_num;
     };
 }

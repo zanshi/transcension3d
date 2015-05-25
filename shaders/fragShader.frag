@@ -25,6 +25,10 @@ struct PointLight {
 };
 
 const int MAX_DIR_LIGHTS = 20;
+const float ATT_CONST = 0.2f;
+const float ATT_LINEAR = 0.4f;
+const float ATT_QUAD = 0.8f;
+
 struct DirectionalLight {
     // Position and direction vectors in world coordinates
     vec3 position;
@@ -53,6 +57,10 @@ uniform mat4 V_inv;
 uniform vec3 viewPos;
 
 vec3 pointLightShading(PointLight light) {
+    // Attenuation
+    float distance = length(light.position - FragPos);
+    float attenuation = 1.0f / (ATT_CONST + ATT_LINEAR * distance + ATT_QUAD * (distance * distance));
+
     // Ambient
     vec3 ambient = light.ambient * material.ambient;
 
@@ -68,7 +76,7 @@ vec3 pointLightShading(PointLight light) {
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
-    return ambient+diffuse+specular;
+    return (ambient+diffuse+specular)*attenuation;
 }
 
 vec3 directionalLightShading(DirectionalLight light) {
@@ -111,5 +119,5 @@ void main() {
         result += directionalLightShading(dirLights[i]);
     }
 
-    Color = vec4(result, 1.0f);
+    Color = vec4(result*2.5f, 1.0f);
 }

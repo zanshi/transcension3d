@@ -192,6 +192,7 @@ namespace sw {
             if (std::string(node->mName.C_Str()) == "Camera") {
                 camera_node_ = node;
                 current_entity.assign<PlayerComponent>();
+                current_entity.component<DimensionComponent>()->dimension_ = sw::STARTING_DIMENSION;
             }
 
             // Add a MeshComponent to the entity
