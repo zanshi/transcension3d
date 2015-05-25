@@ -7,9 +7,49 @@
 
 //Blatantly stolen from http://stackoverflow.com/questions/2795044/easy-framework-for-opengl-shaders-in-c-c
 class ShaderProgram {
+public:
+    ShaderProgram() {
+        prog = glCreateProgram();
+    }
+
+    operator GLuint() { return prog; }
+
+    void operator()() { glUseProgram(prog); }
+
+    ~ShaderProgram() {
+        glDeleteProgram(prog);
+    }
+
+    static const std::string readFromFile(std::string fileName) {
+        std::ifstream ifs(fileName.c_str());
+        std::string out;
+        if (ifs.is_open()) {
+            std::string s;
+            while (std::getline(ifs, s)) {
+                out += s + "\n";
+            }
+        }
+        else {
+            std::cerr << "Could not open file" << std::endl;
+        }
+        ifs.close();
+        return out;
+    }
+
+protected:
+    GLuint AttachShader(GLuint shaderType, std::string source) {
+        GLuint sh = compile(shaderType, source.c_str());
+        glAttachShader(prog, sh);
+
+        return sh;
+    }
+
+    void configureShaderProgram() {
+        glLinkProgram(prog);
+    }
+
 private:
-    GLuint vertex_shader, fragment_shader, prog;
-    std::string vfileName, ffileName;
+    GLuint prog;
 
     std::string getShaderType(GLuint type) {
         std::string name;
@@ -20,6 +60,9 @@ private:
             case GL_FRAGMENT_SHADER:
                 name = "Fragment Shader";
                 break;
+            case GL_GEOMETRY_SHADER:
+                name = "Geometry Shader";
+                break;
             default:
                 name = "Unknown Shader type";
                 break;
@@ -27,9 +70,7 @@ private:
         return name;
     }
 
-
     GLuint compile(GLuint type, GLchar const *source) {
-
         GLuint shader = glCreateShader(type);
         glShaderSource(shader, 1, &source, NULL);
         glCompileShader(shader);
@@ -48,43 +89,4 @@ private:
         return shader;
     }
 
-public:
-    ShaderProgram(std::string vfileName, std::string ffileName) {
-        this->vfileName = vfileName;
-        this->ffileName = ffileName;
-        auto v_source = readFromFile(vfileName);
-        auto f_source = readFromFile(ffileName);
-        vertex_shader = compile(GL_VERTEX_SHADER, v_source.c_str());
-        fragment_shader = compile(GL_FRAGMENT_SHADER, f_source.c_str());
-        prog = glCreateProgram();
-        glAttachShader(prog, vertex_shader);
-        glAttachShader(prog, fragment_shader);
-        glLinkProgram(prog);
-    }
-
-    operator GLuint() { return prog; }
-
-    void operator()() { glUseProgram(prog); }
-
-    ~ShaderProgram() {
-        glDeleteProgram(prog);
-        glDeleteShader(vertex_shader);
-        glDeleteShader(fragment_shader);
-    }
-
-    static const std::string readFromFile(std::string fileName) {
-        std::ifstream ifs(fileName.c_str());
-        std::string out;
-        if (ifs.is_open()) {
-            std::string s;
-            while (std::getline(ifs, s)) {
-                out += s + "\n";
-            }
-        }
-        else {
-            std::cerr << "Could not open file" << std::endl;
-        }
-        ifs.close();
-        return out;
-    }
 };

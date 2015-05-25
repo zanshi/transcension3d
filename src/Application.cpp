@@ -121,10 +121,11 @@ void sw::Application::initScene(std::vector<std::string> args) {
 
     sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
 
-    auto renderSystem = systems.system < RenderSystem > ();
-
     auto physicsSystem = systems.system<PhysicsSystem>();
     physicsSystem->populateWorld(entities);
+
+    auto renderSystem = systems.system < RenderSystem > ();
+    renderSystem->init(entities);
 }
 
 void sw::Application::updateFPS(float newFPS) {
@@ -198,8 +199,6 @@ void sw::Application::initSceneGraphRoot(ex::Entity root) {
 
     // Save the roots in the Application instance
     current_dim_ = Dim::DIMENSION_ONE;
-
-    renderSystem->initShader();
 }
 
 void sw::Application::receive(const QuitEvent &quitEvent) {

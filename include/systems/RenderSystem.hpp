@@ -18,7 +18,9 @@
 #include "events/StartDimensionChangeEvent.hpp"
 #include "events/DimensionChangeInProgressEvent.hpp"
 
-#include "common/Shader.h"
+#include "common/VFShader.hpp"
+#include "common/VGFShaderProgram.hpp"
+#include "rendering/PointShadowDepthBuffer.hpp"
 
 #include "game_constants.hpp"
 #include "PhysicsSystem.hpp"
@@ -26,6 +28,8 @@
 #include <iomanip>
 // for pow(float, float)
 #include <math.h>
+
+#include <unordered_map> // For saving shader uniforms
 
 namespace ex = entityx;
 
@@ -62,7 +66,6 @@ namespace sw {
             auto dimension = ex::ComponentHandle<DimensionComponent>();
             auto light = ex::ComponentHandle<LightComponent>();
             auto transform = ex::ComponentHandle<TransformComponent>();
-            // auto graphNode = ex::ComponentHandle<GraphNodeComponent>();
 
             num_point_lights_ = num_dir_lights_ = 0;
             for (ex::Entity current_light : es.entities_with_components(transform, dimension, light)) {
@@ -157,8 +160,27 @@ namespace sw {
             glUniform3f(viewPosLoc, viewPos.x, viewPos.y, viewPos.z);
         }
 
+        void renderAllEntities(ex::EntityManager &es) {
+            auto dimension = ex::ComponentHandle<DimensionComponent>();
+            auto physics = ex::ComponentHandle<PhysicsComponent>();
+            auto mesh = ex::ComponentHandle<MeshComponent>();
+            auto shading = ex::ComponentHandle<ShadingComponent>();
+
+            // Render all entities in the order determined by EntityX
+            for (ex::Entity e : es.entities_with_components(dimension, physics, mesh, shading)) {
+                // Early bailout: is the current entity in the current dimension?
+                if (dimension &&
+                    !(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
+                    continue;
+                // Don't render the player
+                if (e.component<PlayerComponent>().valid())
+                    continue;
+
+                renderEntity(dimension, physics, mesh, shading);
+            }
+        }
+
         void renderEntity(ex::ComponentHandle<DimensionComponent> dimension,
-                          ex::ComponentHandle<TransformComponent> transform,
                           ex::ComponentHandle<PhysicsComponent> physics,
                           ex::ComponentHandle<MeshComponent> mesh,
                           ex::ComponentHandle<ShadingComponent> shading) {
@@ -205,28 +227,32 @@ namespace sw {
             // Calculate the interpolation factor alpha
             float alpha = static_cast<float>(dt / TIME_STEP);
 
+            auto light = ex::ComponentHandle<LightComponent>();
+            auto transform = ex::ComponentHandle<TransformComponent>();
+            auto dimension = ex::ComponentHandle<DimensionComponent>();
+            auto psdb = ex::ComponentHandle<PointShadowDepthBuffer>();
+
+            for (ex::Entity e : es.entities_with_components(light, transform, dimension, psdb)) {
+                // Early bailout: is the current entity in the current dimension?
+                if (dimension &&
+                    !(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
+                    continue;
+
+                // Do some shit with shadow mapping
+                (*shadow_shader_)(); // glUseProgram()
+                psdb->bindForRendering(); // glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+                renderAllEntities(es);
+                psdb->unbind(); // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
+
             glUniformMatrix4fv(P_loc, 1, GL_FALSE, glm::value_ptr(camera_projection_));
 
             updatePlayerData(es, dt);
             updateSceneLightsData(es, dt);
 
-            auto dimension = ex::ComponentHandle<DimensionComponent>();
-            auto transform = ex::ComponentHandle<TransformComponent>();
-            auto physics = ex::ComponentHandle<PhysicsComponent>();
-            auto mesh = ex::ComponentHandle<MeshComponent>();
-            auto shading = ex::ComponentHandle<ShadingComponent>();
-
             // Render all entities in the order determined by EntityX
-            for (ex::Entity e : es.entities_with_components(dimension, transform, physics, mesh, shading)) {
-                // Early bailout: is the current entity in the current dimension?
-                if (dimension && !(dimension->dimension_ == current_dim_ || dimension->dimension_ == Dim::DIMENSION_BOTH))
-                    continue;
-                // Don't render the player
-                if (e.component<PlayerComponent>().valid())
-                    continue;
-
-                renderEntity(dimension, transform, physics, mesh, shading);
-            }
+            (*shader_)();
+            renderAllEntities(es);
 
             // Revert to old state
             has_received_dimension_in_progress_event_ = false;
@@ -238,24 +264,46 @@ namespace sw {
             std::cout << "Root entity set." << std::endl;
         }
 
-        void setProjectionMatrix(glm::mat4 proj) {
+        void init(ex::EntityManager &es) {
+            initShader();
+            initShadowMappingShader();
+            initPointShadowBuffers(es);
+        }
 
-            // TODO: proj matrix is not correct from parse
-            //camera_projection_ = proj;
+        void initShadowMappingShader() {
+            shadow_shader_ = new VGFShaderProgram("../shaders/SM_Point.vert", "../shaders/SM_Point.geom",
+                                                  "../shaders/SM_Point.frag");
+            ShaderProgram *sh = shadow_shader_;
 
-            // For now hardcoded perspective matrix
-            camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 50.0f);
+            (*shadow_shader_)();
 
-            // Print the perspective matrices
-            std::cout << "Projection matrix " << std::endl;
-            print_glmMatrix(camera_projection_);
-            std::cout << "Projection matrix (incoming) " << std::endl;
-            print_glmMatrix(proj);
+            shadow_model_loc = glGetUniformLocation(*sh, "model");
+            shadow_lightPos_loc = glGetUniformLocation(*sh, "lightPos");
+            shadow_far_plane_loc = glGetUniformLocation(*sh, "far_plane");
+
+            for (int i=0; i<6; ++i) {
+                std::string uniform = "shadowMatrices[" + std::to_string(i) + "]";
+                shadowMatrices_loc[i] = glGetUniformLocation(*sh, uniform.c_str());
+            }
+        }
+
+        void initPointShadowBuffers(ex::EntityManager &es) {
+            // Get all the lights
+            auto dimension = ex::ComponentHandle<DimensionComponent>();
+            auto light = ex::ComponentHandle<LightComponent>();
+            auto transform = ex::ComponentHandle<TransformComponent>();
+
+            for (ex::Entity e : es.entities_with_components(dimension, light, transform)) {
+                if (light->type_ != LightComponent::LightType::POINT)
+                    continue;
+
+                // Add a PSDB to each point light as a component
+                (e.assign<PointShadowDepthBuffer>(transform->position_))->init();
+            }
         }
 
         void initShader() {
-
-            shader_ = new ShaderProgram("../shaders/vertShader.vert", "../shaders/fragShader.frag");
+            shader_ = new VFShaderProgram("../shaders/vertShader.vert", "../shaders/fragShader.frag");
             (*shader_)(); //glUseProgram
 
             //Model-View-Projection
@@ -350,20 +398,6 @@ namespace sw {
                 current_dim_ = (current_dim_ == Dim::DIMENSION_ONE) ? Dim::DIMENSION_TWO : Dim::DIMENSION_ONE;
             }
 
-            // Generate the scale matrix to use
-            /*
-            float scale = 0.0f;
-            if (dimChange.completion_factor_ < 0.5f) {
-                scale = (0.5f - dimChange.completion_factor_) / 0.5f;
-            }
-            else if (dimChange.completion_factor_ >= 0.5f) {
-                scale = (dimChange.completion_factor_ - 0.5f) / 0.5f;
-            }
-            else {
-                scale = 1.0f;
-            }
-             */
-
             float scale = generateEaseScale(dimChange.completion_factor_);
 
             dim_change_scale_mat_ = glm::scale(glm::mat4(1), glm::vec3(scale, scale, scale));
@@ -410,6 +444,11 @@ namespace sw {
         glm::vec3 temp3;
         glm::vec4 temp4;
         glm::quat tempquat;
+
+        // Shadow mapping: DepthBuffer objects
+        ShaderProgram *shadow_shader_;
+        GLint shadow_model_loc, shadow_lightPos_loc, shadow_far_plane_loc;
+        GLint shadowMatrices_loc[6];
 
         void combine(ex::ComponentHandle<TransformComponent> transform, ex::Entity parent_entity) {
             glm::mat4 local = transform->local_;
