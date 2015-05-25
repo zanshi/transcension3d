@@ -11,5 +11,6 @@ namespace sw {
 
         bool is_on_ground_ = false;
         float pitch_, yaw_;
+        float distance_to_bottom_ = 0.0f;
     };
 }

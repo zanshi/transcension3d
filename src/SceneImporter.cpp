@@ -409,11 +409,11 @@ namespace sw {
         simplifiedConvexShape->initializePolyhedralFeatures();
 
 
-        delete originalCollisionShape;
+        //delete originalCollisionShape;
         delete hull;
 
 
-        return simplifiedConvexShape;
+        return originalCollisionShape;
 
     }
 

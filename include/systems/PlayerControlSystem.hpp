@@ -78,7 +78,13 @@ namespace sw {
                      */
                     will_move_ = false;
                 } else {
-                    physics->body_->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+                    // physics->body_->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+                }
+
+                if(will_jump_ && player->is_on_ground_) {
+                    std::cout << "Will jump" << std::endl;
+                    physics->body_->setLinearVelocity(btVector3(0.0f, 3.0f, 0.0f));
+                    will_jump_ = false;
                 }
 
                 /* DIMENSION CHANGE */
@@ -109,7 +115,9 @@ namespace sw {
 
         void receive(const DimensionChangeInProgressEvent &dimChanged) { }
 
-        void receive(const JumpEvent &jump) { }
+        void receive(const JumpEvent &jump) {
+            will_jump_ = true;
+        }
 
         void receive(const MovementEvent &move) {
             const float SPRINTING = 1.5f;
@@ -133,6 +141,7 @@ namespace sw {
 
     private:
         bool will_move_ = false, will_change_view_ = false;
+        bool will_jump_ = false;
         float move_forward_, move_right_;
         float delta_yaw_, pitch_;
 

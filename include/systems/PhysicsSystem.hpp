@@ -64,9 +64,40 @@ namespace sw {
                 std::cout << "Mask: " << physics->mask_ << std::endl;
                 std::cout << "Previous flags: " << physics->body_->getCollisionFlags() << std::endl;
                 //m_pWorld->addRigidBody(physics->body_, physics->group_, physics->mask_);
-                physics->body_->setActivationState(DISABLE_DEACTIVATION);
+                //physics->body_->setActivationState(DISABLE_DEACTIVATION);
                 m_pWorld->addRigidBody(physics->body_);
+                m_pWorld->updateAabbs();
             }
+
+            auto player = ex::ComponentHandle<PlayerComponent>();
+            for (ex::Entity e : es.entities_with_components(player, physics)) {
+
+                btTransform temp;
+                physics->body_->getMotionState()->getWorldTransform(temp);
+                btVector3 playerMin = temp.getOrigin();
+                btVector3 btTo(playerMin.x(), -500.0f, playerMin.z());
+
+                btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
+
+                m_pWorld->rayTest(playerMin, btTo, res);
+
+                if(res.hasHit()) {
+
+
+                    btTo = res.m_hitPointWorld;
+                    btScalar p = playerMin.distance(btTo);
+
+                    player->distance_to_bottom_ = p;
+
+                    std::cout << "Distance to bottom: " << p << std::endl;
+
+
+                }
+
+            }
+
+
+
         }
 
 
@@ -88,43 +119,56 @@ namespace sw {
             //m_pWorld->debugDrawWorld();
             //debugDrawer_->drawLines();
 
-//            auto player = ex::ComponentHandle<PlayerComponent>();
-//            auto physics = ex::ComponentHandle<PhysicsComponent>();
-//
-//            for(ex::Entity e : entityManager.entities_with_components(player, physics)) {
-//
-//                btTransform temp;
-//                btVector3 tempVec;
-//                btVector3 playerMin;
-//
-//                physics->body_->getCollisionShape()->getAabb(physics->body_->getWorldTransform(), playerMin, tempVec);
-//
-//                //sw::printMatVec("PlayerMin", playerMin);
-//
-//                btVector3 btTo(playerMin.x(), playerMin.y(), playerMin.z()-5000.0f);
-//
-//                btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
-//
-//                m_pWorld->rayTest(playerMin, btTo, res);
-//
-//                res.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-//
-//
-//                if(res.hasHit()) {
-//
-//                    btTo = res.m_hitPointWorld;
-//                    btVector3 normal = res.m_hitNormalWorld;
-//
-//                    btVector3 p = playerMin.lerp(btTo,res.m_closestHitFraction);
-//
-//                    sw::printMatVec("Collision, p: ", p);
-//
-//
-//
-//
-//                }
-//
-//            }
+            auto player = ex::ComponentHandle<PlayerComponent>();
+            auto physics = ex::ComponentHandle<PhysicsComponent>();
+
+            for(ex::Entity e : entityManager.entities_with_components(player, physics)) {
+
+                btTransform temp;
+                btVector3 tempVec;
+                btVector3 playerMin;
+
+                physics->body_->getMotionState()->getWorldTransform(temp);
+
+                playerMin = temp.getOrigin();
+
+                btVector3 btTo(playerMin.x(), -500.0f, playerMin.z());
+
+                btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
+
+                //btCollisionWorld::ClosestConvexResultCallback
+
+                m_pWorld->rayTest(playerMin, btTo, res);
+
+                res.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+
+                res.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
+
+
+                if(res.hasHit()) {
+
+                    btTo = res.m_hitPointWorld;
+                    btVector3 normal = res.m_hitNormalWorld;
+
+                    btScalar p = playerMin.distance(btTo);
+
+                    //sw::printMatVec("Collision, p: ", p);
+
+                    //sw::printMatVec("Playermin: ", playerMin);
+
+                    //std::cout << "Distance to collision point: " << p << std::endl;
+
+                    if(p > player->distance_to_bottom_) {
+                        player->is_on_ground_ = false;
+                    } else {
+                        player->is_on_ground_ = true;
+                    }
+
+
+
+                }
+
+            }
 
 
 
