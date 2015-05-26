@@ -10,7 +10,6 @@
 #include "btBulletDynamicsCommon.h"
 #include "components/PhysicsComponent.hpp"
 #include "physics/MyDebugDrawer.hpp"
-#include "systems/PlayerControlSystem.hpp"
 #include "HelperFunctions.hpp"
 
 #include "events/ProjectionViewEvent.hpp"

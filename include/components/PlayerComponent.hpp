@@ -2,6 +2,7 @@
 // Created by Benjamin Wiberg on 15-05-06.
 //
 
+#include "game_constants.hpp"
 
 #pragma once
 
