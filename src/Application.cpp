@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <cleanup.h>
+#include <SDL_mixer.h>
 
 // Assimp
 #include "assimp/Importer.hpp"
@@ -43,8 +44,15 @@ void sw::Application::update(ex::TimeDelta dt) {
 
 bool sw::Application::init() {
     //First we need to start up SDL, and make sure it went ok
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    //Initialize SDL_mixer
+    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+    {
+        std::cout << "SDL_mixer could not initialize! SDL_mixer Error: %s\n" << Mix_GetError()  << std::endl;
         return false;
     }
 
