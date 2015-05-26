@@ -205,9 +205,9 @@ namespace sw {
                     //std::cout << "p: " << p << " ,distance_to_bottom_: " << player->distance_to_bottom_ << std::endl;
 
                     if(p > 0.05 && std::abs(physics->body_->getLinearVelocity().getY()) > 0.0) {
-                        player->is_on_ground_ = false;
+                        player->state_ = STATE_AIRBOURNE;
                     } else {
-                        player->is_on_ground_ = true;
+                        player->state_ = STATE_STANDING;
                     }
 
                     //std::cout << "Player speed: " << physics->body_->getLinearVelocity().getY() << std::endl;
