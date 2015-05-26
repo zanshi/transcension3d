@@ -31,7 +31,7 @@ namespace sw {
 
             transform_.getOpenGLMatrix(glm::value_ptr(test));
 
-            std::cout << "transform: " << glm::to_string(test) << std::endl;
+            //std::cout << "transform: " << glm::to_string(test) << std::endl;
         }
 
         virtual ~MyMotionState() {

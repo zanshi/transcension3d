@@ -14,3 +14,4 @@
 #include "PlayerComponent.hpp"
 #include "PhysicsComponent.hpp"
 #include "LightComponent.hpp"
+#include "AudioComponent.hpp"

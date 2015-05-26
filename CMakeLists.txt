@@ -65,6 +65,7 @@ set(ASSIMP_LIBRARY "${PROJECT_SOURCE_DIR}/external/assimp/lib32/libassimp.a")
 
 else()
 	find_package(SDL2 REQUIRED)
+	find_package(SDL2_mixer REQUIRED)
 	set(ASSIMP_LIBRARY assimp)
 endif(MINGW)
 
@@ -140,6 +141,7 @@ set(ext_libs
 include_directories(
         ${ext_libs}
         ${SDL2_INCLUDE_DIR}
+        ${SDL2MIXER_INCLUDE_DIR}
         ${PROJECT_INCLUDE_DIR}
 )
 
@@ -152,6 +154,7 @@ set(ALL_LIBS
   BulletCollision
   LinearMath
   ${SDL2_LIBRARY}
+  ${SDL2MIXER_LIBRARY}
   ${ASSIMP_LIBRARY}
   ${ZLIB_LIBRARY}
 )
