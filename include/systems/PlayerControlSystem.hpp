@@ -98,7 +98,11 @@ namespace sw {
                     physics->body_->setLinearVelocity(btVector3(0.0f, oldY, 0.0f));
                 }
 
-                if(will_jump_ && player->is_on_ground_) {
+
+                if(!player->is_on_ground_){
+                    will_jump_=false;
+                }
+                else if(will_jump_ && player->is_on_ground_) {
                     std::cout << "Will jump" << std::endl;
                     physics->body_->setLinearVelocity(btVector3(0.0f, 3.0f, 0.0f));
                     will_jump_ = false;
