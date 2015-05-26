@@ -36,5 +36,15 @@ namespace sw {
         std::cout << std::endl;
     }
 
+    btVector3 vec3_to_btVector3(glm::vec3 vec) {
+        return btVector3(vec.x, vec.y, vec.z);
+    }
+
+    glm::vec3 btVector3_to_vec3(btVector3 vec) {
+        return glm::vec3(vec.x(), vec.y(), vec.z());
+    }
+
+
+
 
 }

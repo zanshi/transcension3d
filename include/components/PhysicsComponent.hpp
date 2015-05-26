@@ -52,6 +52,8 @@ namespace sw {
 
             body_ = new btRigidBody(bodyConstructionInfo);
 
+            body_->setUserPointer(body_);
+
             if (group == sw::COL_PLAYER) {
                 body_->setAngularFactor(0.0);
                 body_->setActivationState(DISABLE_DEACTIVATION);

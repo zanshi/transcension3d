@@ -13,6 +13,7 @@
 #include "events/QuitEvent.hpp"
 #include "events/ViewChangedEvent.hpp"
 #include "events/StartDimensionChangeEvent.hpp"
+#include "events/PickUpObjectEvent.hpp"
 
 namespace ex = entityx;
 
@@ -57,6 +58,11 @@ namespace sw {
                     events.emit<QuitEvent>();
                 }
 
+                if (e.type == SDL_MOUSEMOTION) {
+                    mouse_xrel_ = e.motion.xrel;
+                    mouse_yrel_ = e.motion.yrel;
+                }
+
                 if (e.type == SDL_KEYDOWN) {
                     SDL_bool isRelMouseMode = SDL_GetRelativeMouseMode();
                     int isMouseVisible = SDL_ShowCursor(SDL_QUERY);
@@ -79,6 +85,8 @@ namespace sw {
                         case SDLK_p:
                             events.emit<StartDimensionChangeEvent>();
                             break;
+                        case SDLK_e:
+                            events.emit<PickUpObjectEvent>();
                         default:
                             break;
                     }
@@ -93,10 +101,7 @@ namespace sw {
                             break;
                     }
                 }
-                if (e.type == SDL_MOUSEMOTION) {
-                    mouse_xrel_ = e.motion.xrel;
-                    mouse_yrel_ = e.motion.yrel;
-                }
+
 
                 // Window state handling
                 if (e.type == SDL_WINDOWEVENT) {

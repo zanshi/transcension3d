@@ -17,6 +17,9 @@
 
 #include "HelperFunctions.hpp"
 
+#include "events/ProjectionViewEvent.hpp"
+#include "events/PickUpObjectEvent.hpp"
+
 namespace ex = entityx;
 
 namespace sw {
@@ -56,6 +59,8 @@ namespace sw {
 
         void configure(ex::EventManager &events) override {
             events.subscribe<DimensionChangeInProgressEvent>(*this);
+            events.subscribe<PickUpObjectEvent>(*this);
+            events.subscribe<ProjectionViewEvent>(*this);
         }
 
 
@@ -90,7 +95,7 @@ namespace sw {
 
                 m_pWorld->rayTest(playerMin, btTo, res);
 
-                if(res.hasHit()) {
+                if (res.hasHit()) {
 
 
                     btTo = res.m_hitPointWorld;
@@ -106,10 +111,7 @@ namespace sw {
             }
 
 
-
         }
-
-
 
 
         ~PhysicsSystem() {
@@ -161,6 +163,7 @@ namespace sw {
                 will_update_current_bodies_ = false;
             }
 
+
             m_pWorld->stepSimulation(dt);
             //m_pWorld->debugDrawWorld();
             //debugDrawer_->drawLines();
@@ -168,53 +171,96 @@ namespace sw {
             auto player = ex::ComponentHandle<PlayerComponent>();
             auto physics = ex::ComponentHandle<PhysicsComponent>();
 
-            for(ex::Entity e : entityManager.entities_with_components(player, physics)) {
+            for (ex::Entity e : entityManager.entities_with_components(player, physics)) {
+
+                if(!proj_view_events_.empty()) {
+                    view_ = proj_view_events_.front().view_matrix_;
+                    camera_projection_ = proj_view_events_.front().projection_matrix_;
+
+                    proj_view_events_.clear();
+                }
+
+                if(!pickup_events_.empty()) {
+                    processPickupEvents(physics);
+                }
 
                 btTransform temp;
                 btVector3 tempVec;
                 btVector3 playerMin;
 
                 physics->body_->getMotionState()->getWorldTransform(temp);
-
                 playerMin = temp.getOrigin();
-
                 btVector3 btTo(playerMin.x(), -500.0f, playerMin.z());
-
                 btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
 
-                //btCollisionWorld::ClosestConvexResultCallback
+                res.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+                res.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
 
                 m_pWorld->rayTest(playerMin, btTo, res);
 
-                res.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
 
-                res.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
-
-
-                if(res.hasHit()) {
+                if (res.hasHit()) {
 
                     btTo = res.m_hitPointWorld;
                     btVector3 normal = res.m_hitNormalWorld;
 
                     btScalar p = playerMin.distance(btTo);
 
-                    //sw::printMatVec("Collision, p: ", p);
-
-                    //sw::printMatVec("Playermin: ", playerMin);
-
                     //std::cout << "Distance to collision point: " << p << std::endl;
 
-                    if(p > player->distance_to_bottom_) {
-                        player->is_on_ground_ = false;
-                    } else {
-                        player->is_on_ground_ = true;
-                    }
-
-
+                    player->is_on_ground_ = p <= player->distance_to_bottom_;
 
                 }
 
             }
+        }
+
+        // Process pickup events generated this frame
+        void processPickupEvents(ex::ComponentHandle<PhysicsComponent> physics) {
+
+            pickup_events_.clear();
+
+            glm::mat4 inverted_view = glm::inverse(view_);
+
+            glm::vec4 lookAtInViewSpace(0, 0, -1, 1); // Forward vector (use 0, 0, -1 if you have a right-handed coordinate system)
+            glm::vec4 lookAtInWorldSpaceTemp = lookAtInViewSpace * inverted_view; // Transform into world space.
+
+            glm::vec3 lookAtInWorldSpace = glm::vec3(lookAtInWorldSpaceTemp);
+
+            lookAtInWorldSpace = lookAtInWorldSpace*1000.0f;
+
+            // The player's position
+            btTransform temp;
+            physics->body_->getMotionState()->getWorldTransform(temp);
+            btVector3 bt_out_origin = temp.getOrigin();
+
+            // The ray's direction
+            btVector3 bt_out_direction = sw::vec3_to_btVector3(lookAtInWorldSpace);
+
+            printMatVec("View: ", view_);
+            printMatVec("Origin: ", bt_out_origin);
+            printMatVec("Direction", bt_out_direction);
+
+            btCollisionWorld::ClosestRayResultCallback RayCallback(bt_out_origin, bt_out_direction);
+            RayCallback.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+            RayCallback.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
+
+            m_pWorld->rayTest(bt_out_origin, bt_out_direction, RayCallback);
+
+            std::string message;
+
+            // If the ray hit something, set the object's linear velocity and print its position
+            if(RayCallback.hasHit()) {
+                std::ostringstream oss;
+                oss << "hit";
+                btRigidBody *temp_body = (btRigidBody *)RayCallback.m_collisionObject->getUserPointer();
+                temp_body->setLinearVelocity(btVector3(0.0f, 2.0f, 0.0f));
+                printMatVec(temp_body->getWorldTransform().getOrigin());
+            }else{
+                message = "background";
+            }
+
+            std::cout << message << std::endl;
 
 
 
@@ -233,6 +279,15 @@ namespace sw {
             }
         }
 
+        void receive(const ProjectionViewEvent &proj_view_event) {
+            proj_view_events_.push_back(proj_view_event);
+        }
+
+
+        void receive(const PickUpObjectEvent &pickUpObjectEvent) {
+            pickup_events_.push_back(pickUpObjectEvent);
+        }
+
     private:
         btBroadphaseInterface *m_pBroadphase;
 
@@ -242,6 +297,13 @@ namespace sw {
         btDynamicsWorld *m_pWorld;
 
         MyDebugDrawer *debugDrawer_;
+
+        std::vector<PickUpObjectEvent> pickup_events_;
+        std::vector<ProjectionViewEvent> proj_view_events_;
+
+        glm::mat4 camera_projection_;
+        glm::mat4 view_;
+
 
         /* DIMENSION CHANGE */
         Dim dim_from_;

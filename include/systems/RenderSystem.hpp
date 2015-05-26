@@ -17,6 +17,7 @@
 #include "events/RenderEvent.hpp"
 #include "events/StartDimensionChangeEvent.hpp"
 #include "events/DimensionChangeInProgressEvent.hpp"
+#include "events/ProjectionViewEvent.hpp"
 
 #include "common/Shader.h"
 
@@ -230,6 +231,9 @@ namespace sw {
 
             // Revert to old state
             has_received_dimension_in_progress_event_ = false;
+
+            events.emit<ProjectionViewEvent>(camera_projection_, view_);
+
         }
 
         // Root entity functions
