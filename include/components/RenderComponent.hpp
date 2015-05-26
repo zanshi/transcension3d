@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace ex = entityx;
+
 namespace sw {
 
     struct RenderComponent : public ex::Component<RenderComponent> {

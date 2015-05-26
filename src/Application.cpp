@@ -4,7 +4,6 @@
 
 #include "Application.hpp"
 
-#include <chrono>
 #include <cleanup.h>
 
 // Assimp
@@ -18,190 +17,195 @@
 #include "systems/PlayerControlSystem.hpp"
 
 
+namespace sw {
 
 
-sw::Application::Application() {
-    systems.add<InputSystem>();
-    systems.add<RenderSystem>(events);
-    systems.add<DebugSystem>(std::cout);
-    systems.add<PhysicsSystem>();
-    systems.add<PlayerControlSystem>();
+    sw::Application::Application() {
+        systems.add<sw::InputSystem>();
+        systems.add<sw::RenderSystem>(events);
+        systems.add<sw::DebugSystem>(std::cout);
+        systems.add<sw::PhysicsSystem>();
+        systems.add<sw::PlayerControlSystem>();
 
-    systems.configure();
+        systems.configure();
 
-    events.subscribe<QuitEvent>(*this);
-}
-
-void sw::Application::update(ex::TimeDelta dt) {
-    systems.update<InputSystem>(dt);
-    systems.update<PlayerControlSystem>(dt);
-	systems.update<PhysicsSystem>(dt);
-    systems.update<RenderSystem>(dt);
-    systems.update<DebugSystem>(dt);
-
-}
-
-bool sw::Application::init() {
-    //First we need to start up SDL, and make sure it went ok
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-        return false;
+        events.subscribe<QuitEvent>(*this);
     }
 
-    /* Request opengl 3.3 context.
-     *      * SDL doesn't have the ability to choose which profile at this time of writing,
-     *      * but it should default to the core profile */
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    /* Turn on double buffering with a 24bit Z buffer.
-     * You may need to change this to 16 or 32 for your system */
-    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    void sw::Application::update(ex::TimeDelta dt) {
+        systems.update<InputSystem>(dt);
+        systems.update<PlayerControlSystem>(dt);
+        systems.update<PhysicsSystem>(dt);
+        systems.update<RenderSystem>(dt);
+        systems.update<DebugSystem>(dt);
 
-
-    //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
-    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
-    //Make sure creating our window went ok
-    if (win == nullptr) {
-        std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-        return false;
     }
 
-    glcontext = SDL_GL_CreateContext(win);
-    SDL_GL_MakeCurrent(win, glcontext);
-
-    SDL_GL_SetSwapInterval(0);
-
-    //Initialize GLEW
-    glewExperimental = GL_TRUE;
-    GLenum glewError = glewInit();
-    if (glewError != GLEW_OK) {
-        printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
-    }
-
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_DEPTH_TEST);
-
-    systems.system<InputSystem>()->setWindowSize(sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT);
-
-    return true;
-
-}
-
-void sw::Application::initScene(std::vector<std::string> args) {
-
-    std::string input;
-
-    //std::cout << args.size() << std::endl;
-
-    if(args.size() == 2) {
-        input = args[1];
-        std::cout << "Input: " << input << std::endl;
-    } else {
-        // TODO: handle scene loading more gracefully
-        std::cout << "COLLADA file located in the /res folder:" << std::endl;
-        std::cin >> input;
-    }
-
-    //input = "a1.dae"; // test file
-    const std::string filename = input;
-
-    // SceneImporter shell
-    SceneImporter::relative_path_to_scene_folder_ = "../res/";
-    SceneImporter sceneImporter(filename);
-
-    /* The coast is clear, now we can start loading the scene */
-    // Create two root objects and initialize them
-    ex::Entity root = entities.create();
-    initSceneGraphRoot(root);
-
-    sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
-
-    auto renderSystem = systems.system < RenderSystem > ();
-
-    auto physicsSystem = systems.system<PhysicsSystem>();
-    physicsSystem->populateWorld(entities);
-}
-
-void sw::Application::updateFPS(float newFPS) {
-    std::string FPS_str = "FPS: " + std::to_string(newFPS);
-    SDL_SetWindowTitle(win, FPS_str.c_str());
-}
-
-void sw::Application::run(std::vector<std::string> args) {
-    initScene(args);
-
-    std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point current;
-
-    std::chrono::duration<double> second_accumulator;
-    int frames_last_second = 0;
-
-    isRunning = true;
-
-    while (isRunning) {
-        current = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> dt = std::chrono::duration_cast<std::chrono::duration<double>>(current - last);
-        last = current;
-
-        glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glCullFace(GL_BACK); //TODO: Check
-
-        update(dt.count());
-
-        // TODO: check if this is done correct
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-
-        SDL_GL_SwapWindow(win);
-
-        /* FPS DISPLAY HANDLING */
-        second_accumulator += dt;
-        if (second_accumulator.count() >= 1.0) {
-            float newFPS = static_cast<float>( frames_last_second / second_accumulator.count() );
-            updateFPS(newFPS);
-            frames_last_second = 0;
-            second_accumulator = std::chrono::duration<double>(0);
+    bool sw::Application::init() {
+        //First we need to start up SDL, and make sure it went ok
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+            std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
+            return false;
         }
 
-        frames_last_second++;
-    } // Exits if a QuitEvent is received
+        /* Request opengl 3.3 context.
+     *      * SDL doesn't have the ability to choose which profile at this time of writing,
+     *      * but it should default to the core profile */
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        /* Turn on double buffering with a 24bit Z buffer.
+     * You may need to change this to 16 or 32 for your system */
+        //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
-    // Clean up
-    SDL_GL_DeleteContext(glcontext);
-    cleanup(win);
-    SDL_Quit();
-}
+
+        //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
+        win = SDL_CreateWindow("Hello Swag3d!", 100, 100, sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+        //Make sure creating our window went ok
+        if (win == nullptr) {
+            std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+            return false;
+        }
+
+        glcontext = SDL_GL_CreateContext(win);
+        SDL_GL_MakeCurrent(win, glcontext);
+
+        SDL_GL_SetSwapInterval(0);
+
+        //Initialize GLEW
+        glewExperimental = GL_TRUE;
+        GLenum glewError = glewInit();
+        if (glewError != GLEW_OK) {
+            printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
+        }
+
+        glEnable(GL_MULTISAMPLE);
+        glEnable(GL_DEPTH_TEST);
+
+        systems.system < InputSystem > ()->setWindowSize(sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT);
+
+        return true;
+
+    }
+
+    void sw::Application::initScene(std::vector<std::string> args) {
+
+        std::string input;
+
+        //std::cout << args.size() << std::endl;
+
+        if (args.size() == 2) {
+            input = args[1];
+            std::cout << "Input: " << input << std::endl;
+        } else {
+            // TODO: handle scene loading more gracefully
+            std::cout << "COLLADA file located in the /res folder:" << std::endl;
+            std::cin >> input;
+        }
+
+        //input = "a1.dae"; // test file
+        const std::string filename = input;
+
+        // SceneImporter shell
+        SceneImporter::relative_path_to_scene_folder_ = "../res/";
+        SceneImporter sceneImporter(filename);
+
+        /* The coast is clear, now we can start loading the scene */
+        // Create two root objects and initialize them
+        ex::Entity root = entities.create();
+        initSceneGraphRoot(root);
+
+        sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
+
+        auto renderSystem = systems.system < RenderSystem > ();
+
+        auto physicsSystem = systems.system < PhysicsSystem > ();
+        physicsSystem->populateWorld(entities);
+    }
+
+    void sw::Application::updateFPS(float newFPS) {
+        std::string FPS_str = "FPS: " + std::to_string(newFPS);
+        SDL_SetWindowTitle(win, FPS_str.c_str());
+    }
+
+    void sw::Application::run(std::vector<std::string> args) {
+        initScene(args);
+
+        std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point current;
+
+        std::chrono::duration<double> second_accumulator;
+        int frames_last_second = 0;
+
+        isRunning = true;
+
+        while (isRunning) {
+            current = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> dt = std::chrono::duration_cast<std::chrono::duration<double>>(
+                    current - last);
+            last = current;
+
+            glClearColor(0.3f, 0.3f, 0.3f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glCullFace(GL_BACK); //TODO: Check
+
+            update(dt.count());
+
+            // TODO: check if this is done correct
+            glDisableVertexAttribArray(0);
+            glDisableVertexAttribArray(1);
+
+            SDL_GL_SwapWindow(win);
+
+            /* FPS DISPLAY HANDLING */
+            second_accumulator += dt;
+            if (second_accumulator.count() >= 1.0) {
+                float newFPS = static_cast<float>( frames_last_second / second_accumulator.count());
+                updateFPS(newFPS);
+                frames_last_second = 0;
+                second_accumulator = std::chrono::duration<double>(0);
+            }
+
+            frames_last_second++;
+        } // Exits if a QuitEvent is received
+
+        // Clean up
+        SDL_GL_DeleteContext(glcontext);
+        cleanup(win);
+        SDL_Quit();
+    }
 
 // Setup function to initiate the RenderSystem with a root node
-void sw::Application::initSceneGraphRoot(ex::Entity root) {
-    auto renderSystem = systems.system<RenderSystem>();
-    root_ = root;
+    void sw::Application::initSceneGraphRoot(ex::Entity root) {
+        auto renderSystem = systems.system < RenderSystem > ();
+        root_ = root;
 
-    // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
-    ex::Entity empty = entities.create();
-    //root_.assign<GraphNodeComponent>(empty, root_);
+        // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
+        ex::Entity empty = entities.create();
+        //root_.assign<GraphNodeComponent>(empty, root_);
 
-    // Initiate the root entity TransformComponent with an identity matrix
-    root_.assign<TransformComponent>();
+        // Initiate the root entity TransformComponent with an identity matrix
+        root_.assign<TransformComponent>();
 
-    // The root should be in both dimensions, for practical reasons
-    root_.assign<DimensionComponent>(Dim::DIMENSION_BOTH);
+        // The root should be in both dimensions, for practical reasons
+        root_.assign<DimensionComponent>(Dim::DIMENSION_BOTH);
 
-    // Set the root entity to be the root of the RenderSystem i.e. where the rendering starts in the tree
-    renderSystem->setRootEntity(root_);
+        // Set the root entity to be the root of the RenderSystem i.e. where the rendering starts in the tree
+        renderSystem->setRootEntity(root_);
 
-    // Save the roots in the Application instance
-    current_dim_ = Dim::DIMENSION_ONE;
+        // Save the roots in the Application instance
+        current_dim_ = Dim::DIMENSION_ONE;
 
-    renderSystem->initShader();
-}
+        renderSystem->initShader();
+    }
 
-void sw::Application::receive(const QuitEvent &quitEvent) {
-    isRunning = false;
+    void sw::Application::receive(const QuitEvent &quitEvent) {
+        isRunning = false;
+    }
+
+
 }
