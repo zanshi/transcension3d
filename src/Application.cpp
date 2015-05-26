@@ -17,12 +17,14 @@
 #include "systems/PhysicsSystem.hpp"
 #include "systems/InputSystem.hpp"
 #include "systems/PlayerControlSystem.hpp"
+#include "systems/AudioSystem.hpp"
 
 
 
 
 sw::Application::Application() {
     systems.add<InputSystem>();
+    systems.add<AudioSystem>();
     systems.add<RenderSystem>(events);
     systems.add<DebugSystem>(std::cout);
     systems.add<PhysicsSystem>();
@@ -35,6 +37,7 @@ sw::Application::Application() {
 
 void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
+    systems.update<AudioSystem>(dt);
     systems.update<PlayerControlSystem>(dt);
 	systems.update<PhysicsSystem>(dt);
     systems.update<RenderSystem>(dt);
@@ -122,6 +125,11 @@ void sw::Application::initScene(std::vector<std::string> args) {
     SceneImporter::relative_path_to_scene_folder_ = "../res/";
     SceneImporter sceneImporter(filename);
 
+    //Load the sound files
+    auto audioSystem = systems.system<AudioSystem>();
+    audioSystem->loadSounds();
+    audioSystem->backgroundMusic();
+
     /* The coast is clear, now we can start loading the scene */
     // Create two root objects and initialize them
     ex::Entity root = entities.create();
@@ -183,7 +191,9 @@ void sw::Application::run(std::vector<std::string> args) {
     // Clean up
     SDL_GL_DeleteContext(glcontext);
     cleanup(win);
+    //Quit SDL subsystems
     SDL_Quit();
+    Mix_Quit();
 }
 
 // Setup function to initiate the RenderSystem with a root node

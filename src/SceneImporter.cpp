@@ -366,7 +366,7 @@ namespace sw {
             originalCollisionShape->addPoint(current_position, updateLocalAabb);
         }
 
-        std::cout << "Object height: " << (maxY - minY) << std::endl;
+        //std::cout << "Object height: " << (maxY - minY) << std::endl;
         height = maxY - minY;
 
         //originalCollisionShape->setLocalScaling(scaling);

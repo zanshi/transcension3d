@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <events/AudioEvent.hpp>
 #include "entityx/entityx.h"
 #include "SDL.h"
 
@@ -20,6 +21,13 @@ namespace ex = entityx;
 namespace sw {
     class InputSystem : public ex::System<InputSystem> {
     public:
+
+        InputSystem() {
+            isPlayingMusic = true;
+        }
+
+        ~InputSystem() {}
+
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
             assert(window_w != -1 && window_h != -1 &&
                    "InputSystem::setWindowSize(w, h) must be called before first Appl. update");
@@ -32,7 +40,6 @@ namespace sw {
 
             forward = right = 0;
             is_sprinting = false;
-
 
 
             if (currentKeyStates[SDL_SCANCODE_W]) {
@@ -89,6 +96,10 @@ namespace sw {
                             debug_draw = false;
                             events.emit<DebugdrawerEvent>(debug_draw);
                             break;
+                        case SDLK_u:
+                            events.emit<AudioEvent>(isPlayingMusic);
+                            isPlayingMusic = !isPlayingMusic;
+                            break;
                         default:
                             break;
                     }
@@ -141,6 +152,7 @@ namespace sw {
         int window_w = -1, window_h = -1;
 
         bool is_sprinting;
+        bool isPlayingMusic;
 
         bool debug_draw;
     };

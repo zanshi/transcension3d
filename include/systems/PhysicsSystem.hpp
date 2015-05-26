@@ -174,7 +174,7 @@ namespace sw {
 
                 playerMin.setY(playerMin.getY()-(physics->height_));
 
-                std::cout << "playerMin: " << playerMin.getY() << std::endl;
+                //std::cout << "playerMin: " << playerMin.getY() << std::endl;
 
                 btVector3 btTo(playerMin.x(), -500.0f, playerMin.z());
 
@@ -202,7 +202,7 @@ namespace sw {
 
                     //std::cout << "Distance to collision point: " << p << std::endl;
 
-                    std::cout << "p: " << p << " ,distance_to_bottom_: " << player->distance_to_bottom_ << std::endl;
+                    //std::cout << "p: " << p << " ,distance_to_bottom_: " << player->distance_to_bottom_ << std::endl;
 
                     if(p > 0.05) {
                         player->is_on_ground_ = false;
