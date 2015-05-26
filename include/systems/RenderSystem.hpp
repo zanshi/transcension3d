@@ -21,6 +21,7 @@
 #include "common/Shader.h"
 
 #include "game_constants.hpp"
+#include "HelperFunctions.hpp"
 
 
 // for pow(float, float)
