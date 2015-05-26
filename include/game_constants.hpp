@@ -25,3 +25,7 @@ namespace sw {
     const int WINDOW_WIDTH = 1280,
               WINDOW_HEIGHT = 960;
 }
+    enum States {
+        STATE_STANDING,
+        STATE_AIRBOURNE
+    };

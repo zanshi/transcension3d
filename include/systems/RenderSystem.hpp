@@ -22,9 +22,9 @@
 #include "common/Shader.h"
 
 #include "game_constants.hpp"
-#include "PhysicsSystem.hpp"
+#include "HelperFunctions.hpp"
 
-#include <iomanip>
+
 // for pow(float, float)
 #include <math.h>
 
@@ -434,30 +434,7 @@ namespace sw {
 
         }
 
-        /* DEBUGGING FUNCTIONS */
 
-        void print_glmMatrix(glm::mat4 pMat4) {
-
-            double dArray[16] = {0.0};
-            const float *pSource = (const float *) glm::value_ptr(glm::transpose(pMat4));
-            for (int i = 0; i < 16; ++i) {
-                dArray[i] = pSource[i];
-                std::cout << std::fixed << std::setprecision(2);
-                std::cout << dArray[i] << " ";
-                if (i == 3 || i == 7 || i == 11)
-                    std::cout << std::endl;
-            }
-            std::cout << std::endl << "--------------------" << std::endl;
-
-        }
-
-        void print_glmVec3(glm::vec3 vec) {
-            for (int i = 0; i < 3; ++i) {
-                std::cout << std::fixed << std::setprecision(2);
-                std::cout << vec[i] << " ";
-            }
-            std::cout << std::endl << "--------------------" << std::endl;
-        }
 
     };
 }

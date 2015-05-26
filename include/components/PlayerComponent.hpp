@@ -9,7 +9,7 @@ namespace sw {
     struct PlayerComponent {
         PlayerComponent(float pitch = 0.0f, float yaw = 0.0f) : pitch_(pitch) { }
 
-        bool is_on_ground_ = false;
+        int state_ = STATE_STANDING;
         float pitch_, yaw_;
         float distance_to_bottom_ = 0.0f;
     };

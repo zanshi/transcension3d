@@ -5,16 +5,12 @@
 #pragma once
 
 #include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
+#include <events/DebugdrawerEvent.hpp>
 #include "entityx/entityx.h"
-
 #include "btBulletDynamicsCommon.h"
-
 #include "components/PhysicsComponent.hpp"
-
 #include "physics/MyDebugDrawer.hpp"
-
 #include "systems/PlayerControlSystem.hpp"
-
 #include "HelperFunctions.hpp"
 
 #include "events/ProjectionViewEvent.hpp"
@@ -58,9 +54,11 @@ namespace sw {
 
 
         void configure(ex::EventManager &events) override {
+            events.subscribe<DebugdrawerEvent>(*this);
             events.subscribe<DimensionChangeInProgressEvent>(*this);
             events.subscribe<PickUpObjectEvent>(*this);
             events.subscribe<ProjectionViewEvent>(*this);
+
         }
 
 
@@ -101,7 +99,7 @@ namespace sw {
                     btTo = res.m_hitPointWorld;
                     btScalar p = playerMin.distance(btTo);
 
-                    player->distance_to_bottom_ = p;
+                    player->distance_to_bottom_ = physics->height_;
 
                     std::cout << "Distance to bottom: " << p << std::endl;
 
@@ -109,8 +107,6 @@ namespace sw {
                 }
 
             }
-
-
         }
 
 
@@ -123,25 +119,22 @@ namespace sw {
             delete m_pSolver;
         }
 
+
         void update(entityx::EntityManager &entityManager, entityx::EventManager &eventManager, entityx::TimeDelta dt) {
             if (will_update_current_bodies_) {
                 /*std::cout << "Will update bitches\n";
                 auto dimension = ex::ComponentHandle<DimensionComponent>();
                 auto physics = ex::ComponentHandle<PhysicsComponent>();
-
                 for (ex::Entity e : entityManager.entities_with_components(dimension, physics)) {
                     Dim d = dimension->dimension_;
-
                     if (d == Dim::DIMENSION_BOTH)
                         continue;
-
                     if (d == dim_from_) {
                         //m_pWorld->removeRigidBody(physics->body_);
                         physics->body_->setActivationState(ISLAND_SLEEPING);
                         //physics->body_->setActivationState(DISABLE_SIMULATION);
                         std::cout << "Disabled a bitch\n";
                     }
-
                     else {
                         //m_pWorld->addRigidBody(physics->body_);
                         //physics->body_->setActivationState(DISABLE_DEACTIVATION);
@@ -165,22 +158,27 @@ namespace sw {
 
 
             m_pWorld->stepSimulation(dt);
-            //m_pWorld->debugDrawWorld();
-            //debugDrawer_->drawLines();
+
+            if (m_debugMode) {
+                m_pWorld->debugDrawWorld();
+                debugDrawer_->drawLines();
+
+            }
+
 
             auto player = ex::ComponentHandle<PlayerComponent>();
             auto physics = ex::ComponentHandle<PhysicsComponent>();
 
             for (ex::Entity e : entityManager.entities_with_components(player, physics)) {
 
-                if(!proj_view_events_.empty()) {
+                if (!proj_view_events_.empty()) {
                     view_ = proj_view_events_.front().view_matrix_;
                     camera_projection_ = proj_view_events_.front().projection_matrix_;
 
                     proj_view_events_.clear();
                 }
 
-                if(!pickup_events_.empty()) {
+                if (!pickup_events_.empty()) {
                     processPickupEvents(physics);
                 }
 
@@ -189,14 +187,24 @@ namespace sw {
                 btVector3 playerMin;
 
                 physics->body_->getMotionState()->getWorldTransform(temp);
+
                 playerMin = temp.getOrigin();
+
+                playerMin.setY(playerMin.getY() - (physics->height_));
+
+                //std::cout << "playerMin: " << playerMin.getY() << std::endl;
+
                 btVector3 btTo(playerMin.x(), -500.0f, playerMin.z());
+
                 btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
 
-                res.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-                res.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
+                //btCollisionWorld::ClosestConvexResultCallback
 
                 m_pWorld->rayTest(playerMin, btTo, res);
+
+                res.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+
+                res.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
 
 
                 if (res.hasHit()) {
@@ -206,13 +214,23 @@ namespace sw {
 
                     btScalar p = playerMin.distance(btTo);
 
+                    //sw::printMatVec("Collision, p: ", p);
+
+                    //sw::printMatVec("Playermin: ", playerMin);
+
                     //std::cout << "Distance to collision point: " << p << std::endl;
 
-                    player->is_on_ground_ = p <= player->distance_to_bottom_;
+                    //std::cout << "p: " << p << " ,distance_to_bottom_: " << player->distance_to_bottom_ << std::endl;
 
+                    if (p > 0.05 && std::abs(physics->body_->getLinearVelocity().getY()) > 0.0) {
+                        player->state_ = STATE_AIRBOURNE;
+                    } else {
+                        player->state_ = STATE_STANDING;
+                    }
                 }
-
             }
+
+            //std::cout << "Player speed: " << physics->body_->getLinearVelocity().getY() << std::endl;
         }
 
         // Process pickup events generated this frame
@@ -222,12 +240,13 @@ namespace sw {
 
             glm::mat4 inverted_view = glm::inverse(view_);
 
-            glm::vec4 lookAtInViewSpace(0, 0, -1, 1); // Forward vector (use 0, 0, -1 if you have a right-handed coordinate system)
+            glm::vec4 lookAtInViewSpace(0, 0, -1,
+                                        1); // Forward vector (use 0, 0, -1 if you have a right-handed coordinate system)
             glm::vec4 lookAtInWorldSpaceTemp = lookAtInViewSpace * inverted_view; // Transform into world space.
 
             glm::vec3 lookAtInWorldSpace = glm::vec3(lookAtInWorldSpaceTemp);
 
-            lookAtInWorldSpace = lookAtInWorldSpace*1000.0f;
+            lookAtInWorldSpace = lookAtInWorldSpace * 1000.0f;
 
             // The player's position
             btTransform temp;
@@ -250,18 +269,17 @@ namespace sw {
             std::string message;
 
             // If the ray hit something, set the object's linear velocity and print its position
-            if(RayCallback.hasHit()) {
+            if (RayCallback.hasHit()) {
                 std::ostringstream oss;
                 oss << "hit";
-                btRigidBody *temp_body = (btRigidBody *)RayCallback.m_collisionObject->getUserPointer();
+                btRigidBody *temp_body = (btRigidBody *) RayCallback.m_collisionObject->getUserPointer();
                 temp_body->setLinearVelocity(btVector3(0.0f, 2.0f, 0.0f));
                 printMatVec(temp_body->getWorldTransform().getOrigin());
-            }else{
+            } else {
                 message = "background";
             }
 
             std::cout << message << std::endl;
-
 
 
         }
@@ -277,6 +295,11 @@ namespace sw {
                 // The dimension change has occurred
                 will_update_current_bodies_ = true;
             }
+        }
+
+
+        void receive(const DebugdrawerEvent &debugdraw) {
+            m_debugMode = debugdraw.debugMode_;
         }
 
         void receive(const ProjectionViewEvent &proj_view_event) {
@@ -305,9 +328,15 @@ namespace sw {
         glm::mat4 view_;
 
 
+        bool m_debugMode = false;
+
+
         /* DIMENSION CHANGE */
         Dim dim_from_;
         bool will_update_current_bodies_;
         int last_dim_change_num;
+
+
     };
+
 }
