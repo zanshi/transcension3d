@@ -41,11 +41,26 @@ protected:
         GLuint sh = compile(shaderType, source.c_str());
         glAttachShader(prog, sh);
 
+        std::cout << "Attached shader of type: '" << getShaderType(shaderType) << "\n";
+
         return sh;
     }
 
     void configureShaderProgram() {
         glLinkProgram(prog);
+
+        GLint isLinked = 0;
+        glGetProgramiv(prog, GL_LINK_STATUS, (int *)&isLinked);
+
+        if (isLinked == GL_FALSE) {
+            GLint length;
+            glGetShaderiv(prog, GL_INFO_LOG_LENGTH, &length);
+            std::string log(length, ' ');
+            glGetShaderInfoLog(prog, length, &length, &log[0]);
+            std::cerr << "Failed to link shaderprogram : " << std::endl
+            << log << std::endl;
+            exit(EXIT_FAILURE);
+        }
     }
 
 private:
@@ -76,7 +91,7 @@ private:
         glCompileShader(shader);
         GLint compiled;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-        if (!compiled) {
+        if (compiled == GL_FALSE) {
             GLint length;
             glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
             std::string log(length, ' ');

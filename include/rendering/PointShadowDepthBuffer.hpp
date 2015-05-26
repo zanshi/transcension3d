@@ -13,8 +13,8 @@ namespace sw {
     class PointShadowDepthBuffer {
     public:
         PointShadowDepthBuffer(const glm::vec3 light_world_pos = {0.0f, 0.0f, 0.0f},
-                               const GLuint width = 256,
-                               const GLuint height = 256)
+                               const GLuint width = 512,
+                               const GLuint height = 512)
                 : light_world_pos_(light_world_pos),
                   WIDTH_(width),
                   HEIGHT_(height),
@@ -95,6 +95,10 @@ namespace sw {
 
         GLuint Cubemap() {
             return depthCubemap;
+        }
+
+        float * getShadowMatrixValuePtr(unsigned int i) {
+            return glm::value_ptr(shadowTransforms.at(i));
         }
 
         const float NEAR_PLANE_ = 1.0f, FAR_PLANE_ = 25.0f;

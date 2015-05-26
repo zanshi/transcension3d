@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "common/Shader.h"
+
 class VGFShaderProgram : public ShaderProgram {
 public:
     VGFShaderProgram(std::string vfileName, std::string gfileName, std::string ffileName)

@@ -59,7 +59,7 @@ uniform samplerCube depthCubemap10;
 uniform samplerCube depthCubemap11;
 uniform int numPointLights;
 
-uniform float shadowMapping_far_plane;
+uniform float far_plane;
 
 uniform DirectionalLight dirLights[MAX_DIR_LIGHTS];
 uniform int numDirLights;
@@ -75,52 +75,10 @@ const vec3 NULL_VECTOR = vec3(0.0f, 0.0f, 0.0f);
 
 float ShadowCalculation(vec3 fragToLight, int i)
 {
-    // Use the light to fragment vector to sample from the depth map
-    float closestDepth = 0.1f;
+    float closestDepth = texture(depthCubemap1, fragToLight).r;
 
-    if (i == 0) {
-        closestDepth = texture(depthCubemap0, fragToLight).r;
-    } else if (i == 1) {
-        closestDepth = texture(depthCubemap1, fragToLight).r;
-    } else if (i == 2) {
-        closestDepth = texture(depthCubemap2, fragToLight).r;
-    } else if (i == 3) {
-        closestDepth = texture(depthCubemap3, fragToLight).r;
-    } else if (i == 4) {
-        closestDepth = texture(depthCubemap4, fragToLight).r;
-    } else if (i == 5) {
-        closestDepth = texture(depthCubemap5, fragToLight).r;
-    } else if (i == 6) {
-        closestDepth = texture(depthCubemap6, fragToLight).r;
-    } else if (i == 7) {
-        closestDepth = texture(depthCubemap7, fragToLight).r;
-    } else if (i == 8) {
-        closestDepth = texture(depthCubemap8, fragToLight).r;
-    } else if (i == 9) {
-        closestDepth = texture(depthCubemap9, fragToLight).r;
-    } else if (i == 10) {
-        closestDepth = texture(depthCubemap10, fragToLight).r;
-    } else if (i == 11) {
-        closestDepth = texture(depthCubemap11, fragToLight).r;
-    } /*else if (i == 12) {
-        closestDepth = texture(depthCubemaps[12], fragToLight).r;
-    } else if (i == 13) {
-        closestDepth = texture(depthCubemaps[13], fragToLight).r;
-    } else if (i == 14) {
-        closestDepth = texture(depthCubemaps[14], fragToLight).r;
-    } else if (i == 15) {
-        closestDepth = texture(depthCubemaps[15], fragToLight).r;
-    } else if (i == 16) {
-        closestDepth = texture(depthCubemaps[16], fragToLight).r;
-    } else if (i == 17) {
-        closestDepth = texture(depthCubemaps[17], fragToLight).r;
-    } else if (i == 18) {
-        closestDepth = texture(depthCubemaps[18], fragToLight).r;
-    } else {
-        closestDepth = texture(depthCubemaps[19], fragToLight).r;
-    } */
     // It is currently in linear range between [0,1]. Re-transform back to original value
-    closestDepth *= shadowMapping_far_plane;
+    closestDepth *= far_plane;
     // Now get current linear depth as the length between the fragment and light position
     float currentDepth = length(fragToLight);
     // Now test for shadows
