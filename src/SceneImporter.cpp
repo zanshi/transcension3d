@@ -4,13 +4,11 @@
 
 #include "scene/SceneImporter.hpp"
 #include <regex>
-#include "game_constants.hpp"
 
 // GL Includes
 //#include <GL/glew.h>
 
 // GLM includes
-#include <glm/glm.hpp>
 #include <assimp/postprocess.h>
 #include <BulletCollision/CollisionShapes/btShapeHull.h>
 

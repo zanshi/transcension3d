@@ -180,7 +180,7 @@ add_dependencies(INT_LIBS
 file(GLOB PROJECT_CXX_FILES ${PROJECT_CXX_DIR}/*.cpp)
 
 add_executable(${PROJECT_NAME_STR}
-  ${PROJECT_CXX_FILES})
+  ${PROJECT_CXX_FILES} src/PlayerControlSystem.cpp)
 
 target_link_libraries(${PROJECT_NAME_STR}
   ${ALL_LIBS}

@@ -21,48 +21,13 @@ namespace sw {
 
     public:
 
-        MyMotionState(ex::Entity entity) : entity_(entity), transformComponent_(entity.component<TransformComponent>()){
+        MyMotionState(ex::Entity entity);
 
-            std::cout << "transformComponent: " << glm::to_string(transformComponent_->cached_world_) << std::endl;
+        virtual ~MyMotionState();
 
-            transform_.setFromOpenGLMatrix(glm::value_ptr(transformComponent_->cached_world_));
+        virtual void getWorldTransform(btTransform &worldTrans) const override;
 
-            glm::mat4 test;
-
-            transform_.getOpenGLMatrix(glm::value_ptr(test));
-
-            //std::cout << "transform: " << glm::to_string(test) << std::endl;
-        }
-
-        virtual ~MyMotionState() {
-        }
-
-
-        virtual void getWorldTransform(btTransform &worldTrans) const {
-            worldTrans = transform_;
-        }
-
-        virtual void setWorldTransform(const btTransform &worldTrans) {
-            if (!transformComponent_) { return; }
-
-            transform_ = worldTrans;
-
-            /*
-            glm::mat4 temp;
-
-            worldTrans.getOpenGLMatrix(glm::value_ptr(temp));
-
-            //std::cout << "transform: " << glm::to_string(temp) << std::endl;
-
-
-            btQuaternion rot = worldTrans.getRotation();
-            btVector3 pos = worldTrans.getOrigin();
-
-
-            recalculate_world_transform(entity_, rot, pos);
-
-            */
-        }
+        virtual void setWorldTransform(const btTransform &worldTrans) override;
 
     protected:
 
