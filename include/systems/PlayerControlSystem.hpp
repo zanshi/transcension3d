@@ -17,7 +17,7 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtx/euler_angles.hpp"
-
+#include <cmath>
 
 namespace ex = entityx;
 
@@ -76,7 +76,13 @@ namespace sw {
                     glm::vec3 player_move =
                             move_forward_ * glm::vec3(0.0f, 0.0f, - 1.0f) + move_right_ * glm::vec3(1.0f, 0.0f, 0.0f);
 
-                    glm::vec3 world_move = glm::mat3(view_mat) * player_move;
+                    float norm_fac = sqrtf(exp2f(player_move.x) + exp2f(player_move.y) + exp2f(player_move.z));
+
+                    glm::vec3 player_move_norm = player_move/norm_fac;
+                    if(will_sprint) {
+                        player_move_norm = player_move_norm * SPRINTING;
+                    }
+                    glm::vec3 world_move = glm::mat3(view_mat) * player_move_norm;
 
                     physics->body_->setLinearVelocity(btVector3(world_move[0], oldY, world_move[2]));
 
@@ -139,9 +145,10 @@ namespace sw {
         }
 
         void receive(const MovementEvent &move) {
-            const float SPRINTING = 1.5f;
-            move_forward_ = move.forward_ + move.is_sprinting_ * move.forward_ * SPRINTING;
-            move_right_ = move.right_ + move.is_sprinting_ * move.right_ * SPRINTING;
+
+            move_forward_ = move.forward_;
+            move_right_ = move.right_;
+            will_sprint = move.is_sprinting_;
             will_move_ = true;
         }
 
@@ -162,7 +169,7 @@ namespace sw {
         Dim current_dim_, dim_from_;
 
         bool will_move_ = false, will_change_view_ = false;
-        bool will_jump_ = false;
+        bool will_jump_ = false, will_sprint = false;
         float move_forward_, move_right_;
         float delta_yaw_, pitch_;
 
@@ -170,6 +177,7 @@ namespace sw {
         const float PITCH_MAX = (float) M_PI / 2, PITCH_MIN = -(float) M_PI / 2;
         const float ANGLE_SCALE_FACTOR = 2.f;
         const float MOVE_SCALE_FACTOR = 1.f;
+        const float SPRINTING = 1.5f;
 
         // Dimension Change shizniz
         bool dim_change_in_progress_ = false;
