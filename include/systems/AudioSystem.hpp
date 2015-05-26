@@ -37,8 +37,8 @@ namespace sw {
             //std:string name = "scratch.wav";
             //filename = relative_path_to_sound_folder_ + name;
 
-            gScratch = Mix_LoadWAV( "../res/sounds/scratch.wav" ); // filename
-            gMusic = Mix_LoadMUS( "../res/sounds/beat.wav" );
+            gScratch = Mix_LoadWAV( "../sounds/scratch.wav" ); // filename
+            gMusic = Mix_LoadMUS( "../sounds/beat.wav" );
 
             if( gScratch == NULL || gMusic == NULL )
             {
