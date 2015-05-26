@@ -94,11 +94,18 @@ namespace sw {
                         glUniform3f(pointLightsLoc[num_point_lights_][3], c.specular_.x, c.specular_.y, c.specular_.z);
 
                         /* Shadow Mapping uniforms */
+                        int iTextureUnit = num_point_lights_;
+                        glActiveTexture(GL_TEXTURE0+iTextureUnit);
+                        glBindTexture(GL_TEXTURE_CUBE_MAP, psdb->Cubemap());
+
+                        /*
+                        glBindSampler(iTextureUnit, uiSampler);
+
                         // samplerCube i.e. the Cubemap
                         glUniform1i(depthCubemaps_loc[0], 4);
                         glActiveTexture(GL_TEXTURE0 + 4);
                         glBindTexture(GL_TEXTURE_CUBE_MAP, psdb->Cubemap());
-                        /*
+
                         glActiveTexture(GL_TEXTURE0);
                         glBindTexture(GL_TEXTURE_CUBE_MAP, psdb->Cubemap());
                          */
@@ -260,6 +267,8 @@ namespace sw {
 
             // Render all entities in the order determined by EntityX
             renderAllEntities(es);
+
+            std::cout << "glGetError: " << glGetError() << "\n";
 
             // Revert to old state
             has_received_dimension_in_progress_event_ = false;
