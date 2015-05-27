@@ -8,6 +8,7 @@
 #include <entityx/entityx.h>
 #include <SDL_mixer.h>
 #include <events/AudioEvent.hpp>
+#include <events/JumpEvent.hpp>
 
 
 namespace ex = entityx;
@@ -18,68 +19,20 @@ namespace sw {
 
 
     public:
-        AudioSystem() {
-            relative_path_to_sound_folder_ = "../res/sounds/";
-        }
-        ~AudioSystem() {
+        AudioSystem();
 
-            //Free the sound effects
-            Mix_FreeChunk( gScratch );
-        }
+        ~AudioSystem();
 
-        void backgroundMusic() {
-            //Play the music
-            Mix_PlayMusic( gMusic, -1 );
-        }
+        void backgroundMusic();
 
-        void loadSounds(){
-            //Load sound effects
-            //std:string name = "scratch.wav";
-            //filename = relative_path_to_sound_folder_ + name;
+        void loadSounds();
 
-            gScratch = Mix_LoadWAV( "../sounds/scratch.wav" ); // filename
-            gMusic = Mix_LoadMUS( "../sounds/beat.wav" );
+        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override { }
 
-            if( gScratch == NULL || gMusic == NULL )
-            {
-                std::cout << "Failed to load scratch sound effect! SDL_mixer Error: " << Mix_GetError() << std::endl;
+        void configure(ex::EventManager &events) override;
 
-            }
-        }
-
-        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
-
-        }
-
-        void configure(ex::EventManager &events) override {
-            events.subscribe<JumpEvent>(*this);
-            events.subscribe<AudioEvent>(*this);
-        }
-
-
-        void receive(const JumpEvent &sound) {
-            // arguments -> channel, sound, repeated?
-            Mix_PlayChannel( -1, gScratch, 0 );
-
-        }
-        void receive(const AudioEvent &sound) {
-            // arguments -> sound, repeated?
-
-            //If the music is paused
-            if( Mix_PausedMusic() != sound.isPlaying_ )
-            {
-                //Resume the music
-                Mix_ResumeMusic();
-            }
-                //If the music is playing
-            else
-            {
-                //Pause the music
-                Mix_PauseMusic();
-            }
-
-        }
-
+        void receive(const JumpEvent &sound);
+        void receive(const AudioEvent &sound);
 
     private:
         std::string relative_path_to_sound_folder_;

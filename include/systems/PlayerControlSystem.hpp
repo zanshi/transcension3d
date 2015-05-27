@@ -11,6 +11,7 @@
 #include "events/ViewChangedEvent.hpp"
 #include "events/DimensionChangeInProgressEvent.hpp"
 #include "events/StartDimensionChangeEvent.hpp"
+#include "events/SpacePressedEvent.hpp"
 
 
 namespace ex = entityx;
@@ -29,7 +30,7 @@ namespace sw {
 
         void receive(const DimensionChangeInProgressEvent &dimChanged);
 
-        void receive(const JumpEvent &jump) {
+        void receive(const SpacePressedEvent &jump) {
             will_jump_ = true;
         }
 

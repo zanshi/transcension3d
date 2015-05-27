@@ -11,6 +11,8 @@
 #include "components/PhysicsComponent.hpp"
 #include "components/DimensionComponent.hpp"
 
+
+
 #include "game_constants.hpp"
 
 #include "glm/glm.hpp"
@@ -26,7 +28,7 @@ sw::PlayerControlSystem::PlayerControlSystem() {
 }
 
 void sw::PlayerControlSystem::configure(ex::EventManager & events) {
-    events.subscribe<JumpEvent>(*this);
+    events.subscribe<SpacePressedEvent>(*this);
     events.subscribe<MovementEvent>(*this);
     events.subscribe<ViewChangedEvent>(*this);
     events.subscribe<DimensionChangeInProgressEvent>(*this);
@@ -111,6 +113,7 @@ void sw::PlayerControlSystem::update(ex::EntityManager &es, ex::EventManager &ev
             std::cout << "Will jump" << std::endl;
             physics->body_->setLinearVelocity(btVector3(0.0f, 3.0f, 0.0f));
             will_jump_ = false;
+            events.emit<JumpEvent>();
         }
 
         /* DIMENSION CHANGE */
