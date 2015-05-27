@@ -5,11 +5,26 @@
 #include <vector>
 #include <fstream>
 
-//Blatantly stolen from http://stackoverflow.com/questions/2795044/easy-framework-for-opengl-shaders-in-c-c
+//Adapted from http://stackoverflow.com/questions/2795044/easy-framework-for-opengl-shaders-in-c-c
 class ShaderProgram {
 public:
-    ShaderProgram() {
-        prog = glCreateProgram();
+    ShaderProgram(std::string vfilename, std::string ffilename, std::string gfilename = "") {
+        auto v_source = readFromFile(vfilename);
+        auto f_source = readFromFile(ffilename);
+
+        AttachShader(GL_VERTEX_SHADER, v_source);
+        AttachShader(GL_FRAGMENT_SHADER, f_source);
+
+        if (gfilename != "") {
+            auto g_source = readFromFile(gfilename);
+            AttachShader(GL_GEOMETRY_SHADER, g_source);
+
+            std::cout << "Created vertex, geometry and fragment ShaderProgram.\n";
+        } else {
+            std::cout << "Created vertex and fragment ShaderProgram.\n";
+        }
+
+        ConfigureShaderProgram();
     }
 
     operator GLuint() { return prog; }
@@ -39,17 +54,23 @@ public:
 protected:
     GLuint AttachShader(GLuint shaderType, std::string source) {
         GLuint sh = compile(shaderType, source.c_str());
-        glAttachShader(prog, sh);
+        shader_programs_.push_back(sh);
 
-        std::cout << "Attached shader of type: '" << getShaderType(shaderType) << "\n";
+        std::cout << "Attached shader of type: '" << getShaderType(shaderType) << "'\n";
 
         return sh;
     }
 
-    void configureShaderProgram() {
+    void ConfigureShaderProgram() {
+        prog = glCreateProgram();
+
+        for (GLuint shader_program : shader_programs_) {
+            glAttachShader(prog, shader_program);
+        }
+
         glLinkProgram(prog);
 
-        GLint isLinked = 0;
+        GLint isLinked = GL_FALSE;
         glGetProgramiv(prog, GL_LINK_STATUS, (int *)&isLinked);
 
         if (isLinked == GL_FALSE) {
@@ -60,10 +81,13 @@ protected:
             std::cerr << "Failed to link shaderprogram : " << std::endl
             << log << std::endl;
             exit(EXIT_FAILURE);
+        } else {
+            std::cout << "Shader linking complete!\n";
         }
     }
 
 private:
+    std::vector<GLuint> shader_programs_;
     GLuint prog;
 
     std::string getShaderType(GLuint type) {
@@ -104,4 +128,5 @@ private:
         return shader;
     }
 
+    ShaderProgram() {}
 };

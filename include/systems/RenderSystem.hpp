@@ -18,8 +18,7 @@
 #include "events/StartDimensionChangeEvent.hpp"
 #include "events/DimensionChangeInProgressEvent.hpp"
 
-#include "common/VFShader.hpp"
-#include "common/VGFShaderProgram.hpp"
+#include "common/Shader.h"
 #include "rendering/PointShadowDepthBuffer.hpp"
 
 #include "game_constants.hpp"
@@ -122,8 +121,9 @@ namespace sw {
 
     private:
         void initShadowMappingShader() {
-            shadow_shader_ = new VGFShaderProgram("../shaders/SM_Point.vert", "../shaders/SM_Point.geom",
-                                                  "../shaders/SM_Point.frag");
+            shadow_shader_ = new ShaderProgram("../shaders/SM_Point.vert",
+                                               "../shaders/SM_Point.frag",
+                                               "../shaders/SM_Point.geom");
             (*shadow_shader_)();
 
             shadow_model_loc = glGetUniformLocation(*shadow_shader_, "model");
@@ -157,7 +157,8 @@ namespace sw {
         }
 
         void initShader() {
-            shader_ = new VFShaderProgram("../shaders/vertShader.vert", "../shaders/fragShader.frag");
+            shader_ = new ShaderProgram("../shaders/vertShader.vert",
+                                          "../shaders/fragShader.frag");
             (*shader_)(); //glUseProgram
 
             //Model-View-Projection
