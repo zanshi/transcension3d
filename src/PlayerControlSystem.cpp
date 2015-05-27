@@ -156,6 +156,7 @@ void sw::PlayerControlSystem::receive(const MovementEvent &move) {
     move_right_ = move.right_;
     will_sprint = move.is_sprinting_;
     will_move_ = true;
+    std::cout << "move bitch " << std::endl;
 }
 
 void sw::PlayerControlSystem::receive(const ViewChangedEvent &view) {

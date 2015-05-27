@@ -47,7 +47,7 @@ void sw::Application::update(ex::TimeDelta dt) {
 
 bool sw::Application::init() {
     //First we need to start up SDL, and make sure it went ok
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO ) != 0) {
         std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return false;
     }
@@ -58,6 +58,13 @@ bool sw::Application::init() {
         std::cout << "SDL_mixer could not initialize! SDL_mixer Error: %s\n" << Mix_GetError()  << std::endl;
         return false;
     }
+
+    //Initialize SDL_gamecontroller
+    if (SDL_Init( SDL_INIT_GAMECONTROLLER ) != 0) {
+        std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
 
     /* Request opengl 3.3 context.
      *      * SDL doesn't have the ability to choose which profile at this time of writing,

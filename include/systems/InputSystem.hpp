@@ -29,6 +29,103 @@ namespace sw {
 
         ~InputSystem() {}
 
+        void AddController( int id )
+        {
+            if( SDL_IsGameController( id ) ) {
+                pad = SDL_GameControllerOpen( id );
+
+                if( pad ) {
+                    joy = SDL_GameControllerGetJoystick( pad );
+                    int instanceID = SDL_JoystickInstanceID( joy );
+
+                    // You can add to your own map of joystick IDs to controllers here.
+                    //YOUR_FUNCTION_THAT_CREATES_A_MAPPING( id, pad );
+                }
+            }
+        }
+        void RemoveController( int id )
+        {
+            //pad = YOUR_FUNCTION_THAT_RETRIEVES_A_MAPPING( id );
+            SDL_GameControllerClose( pad );
+        }
+
+
+        void OnControllerButton( const SDL_ControllerButtonEvent sdlEvent )
+        {
+            // Button presses and axis movements both sent here as SDL_ControllerButtonEvent structures
+
+
+            switch(sdlEvent.button) {
+
+                case SDL_CONTROLLER_BUTTON_A:
+//                    events.emit<JumpEvent>();
+                    break;
+                case SDL_CONTROLLER_BUTTON_B:
+                    break;
+                case SDL_CONTROLLER_BUTTON_X:
+                    break;
+                case SDL_CONTROLLER_BUTTON_Y:
+                    break;
+                case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+  //                  is_sprinting = true;
+                    break;
+                case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    break;
+
+
+                default:
+                    break;
+            }
+        }
+
+        void OnControllerAxis( const SDL_ControllerAxisEvent sdlEvent )
+        {
+            // Axis movements and button presses both sent here as SDL_ControllerAxisEvent structures
+            //std::cout << "--> axis " << sdlEvent.axis << std::endl;
+
+
+
+            float MAX_VALUE_CONTROLLER = 32768;
+            // x-axis for left analog joystick
+            if (sdlEvent.axis == 0) {
+                right = sdlEvent.value / MAX_VALUE_CONTROLLER;
+
+
+                if (right> 0.1f) {
+                    right = 1.0f;
+                }
+                if (right < -0.1f) {
+                    right = -1.0f;
+                }
+
+                //std::cout << "--> value " << sdlEvent.value << std::endl;
+            }
+            // z-axis for left analog joystick
+            if (sdlEvent.axis == 1) {
+                forward =  sdlEvent.value / MAX_VALUE_CONTROLLER;
+                std::cout << " forward: " << forward << std::endl;
+
+                if (forward > 0.1f) {
+                    forward = -1.0f;
+                }
+                if (forward < -0.1f) {
+                    forward = 1.0f;
+                }
+
+            }
+            // yaw --> right analog joystick
+            if (sdlEvent.axis == 2) {
+                //mouse_xrel_ = sdlEvent.value;
+            }
+            // pitch --> right analog joystick
+            if (sdlEvent.axis == 3) {
+                //mouse_yrel_ = sdlEvent.value;
+            }
+
+
+
+        }
+
         void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) override {
             assert(window_w != -1 && window_h != -1 &&
                    "InputSystem::setWindowSize(w, h) must be called before first Appl. update");
@@ -41,6 +138,7 @@ namespace sw {
 
             forward = right = 0;
             is_sprinting = false;
+
 
 
             if (currentKeyStates[SDL_SCANCODE_W]) {
@@ -58,14 +156,40 @@ namespace sw {
             if (currentKeyStates[SDL_SCANCODE_LSHIFT]) {
                 is_sprinting = true;
             }
-
+/*
             if (forward != 0 || right != 0)
                 events.emit<MovementEvent>(right, forward, is_sprinting);
-
+*/
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) {
                     events.emit<QuitEvent>();
                 }
+
+
+                // Gamecontroller
+                switch(e.type) {
+                    case SDL_CONTROLLERDEVICEADDED:
+                        std::cout << "--> Game controller " << std::endl;
+                        //int id = (int) e.cdevice;
+                        AddController( (int)e.cdevice.which);
+                        break;
+                    case SDL_CONTROLLERDEVICEREMOVED:
+                        RemoveController( (int)e.cdevice.which );
+                        break;
+
+                    case SDL_CONTROLLERBUTTONDOWN:
+                        std::cout << " button pressed " << std::endl;
+                        OnControllerButton( e.cbutton );
+                        break;
+                    case SDL_CONTROLLERAXISMOTION:
+                        OnControllerAxis( e.caxis );
+                        break;
+                    default:
+                        break;
+                }
+
+
+
 
                 if (e.type == SDL_MOUSEMOTION) {
                     mouse_xrel_ = e.motion.xrel;
@@ -139,6 +263,13 @@ namespace sw {
                 }
             }
 
+
+
+            //std::cout << " forward: " << forward << std::endl;
+            //if ( forward > 0.1f || right > 0.1f)
+            if ( forward != 0 || right !=0)
+                events.emit<MovementEvent>(right, forward, is_sprinting);
+
             // If mouse moved
             if (mouse_xrel_ != 0 || mouse_yrel_ != 0) {
                 events.emit<ViewChangedEvent>((float)mouse_xrel_ / (float)window_w,
@@ -151,6 +282,8 @@ namespace sw {
             window_h = h;
         }
 
+
+
     private:
         float right, forward;
         int mouse_xrel_, mouse_yrel_;
@@ -160,5 +293,10 @@ namespace sw {
         bool isPlayingMusic;
 
         bool debug_draw;
+
+        SDL_GameController *pad;
+        SDL_Joystick *joy;
+
+
     };
 }

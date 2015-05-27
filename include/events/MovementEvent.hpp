@@ -6,7 +6,7 @@
 
 namespace sw {
     struct MovementEvent {
-        MovementEvent(int x, int y, bool is_sprinting = false) : right_(x) , forward_(y), is_sprinting_(is_sprinting) {}
+        MovementEvent(float x, float y, bool is_sprinting = false) : right_(x) , forward_(y), is_sprinting_(is_sprinting) {}
 
         float forward_, right_;
         bool is_sprinting_;
