@@ -314,9 +314,15 @@ namespace sw {
 
         void receive(const GravityChangeEvent &gravityChangeEvent){
             if (gravityChangeEvent.gravityChange_){
-                m_pWorld->setGravity(btVector3(0.f,0.f,0.f));
+                for (int n=0;n<m_pWorld->getCollisionObjectArray().size();n++) {
+                    m_pWorld->getCollisionObjectArray().at(n)->setActivationState(DISABLE_DEACTIVATION);
+                }
+                    m_pWorld->setGravity(btVector3(0.f,0.1f,0.f));
             }
             else{
+                for (int n=0;n<m_pWorld->getCollisionObjectArray().size();n++) {
+                    m_pWorld->getCollisionObjectArray().at(n)->setActivationState(ACTIVE_TAG);
+                }
                 m_pWorld->setGravity(btVector3(0.f,-10.,0.f));
             }
         }
