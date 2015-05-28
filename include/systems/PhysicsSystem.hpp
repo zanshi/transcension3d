@@ -271,11 +271,33 @@ namespace sw {
 
             // If the ray hit something, set the object's linear velocity and print its position
             if (RayCallback.hasHit()) {
-                std::ostringstream oss;
-                oss << "hit";
-                btRigidBody *temp_body = (btRigidBody *) RayCallback.m_collisionObject->getUserPointer();
-                temp_body->setLinearVelocity(btVector3(0.0f, 2.0f, 0.0f));
-                printMatVec(temp_body->getWorldTransform().getOrigin());
+                if(!is_lifting) {
+                    std::ostringstream oss;
+                    oss << "hit";
+                    btRigidBody *temp_body = (btRigidBody *) RayCallback.m_collisionObject->getUserPointer();
+                    //temp_body->setLinearVelocity(btVector3(0.0f, 2.0f, 0.0f));
+                    btTransform transA, transB;
+                    bool useLinearReferenceFrameA = true;
+                    transA.setIdentity();
+                    transB.setIdentity();
+                    bt_out_direction.setY(0.5f);
+                    transB.setOrigin(bt_out_direction / 1000.f);
+                    cons = new btGeneric6DofConstraint(*temp_body, *physics->body_, transA,
+                                                                                transB, useLinearReferenceFrameA);
+                    m_pWorld->addConstraint(cons);
+                    temp_body->setAngularFactor(0.f);
+                    temp_body->setActivationState(DISABLE_DEACTIVATION);
+                    is_lifting = true;
+                }
+                else{
+                    cons->getRigidBodyA().setAngularFactor(1.f);
+                    cons->getRigidBodyA().setActivationState(ACTIVE_TAG);
+                    cons->getRigidBodyA().removeConstraintRef(cons);
+                    cons->getRigidBodyB().removeConstraintRef(cons);
+                    m_pWorld->removeConstraint(cons);
+                    is_lifting = false;
+                }
+               // printMatVec(temp_body->getWorldTransform().getOrigin());
             } else {
                 message = "background";
             }
@@ -314,9 +336,15 @@ namespace sw {
 
         void receive(const GravityChangeEvent &gravityChangeEvent){
             if (gravityChangeEvent.gravityChange_){
-                m_pWorld->setGravity(btVector3(0.f,0.f,0.f));
+                for (int n=0;n<m_pWorld->getCollisionObjectArray().size();n++) {
+                    m_pWorld->getCollisionObjectArray().at(n)->setActivationState(DISABLE_DEACTIVATION);
+                }
+                    m_pWorld->setGravity(btVector3(0.f,0.1f,0.f));
             }
             else{
+                for (int n=0;n<m_pWorld->getCollisionObjectArray().size();n++) {
+                    m_pWorld->getCollisionObjectArray().at(n)->setActivationState(ACTIVE_TAG);
+                }
                 m_pWorld->setGravity(btVector3(0.f,-10.,0.f));
             }
         }
@@ -339,6 +367,9 @@ namespace sw {
 
 
         bool m_debugMode = false;
+
+        bool is_lifting = false;
+        btGeneric6DofConstraint *cons;
 
 
         /* DIMENSION CHANGE */
