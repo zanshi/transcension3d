@@ -271,11 +271,12 @@ namespace sw {
 
             // If the ray hit something, set the object's linear velocity and print its position
             if (RayCallback.hasHit()) {
-                if(!is_lifting) {
+                btRigidBody *temp_body = (btRigidBody *) RayCallback.m_collisionObject->getUserPointer();
+                int colFlag = temp_body->getCollisionFlags();
+                int angFac = temp_body->getAngularFactor().getX();
+                if(!is_lifting && colFlag != 1 && angFac != 0.f) {
                     std::ostringstream oss;
                     oss << "hit";
-                    btRigidBody *temp_body = (btRigidBody *) RayCallback.m_collisionObject->getUserPointer();
-                    //temp_body->setLinearVelocity(btVector3(0.0f, 2.0f, 0.0f));
                     btTransform transA, transB;
                     bool useLinearReferenceFrameA = true;
                     transA.setIdentity();
@@ -288,18 +289,20 @@ namespace sw {
                     temp_body->setAngularFactor(0.f);
                     temp_body->setActivationState(DISABLE_DEACTIVATION);
                     is_lifting = true;
-                }
-                else{
-                    cons->getRigidBodyA().setAngularFactor(1.f);
-                    cons->getRigidBodyA().setActivationState(ACTIVE_TAG);
-                    cons->getRigidBodyA().removeConstraintRef(cons);
-                    cons->getRigidBodyB().removeConstraintRef(cons);
-                    m_pWorld->removeConstraint(cons);
-                    is_lifting = false;
+                    return;
                 }
                // printMatVec(temp_body->getWorldTransform().getOrigin());
             } else {
                 message = "background";
+            }
+            if (is_lifting) {
+                cons->getRigidBodyA().setAngularFactor(1.f);
+                cons->getRigidBodyA().setActivationState(ACTIVE_TAG);
+                cons->getRigidBodyA().removeConstraintRef(cons);
+                cons->getRigidBodyB().removeConstraintRef(cons);
+                m_pWorld->removeConstraint(cons);
+                delete cons;
+                is_lifting = false;
             }
 
             std::cout << message << std::endl;
