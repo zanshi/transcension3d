@@ -103,22 +103,8 @@ bool sw::Application::init() {
 
 }
 
-void sw::Application::initScene(std::vector<std::string> args) {
-
-    std::string input;
-
-    //std::cout << args.size() << std::endl;
-
-    if(args.size() == 2) {
-        input = args[1];
-        std::cout << "Input: " << input << std::endl;
-    } else {
-        // TODO: handle scene loading more gracefully
-        std::cout << "COLLADA file located in the /res folder:" << std::endl;
-        std::cin >> input;
-    }
-
-    //input = "a1.dae"; // test file
+void sw::Application::initScene(std::string input) {
+        //input = "a1.dae"; // test file
     const std::string filename = input;
 
     // SceneImporter shell
@@ -148,8 +134,8 @@ void sw::Application::updateFPS(float newFPS) {
     SDL_SetWindowTitle(win, FPS_str.c_str());
 }
 
-void sw::Application::run(std::vector<std::string> args) {
-    initScene(args);
+void sw::Application::run(std::string input) {
+    initScene(input);
 
     std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point current;
