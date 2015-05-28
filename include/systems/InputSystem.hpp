@@ -108,6 +108,9 @@ namespace sw {
                             events.emit<AudioEvent>(isPlayingMusic);
                             isPlayingMusic = !isPlayingMusic;
                             break;
+                        case SDLK_g:
+                            events.emit<GravityChangeEvent>(gravityChange);
+                            gravityChange = !gravityChange;
                         default:
                             break;
                     }
@@ -160,5 +163,7 @@ namespace sw {
         bool isPlayingMusic;
 
         bool debug_draw;
+
+        bool gravityChange;
     };
 }

@@ -6,6 +6,7 @@
 
 #include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 #include <events/DebugdrawerEvent.hpp>
+#include <events/GravityChangeEvent.hpp>
 #include "entityx/entityx.h"
 #include "btBulletDynamicsCommon.h"
 #include "components/PhysicsComponent.hpp"
@@ -57,6 +58,7 @@ namespace sw {
             events.subscribe<DimensionChangeInProgressEvent>(*this);
             events.subscribe<PickUpObjectEvent>(*this);
             events.subscribe<ProjectionViewEvent>(*this);
+            events.subscribe<GravityChangeEvent>(*this);
 
         }
 
@@ -308,6 +310,15 @@ namespace sw {
 
         void receive(const PickUpObjectEvent &pickUpObjectEvent) {
             pickup_events_.push_back(pickUpObjectEvent);
+        }
+
+        void receive(const GravityChangeEvent &gravityChangeEvent){
+            if (gravityChangeEvent.gravityChange_){
+                m_pWorld->setGravity(btVector3(0.f,0.f,0.f));
+            }
+            else{
+                m_pWorld->setGravity(btVector3(0.f,-10.,0.f));
+            }
         }
 
     private:
