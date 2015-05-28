@@ -71,6 +71,15 @@ void sw::PlayerControlSystem::update(ex::EntityManager &es, ex::EventManager &ev
             float norm_fac = sqrtf(exp2f(player_move.x) + exp2f(player_move.y) + exp2f(player_move.z));
 
             glm::vec3 player_move_norm = player_move / norm_fac;
+
+            if (will_sprint) {
+                player_move_norm = player_move_norm * SPRINTING;
+            }
+            glm::vec3 world_move = glm::mat3(view_mat) * player_move_norm;
+
+            physics->body_->setLinearVelocity(btVector3(world_move[0], oldY, world_move[2]));
+
+            /*
             switch (player->state_) {
                 case STATE_STANDING: {
                     if (will_sprint) {
@@ -90,6 +99,9 @@ void sw::PlayerControlSystem::update(ex::EntityManager &es, ex::EventManager &ev
                 default:
                     break;
             }
+             */
+
+
             will_move_ = false;
             /*
             MyMotionState *motionState = physics->body_->getMotionState();

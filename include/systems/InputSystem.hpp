@@ -103,7 +103,9 @@ namespace sw {
                             events.emit<DebugdrawerEvent>(debug_draw);
                             break;
                         case SDLK_e:
+                        case SDLK_f:
                             events.emit<PickUpObjectEvent>();
+                            break;
                         case SDLK_u:
                             events.emit<AudioEvent>(isPlayingMusic);
                             isPlayingMusic = !isPlayingMusic;
@@ -111,6 +113,7 @@ namespace sw {
                         case SDLK_g:
                             events.emit<GravityChangeEvent>(gravityChange);
                             gravityChange = !gravityChange;
+                            break;
                         default:
                             break;
                     }
