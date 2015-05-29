@@ -5,67 +5,42 @@
 #pragma once
 
 #include <entityx/entityx.h>
-
-#include "components/RenderComponent.hpp"
-#include "components/DimensionComponent.hpp"
-#include "events/RenderEvent.hpp"
-
-#include <ostream>
-#include <vector>
-
 #include "glm/glm.hpp"
+
+#include "events/RenderEvent.hpp"
+#include "events/MovementEvent.hpp"
+#include "events/ViewChangedEvent.hpp"
+
 
 namespace ex = entityx;
 
 namespace sw {
-    std::ostream &operator<<(std::ostream &os, const glm::vec3 v) {
-        os << "{" << v[0] << ", " << v[1] << ", " << v[2] << "}";
-        return os;
-    }
+
 
     class DebugSystem : public ex::System<DebugSystem>, public ex::Receiver<DebugSystem> {
     public:
-        DebugSystem(std::ostream &debug_stream)
-                : debug_ostream_(debug_stream) { };
+        DebugSystem(std::ostream &debug_stream);
 
-        void configure(ex::EventManager &events) override {
-            events.subscribe<RenderEvent>(*this);
-        }
+        void configure(ex::EventManager &events) override;
 
-        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt) {
-            for (RenderEvent event : events_to_debug_) {
-                ex::Entity entity = event.rendered_entity_;
+        void update(ex::EntityManager &es, ex::EventManager &events, ex::TimeDelta dt);
 
-                ex::ComponentHandle<DimensionComponent> dim = entity.component<DimensionComponent>();
+        void receive(const RenderEvent &render_event);
 
-                size_t num_indrag = event.depth_ * 3;
-                std::string indrag(num_indrag, ' ');
+        void debugRenderEvents();
 
-                debug_ostream_ << indrag << "* Dimension: " << dim->dimension_ << ", Rendered entity with index=" << entity.id().index()
-                << ", unique id=" << entity.id().id() << std::endl;
+        void receive(const MovementEvent &movement_event);
 
-                // retrieve the render component data and log
-                auto render = entity.component<RenderComponent>();
+        void debugMovementEvents();
 
-                if (render) {
-                    debug_ostream_ << indrag << "  RenderComponent message='" << render->debug_message_ << "'"
-                    << std::endl;
-                }
-            }
+        void receive(const ViewChangedEvent &view_changed_event);
 
-            events_to_debug_.clear();
-        }
-
-        void receive(const RenderEvent &render_event) {
-            // defer all debugging until DebugSystem::update(), because events are immutable and holy trinities
-            //* entities_to_debug_.push_back(render_event.rendered_entity_);
-
-            events_to_debug_.push_back(render_event);
-
-        }
+        void debugViewChangedEvents();
 
         std::ostream &debug_ostream_;
         //* std::vector<ex::Entity> entities_to_debug_;
-        std::vector<RenderEvent> events_to_debug_;
+        std::vector<RenderEvent> render_events_;
+        std::vector<MovementEvent> movement_events_;
+        std::vector<ViewChangedEvent> view_events_;
     };
 }

@@ -26,30 +26,33 @@ namespace sw {
             is_dirty_ = true;
         };
 
-        TransformComponent(glm::mat4 local_transform)
-                : local_(local_transform) {
+        TransformComponent(glm::mat4 world_transform)
+                : cached_world_(world_transform) {
             glm::vec3 temp3;
             glm::vec4 temp4;
-            glm::decompose(local_, temp3, orientation_, position_, temp3, temp4);
-
-            /*
-            std::cout << "Position extracted from transformation matrix: " << std::endl
-                      << "{" << position_[0] << ", " << position_[1] << ", " << position_[2] << "}" << std::endl;
-
-            glm::vec3 temp_rot = glm::eulerAngles(orientation_) * 3.14159f / 180.f;
-
-            std::cout << "Rotation extracted from transformation matrix: " << std::endl
-                      << "{" << temp_rot[0] << ", " << temp_rot[1] << ", " << temp_rot[2] << "}" << std::endl;
-            std::cout << std::endl;
-            */
+            glm::decompose(cached_world_, scale_, orientation_, position_, temp3, temp4);
 
             is_dirty_ = true;
         }
 
+        /*
+        TransformComponent(glm::mat4 local_transform)
+                : local_(local_transform) {
+            glm::vec3 temp3;
+            glm::vec4 temp4;
+            glm::decompose(local_, scale_, orientation_, position_, temp3, temp4);
+
+            is_dirty_ = true;
+        }
+         */
+
         /** Public member variables for convenience **/
         glm::vec3 position_;
         glm::quat orientation_;
+        glm::vec3 scale_;
         glm::mat4 local_;
+        glm::quat world_rotation_;
+        glm::vec3 world_position_;
         glm::mat4 cached_world_;
 
 
@@ -63,5 +66,12 @@ namespace sw {
             // TODO : Test this code snippet
             local_ = glm::translate(glm::mat4(1.0f), position_) * glm::mat4_cast(orientation_);
         }
+
+        void update_world_transform() {
+            cached_world_ = glm::translate(glm::mat4(1.0f), world_position_) * glm::mat4_cast(world_rotation_) *
+                    glm::scale(glm::mat4(1.0f), scale_);
+        }
+
+
     };
 }

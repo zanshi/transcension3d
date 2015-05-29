@@ -14,7 +14,7 @@
 #include "entityx/Entity.h"
 
 namespace entityx {
-    namespace deps {
+namespace deps {
 
 /**
  * An entityx::System for declaring component dependencies.
@@ -24,31 +24,31 @@ namespace entityx {
  *
  *     system_manager->add<Dependency<Physics, Position, Direction>>();
  */
-        template<typename C, typename ... Deps>
-        class Dependency : public System<Dependency<C, Deps...>>, public Receiver<Dependency<C, Deps...>> {
-        public:
-            void receive(const ComponentAddedEvent<C> &event) {
-                assign < Deps...>(event.entity);
-            }
+template <typename C, typename ... Deps>
+class Dependency : public System<Dependency<C, Deps...>>, public Receiver<Dependency<C, Deps...>> {
+public:
+  void receive(const ComponentAddedEvent<C> &event) {
+    assign<Deps...>(event.entity);
+  }
 
-            virtual void configure(EventManager &events) override {
-                events.subscribe<ComponentAddedEvent<C>>(*this);
-            }
+  virtual void configure(EventManager &events) override {
+    events.subscribe<ComponentAddedEvent<C>>(*this);
+  }
 
-            virtual void update(EntityManager &entities, EventManager &events, TimeDelta dt) override { }
+  virtual void update(EntityManager &entities, EventManager &events, TimeDelta dt) override {}
 
-        private:
-            template<typename D>
-            void assign(Entity entity) {
-                if (!entity.component<D>()) entity.assign<D>();
-            }
+private:
+  template <typename D>
+  void assign(Entity entity) {
+    if (!entity.component<D>()) entity.assign<D>();
+  }
 
-            template<typename D, typename D1, typename ... Ds>
-            void assign(Entity entity) {
-                assign<D>(entity);
-                assign<D1, Ds...>(entity);
-            }
-        };
+  template <typename D, typename D1, typename ... Ds>
+  void assign(Entity entity) {
+    assign<D>(entity);
+    assign<D1, Ds...>(entity);
+  }
+};
 
-    }  // namespace deps
+}  // namespace deps
 }  // namespace entityx

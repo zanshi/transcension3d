@@ -10,6 +10,7 @@
 
 namespace ex = entityx;
 
+/*
 namespace sw {
     namespace GraphInterface {
         void addChild(ex::Entity parent, ex::Entity child_new) {
@@ -66,3 +67,4 @@ namespace sw {
         }
     }
 }
+ */
