@@ -26,7 +26,7 @@ namespace sw {
 
         bool init();
 
-        void run(std::vector<std::string> args);
+        void run(std::string input);
 
         void receive(const QuitEvent& quitEvent);
 
@@ -39,7 +39,7 @@ namespace sw {
         ex::Entity root_;
         unsigned int current_dim_;
 
-        void initScene(std::vector<std::string> args);
+        void initScene(std::string input);
 
         // Setup function to initiate the RenderSystem with a root node
         void initSceneGraphRoot(ex::Entity root);

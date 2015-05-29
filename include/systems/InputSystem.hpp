@@ -35,7 +35,7 @@ namespace sw {
             if (SDL_IsGameController(id)) {
                 pad = SDL_GameControllerOpen(id);
 
-                if ( pad ) {
+                if (pad) {
                     joy = SDL_GameControllerGetJoystick(pad);
                     int instanceID = SDL_JoystickInstanceID(joy);
 
@@ -88,8 +88,8 @@ namespace sw {
                     break;
                 case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
                     break;
-                //case SDL_CONTROLLER_BUTTON_INVALID:
-                //    break;
+                    //case SDL_CONTROLLER_BUTTON_INVALID:
+                    //    break;
                 default:
                     break;
             }
@@ -135,7 +135,7 @@ namespace sw {
 
                 if (abs(sdlEvent.value) > 500) {
                     mouse_xrel_ = 0.01 * fmaxf(-1.0f, (float) sdlEvent.value / MAX_VALUE_CONTROLLER);
-                }else {
+                } else {
                     mouse_xrel_ = 0.0f;
                 }
                 /*
@@ -148,8 +148,8 @@ namespace sw {
             if (sdlEvent.axis == 3) {
 
                 if (abs(sdlEvent.value) > 500) {
-                    mouse_yrel_ = 0.01*fmaxf(-1.0f, (float) sdlEvent.value / MAX_VALUE_CONTROLLER);
-                }else {
+                    mouse_yrel_ = 0.01 * fmaxf(-1.0f, (float) sdlEvent.value / MAX_VALUE_CONTROLLER);
+                } else {
                     mouse_yrel_ = 0.0f;
                 }
                 /*
@@ -173,7 +173,7 @@ namespace sw {
             // Reset variables
 
             //forward = right = 0;
-            is_sprinting = false;
+            //is_sprinting = false;
 
 
             // Keyboard
@@ -217,10 +217,34 @@ namespace sw {
                         RemoveController((int) e.cdevice.which);
                         break;
 
-                    case SDL_CONTROLLERBUTTONDOWN:
+                    case SDL_CONTROLLERBUTTONDOWN: {
                         std::cout << " button pressed " << std::endl;
-                        OnControllerButton(e.cbutton);
+                        //OnControllerButton(e.cbutton);
+
+                        switch (e.cbutton.button) {
+                            case SDL_CONTROLLER_BUTTON_A:
+                                events.emit<JumpEvent>();
+                                break;
+                            case SDL_CONTROLLER_BUTTON_Y:
+                                events.emit<StartDimensionChangeEvent>();
+                                break;
+                            case SDL_CONTROLLER_BUTTON_B:
+                                events.emit<PickUpObjectEvent>();
+                                break;
+                            case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                                is_sprinting = true;
+                                break;
+                            default:
+                                break;
+                        }
                         break;
+                    }
+
+                    case SDL_CONTROLLERBUTTONUP:
+                        if (e.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+                            is_sprinting = false;
+                        break;
+
                     case SDL_CONTROLLERAXISMOTION:
                         OnControllerAxis(e.caxis);
                         break;
@@ -268,10 +292,16 @@ namespace sw {
                             events.emit<DebugdrawerEvent>(debug_draw);
                             break;
                         case SDLK_e:
+                        case SDLK_f:
                             events.emit<PickUpObjectEvent>();
+                            break;
                         case SDLK_u:
                             events.emit<AudioEvent>(isPlayingMusic);
                             isPlayingMusic = !isPlayingMusic;
+                            break;
+                        case SDLK_g:
+                            events.emit<GravityChangeEvent>(gravityChange);
+                            gravityChange = !gravityChange;
                             break;
                         default:
                             break;
@@ -310,8 +340,8 @@ namespace sw {
 
 
 
-            if ( fabs(forward) > 0.5f || fabs(right) > 0.5f) {
-            //if (forward != 0 || right != 0)
+            if (fabs(forward) > 0.5f || fabs(right) > 0.5f) {
+                //if (forward != 0 || right != 0)
                 events.emit<MovementEvent>(right, forward, is_sprinting);
             }
             // If mouse moved
@@ -344,6 +374,7 @@ namespace sw {
         SDL_GameController *pad;
         SDL_Joystick *joy;
 
+        bool gravityChange;
 
     };
 }

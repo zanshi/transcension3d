@@ -25,9 +25,9 @@ struct PointLight {
 };
 
 const int MAX_DIR_LIGHTS = 20;
-const float ATT_CONST = 0.2f;
-const float ATT_LINEAR = 0.4f;
-const float ATT_QUAD = 0.8f;
+const float ATT_CONST = 1.0f;
+const float ATT_LINEAR = 0.6f;
+const float ATT_QUAD = 0.1f;
 
 struct DirectionalLight {
     // Position and direction vectors in world coordinates
