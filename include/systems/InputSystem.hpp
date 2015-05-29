@@ -232,6 +232,9 @@ namespace sw {
                             case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
                                 is_sprinting = true;
                                 break;
+                            case SDL_CONTROLLER_BUTTON_START:
+                                events.emit<QuitEvent>();
+                                break;
                             default:
                                 break;
                         }

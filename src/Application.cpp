@@ -92,7 +92,7 @@ bool sw::Application::init() {
     glcontext = SDL_GL_CreateContext(win);
     SDL_GL_MakeCurrent(win, glcontext);
 
-    SDL_GL_SetSwapInterval(0);
+    SDL_GL_SetSwapInterval(1);
 
     //Initialize GLEW
     glewExperimental = GL_TRUE;
