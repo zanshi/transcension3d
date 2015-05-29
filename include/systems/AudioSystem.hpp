@@ -59,7 +59,7 @@ namespace sw {
 
         void receive(const JumpEvent &sound) {
             // arguments -> channel, sound, repeated?
-            Mix_PlayChannel( -1, gScratch, 0 );
+            //Mix_PlayChannel( -1, gScratch, 0 );
 
         }
         void receive(const AudioEvent &sound) {
