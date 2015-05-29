@@ -14,7 +14,6 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(PROJECT_CXX_DIR ${PROJECT_SOURCE_DIR}/src)
-set(PROJECT_LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
 set(PROJECT_EXT_DIR ${PROJECT_SOURCE_DIR}/external)
 
 
@@ -148,7 +147,6 @@ include_directories(
 set(ALL_LIBS
   ${OPENGL_LIBRARY}
   GLEW
-  INT_LIBS
   entityx
   BulletDynamics
   BulletCollision
@@ -167,20 +165,11 @@ set(EXT_DEPS
 )
 
 
-file(GLOB PROJECT_LIBS_FILES ${PROJECT_LIBS_DIR}/*.cpp)
-add_library(INT_LIBS 
-  ${PROJECT_LIBS_FILES}
-)
-
-add_dependencies(INT_LIBS
-  ${EXT_DEPS}
-)
-
-
 file(GLOB PROJECT_CXX_FILES ${PROJECT_CXX_DIR}/*.cpp)
 
 add_executable(${PROJECT_NAME_STR}
-  ${PROJECT_CXX_FILES} src/PlayerControlSystem.cpp)
+    ${PROJECT_CXX_FILES}
+)
 
 target_link_libraries(${PROJECT_NAME_STR}
   ${ALL_LIBS}
