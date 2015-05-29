@@ -222,12 +222,17 @@ namespace sw {
                     //std::cout << "Distance to collision point: " << p << std::endl;
 
                     //std::cout << "p: " << p << " ,distance_to_bottom_: " << player->distance_to_bottom_ << std::endl;
-
-                    if (p > 0.05 && std::abs(physics->body_->getLinearVelocity().getY()) > 0.0) {
+                    if (std::abs(physics->body_->getLinearVelocity().getY()) > 0.0) {
                         player->state_ = STATE_AIRBOURNE;
                     } else {
                         player->state_ = STATE_STANDING;
                     }
+                    /*
+                    if (p > 0.05 && std::abs(physics->body_->getLinearVelocity().getY()) > 0.0) {
+                        player->state_ = STATE_AIRBOURNE;
+                    } else {
+                        player->state_ = STATE_STANDING;
+                    }*/
                 }
             }
 
