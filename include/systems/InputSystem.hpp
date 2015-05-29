@@ -50,7 +50,7 @@ namespace sw {
             SDL_GameControllerClose(pad);
         }
 
-
+/*
         void OnControllerButton(const SDL_ControllerButtonEvent sdlEvent) {
             // Button presses and axis movements both sent here as SDL_ControllerButtonEvent structures
 
@@ -94,7 +94,7 @@ namespace sw {
                     break;
             }
         }
-
+*/
         void OnControllerAxis(const SDL_ControllerAxisEvent sdlEvent) {
             // Axis movements and button presses both sent here as SDL_ControllerAxisEvent structures
 
@@ -218,8 +218,6 @@ namespace sw {
                         break;
 
                     case SDL_CONTROLLERBUTTONDOWN: {
-                        std::cout << " button pressed " << std::endl;
-                        //OnControllerButton(e.cbutton);
 
                         switch (e.cbutton.button) {
                             case SDL_CONTROLLER_BUTTON_A:
@@ -237,14 +235,13 @@ namespace sw {
                             default:
                                 break;
                         }
+
                         break;
                     }
-
                     case SDL_CONTROLLERBUTTONUP:
-                        if (e.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+                        if(e.cbutton.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
                             is_sprinting = false;
                         break;
-
                     case SDL_CONTROLLERAXISMOTION:
                         OnControllerAxis(e.caxis);
                         break;
