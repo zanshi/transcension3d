@@ -23,9 +23,12 @@ namespace sw {
     };
 
     const int WINDOW_WIDTH = 1280,
-              WINDOW_HEIGHT = 960;
-}
+            WINDOW_HEIGHT = 960;
+
+    const float FOVY_DEGREES = 65.f;
+
     enum States {
         STATE_STANDING,
         STATE_AIRBOURNE
     };
+}

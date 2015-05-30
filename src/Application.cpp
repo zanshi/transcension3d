@@ -111,16 +111,15 @@ void sw::Application::initScene(std::string input) {
     audioSystem->backgroundMusic();
 
     /* The coast is clear, now we can start loading the scene */
-    // Create two root objects and initialize them
-    ex::Entity root = entities.create();
-    initSceneGraphRoot(root);
-
-    sceneImporter.populateInternalGraph(root, [&]() { return entities.create(); });
+    sceneImporter.populateInternalGraph([&]() { return entities.create(); });
 
     auto renderSystem = systems.system < RenderSystem > ();
+    renderSystem->initShader();
 
     auto physicsSystem = systems.system < PhysicsSystem > ();
     physicsSystem->populateWorld(entities);
+
+    current_dim_ = sw::STARTING_DIMENSION;
 }
 
 void sw::Application::updateFPS(float newFPS) {
@@ -174,30 +173,6 @@ void sw::Application::run(std::string input) {
     //Quit SDL subsystems
     SDL_Quit();
     Mix_Quit();
-}
-
-// Setup function to initiate the RenderSystem with a root node
-void sw::Application::initSceneGraphRoot(ex::Entity root) {
-    auto renderSystem = systems.system < RenderSystem > ();
-    root_ = root;
-
-    // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity
-    ex::Entity empty = entities.create();
-    //root_.assign<GraphNodeComponent>(empty, root_);
-
-    // Initiate the root entity TransformComponent with an identity matrix
-    root_.assign<TransformComponent>();
-
-    // The root should be in both dimensions, for practical reasons
-    root_.assign<DimensionComponent>(Dim::DIMENSION_BOTH);
-
-    // Set the root entity to be the root of the RenderSystem i.e. where the rendering starts in the tree
-    renderSystem->setRootEntity(root_);
-
-    // Save the roots in the Application instance
-    current_dim_ = Dim::DIMENSION_ONE;
-
-    renderSystem->initShader();
 }
 
 void sw::Application::receive(const QuitEvent &quitEvent) {

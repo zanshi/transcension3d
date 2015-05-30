@@ -76,7 +76,7 @@ namespace sw {
         }
     }
 
-    void SceneImporter::populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction) {
+    void SceneImporter::populateInternalGraph(std::function<ex::Entity()> createEntityFunction) {
         // Don't populate the application if it has already been done
         if (has_populated_internal_graph_)
             return;
@@ -86,7 +86,7 @@ namespace sw {
         createEntity = createEntityFunction;
 
         // Populate the graph
-        processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, rootEntity, glm::mat4(1));
+        processAssimpNode(p_scene->mRootNode, 0, Dim::DIMENSION_BOTH, glm::mat4(1));
 
 
         if (p_scene->HasLights()) {
@@ -153,7 +153,6 @@ namespace sw {
     void SceneImporter::processAssimpNode(const aiNode *node,
                                           unsigned int current_depth,
                                           Dim dim_parent,
-                                          ex::Entity parent,
                                           glm::mat4 parent_transform) {
         // Make sure that the supplied dim_parent is valid
         if (!(dim_parent == Dim::DIMENSION_BOTH || dim_parent == Dim::DIMENSION_ONE ||
@@ -233,7 +232,7 @@ namespace sw {
         // Recursively process all its children nodes
         for (unsigned int i = 0; i < node->mNumChildren; ++i) {
             if (*(node->mChildren + i))
-                processAssimpNode(*(node->mChildren + i), current_depth + 1, dim_current, current_entity,
+                processAssimpNode(*(node->mChildren + i), current_depth + 1, dim_current,
                                   current_transform);
         }
 

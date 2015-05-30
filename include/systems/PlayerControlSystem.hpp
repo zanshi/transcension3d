@@ -29,9 +29,7 @@ namespace sw {
 
         void receive(const DimensionChangeInProgressEvent &dimChanged);
 
-        void receive(const JumpEvent &jump) {
-            will_jump_ = true;
-        }
+        void receive(const JumpEvent &jump);
 
         void receive(const MovementEvent &move);
 

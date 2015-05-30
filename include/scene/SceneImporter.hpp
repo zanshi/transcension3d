@@ -49,7 +49,7 @@ namespace sw {
 
         // Method to "copy" the contents from the AssImp node structure into the internal
         // structure of the Transcension3D engine. Callable only ONCE, because reasons
-        void populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction);
+        void populateInternalGraph(std::function<ex::Entity()> createEntityFunction);
 
         glm::mat4 getCamera();
 
@@ -71,7 +71,6 @@ namespace sw {
         void processAssimpNode(const aiNode *node,
                                unsigned int current_depth,
                                Dim dim_parent,
-                               ex::Entity parent,
                                glm::mat4 parent_transform);
 
         void addMeshComponentToEntity(ex::Entity entity, const aiMesh *mesh);

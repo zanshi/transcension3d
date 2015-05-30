@@ -161,6 +161,9 @@ void sw::PlayerControlSystem::receive(const StartDimensionChangeEvent &startDimC
 
 void sw::PlayerControlSystem::receive(const DimensionChangeInProgressEvent &dimChanged) { }
 
+void sw::PlayerControlSystem::receive(const JumpEvent &jump) {
+    will_jump_ = true;
+}
 
 void sw::PlayerControlSystem::receive(const MovementEvent &move) {
 
