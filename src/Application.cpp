@@ -15,7 +15,7 @@
 #include "systems/InputSystem.hpp"
 #include "systems/PlayerControlSystem.hpp"
 #include "systems/AudioSystem.hpp"
-
+#include <chrono>
 
 sw::Application::Application() {
     systems.add<InputSystem>();
