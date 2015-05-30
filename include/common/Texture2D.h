@@ -1,5 +1,7 @@
 #pragma once
 
+/* From: https://github.com/LiTHehack/opengl-bootstrap/ */
+
 class Texture2D {
 public:
     Texture2D(GLuint w, GLuint h) {

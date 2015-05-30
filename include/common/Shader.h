@@ -5,7 +5,8 @@
 #include <vector>
 #include <fstream>
 
-//Blatantly stolen from http://stackoverflow.com/questions/2795044/easy-framework-for-opengl-shaders-in-c-c
+/* Adapted from: https://github.com/LiTHehack/opengl-bootstrap/ */
+
 class ShaderProgram {
 private:
     GLuint vertex_shader, fragment_shader, prog;

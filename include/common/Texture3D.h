@@ -1,5 +1,7 @@
 #pragma once
 
+/* From: https://github.com/LiTHehack/opengl-bootstrap/ */
+
 class Texture3D {
 public:
     Texture3D(GLuint w, GLuint h, GLuint d) {

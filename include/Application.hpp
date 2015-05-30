@@ -6,12 +6,8 @@
 
 // Include GLEW
 #include "GL/glew.h"
-
 #include "SDL.h"
-
-
 #include "entityx/entityx.h"
-
 #include "events/QuitEvent.hpp"
 
 namespace ex = entityx;
@@ -28,7 +24,7 @@ namespace sw {
 
         void run(std::string input);
 
-        void receive(const QuitEvent& quitEvent);
+        void receive(const QuitEvent &quitEvent);
 
     private:
         SDL_Window *win;

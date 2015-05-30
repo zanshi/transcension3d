@@ -1,6 +1,8 @@
 #include <iostream>
 #include <common/Texture2D.h>
 
+/* From: https://github.com/LiTHehack/opengl-bootstrap/ */
+
 class FBO {
 public:
     FBO(GLuint w, GLuint h) {

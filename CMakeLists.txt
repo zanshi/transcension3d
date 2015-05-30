@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8)
-set(PROJECT_NAME_STR swag3d)
+set(PROJECT_NAME_STR Transcension3D)
 project(${PROJECT_NAME_STR} C CXX)
-
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
@@ -142,6 +141,7 @@ include_directories(
         ${SDL2_INCLUDE_DIR}
         ${SDL2MIXER_INCLUDE_DIR}
         ${PROJECT_INCLUDE_DIR}
+        ${PROJECT_EXT_DIR}
 )
 
 set(ALL_LIBS

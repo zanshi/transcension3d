@@ -48,7 +48,7 @@ namespace sw {
         static std::string relative_path_to_scene_folder_;
 
         // Method to "copy" the contents from the AssImp node structure into the internal
-        // structure of the swag3d engine. Callable only ONCE, because reasons
+        // structure of the Transcension3D engine. Callable only ONCE, because reasons
         void populateInternalGraph(ex::Entity rootEntity, std::function<ex::Entity()> createEntityFunction);
 
         glm::mat4 getCamera();
@@ -66,7 +66,7 @@ namespace sw {
 
 
         // Method to "look at" a node in the tree graph returned by the Assimp importer
-        // The method transfers all the node's data (including meshes etc.) to swag3d's internal structure
+        // The method transfers all the node's data (including meshes etc.) to Transcension3D's internal structure
         // Start by calling processAssimpNode with the root node as argument
         void processAssimpNode(const aiNode *node,
                                unsigned int current_depth,

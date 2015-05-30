@@ -250,13 +250,14 @@ namespace sw {
             // For now hardcoded perspective matrix
             camera_projection_ = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 1.0f, 50.0f);
 
-            // Print the perspective matrices
-        //    std::cout << "Projection matrix " << std::endl;
-//            print_glmMatrix(camera_projection_);
-      //      std::cout << "Projection matrix (incoming) " << std::endl;
-  //          print_glmMatrix(proj);
+            //Print the perspective matrices
+            //std::cout << "Projection matrix " << std::endl;
+            //print_glmMatrix(camera_projection_);
+            //std::cout << "Projection matrix (incoming) " << std::endl;
+            //print_glmMatrix(proj);
         }
 
+        // Adapted from: http://www.learnopengl.com/
         void initShader() {
 
             shader_ = new ShaderProgram("../shaders/vertShader.vert", "../shaders/fragShader.frag");

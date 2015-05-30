@@ -4,11 +4,8 @@
 
 #include "Application.hpp"
 
-#include <chrono>
 #include <cleanup.h>
 #include <SDL_mixer.h>
-
-// Assimp
 #include "assimp/Importer.hpp"
 #include "scene/SceneImporter.hpp"
 #include "components/all_components.hpp"
@@ -18,8 +15,6 @@
 #include "systems/InputSystem.hpp"
 #include "systems/PlayerControlSystem.hpp"
 #include "systems/AudioSystem.hpp"
-
-
 
 
 sw::Application::Application() {
@@ -39,7 +34,7 @@ void sw::Application::update(ex::TimeDelta dt) {
     systems.update<InputSystem>(dt);
     systems.update<AudioSystem>(dt);
     systems.update<PlayerControlSystem>(dt);
-	systems.update<PhysicsSystem>(dt);
+    systems.update<PhysicsSystem>(dt);
     systems.update<RenderSystem>(dt);
     systems.update<DebugSystem>(dt);
 
@@ -53,9 +48,8 @@ bool sw::Application::init() {
     }
 
     //Initialize SDL_mixer
-    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
-    {
-        std::cout << "SDL_mixer could not initialize! SDL_mixer Error: %s\n" << Mix_GetError()  << std::endl;
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        std::cout << "SDL_mixer could not initialize! SDL_mixer Error: %s\n" << Mix_GetError() << std::endl;
         return false;
     }
 
@@ -75,7 +69,7 @@ bool sw::Application::init() {
 
 
     //Now create a window with title "Hello World" at 100, 100 on the screen with w:640 h:480 and show it
-    win = SDL_CreateWindow("Hello Swag3d!", 100, 100, sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+    win = SDL_CreateWindow("Hello Transcension3D!", 100, 100, sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
     //Make sure creating our window went ok
     if (win == nullptr) {
         std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -97,14 +91,14 @@ bool sw::Application::init() {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
 
-    systems.system<InputSystem>()->setWindowSize(sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT);
+    systems.system < InputSystem > ()->setWindowSize(sw::WINDOW_WIDTH, sw::WINDOW_HEIGHT);
 
     return true;
 
 }
 
 void sw::Application::initScene(std::string input) {
-        //input = "a1.dae"; // test file
+
     const std::string filename = input;
 
     // SceneImporter shell
@@ -112,7 +106,7 @@ void sw::Application::initScene(std::string input) {
     SceneImporter sceneImporter(filename);
 
     //Load the sound files
-    auto audioSystem = systems.system<AudioSystem>();
+    auto audioSystem = systems.system < AudioSystem > ();
     audioSystem->loadSounds();
     audioSystem->backgroundMusic();
 
@@ -125,7 +119,7 @@ void sw::Application::initScene(std::string input) {
 
     auto renderSystem = systems.system < RenderSystem > ();
 
-    auto physicsSystem = systems.system<PhysicsSystem>();
+    auto physicsSystem = systems.system < PhysicsSystem > ();
     physicsSystem->populateWorld(entities);
 }
 
@@ -165,7 +159,7 @@ void sw::Application::run(std::string input) {
         /* FPS DISPLAY HANDLING */
         second_accumulator += dt;
         if (second_accumulator.count() >= 1.0) {
-            float newFPS = static_cast<float>( frames_last_second / second_accumulator.count() );
+            float newFPS = static_cast<float>( frames_last_second / second_accumulator.count());
             updateFPS(newFPS);
             frames_last_second = 0;
             second_accumulator = std::chrono::duration<double>(0);
@@ -184,7 +178,7 @@ void sw::Application::run(std::string input) {
 
 // Setup function to initiate the RenderSystem with a root node
 void sw::Application::initSceneGraphRoot(ex::Entity root) {
-    auto renderSystem = systems.system<RenderSystem>();
+    auto renderSystem = systems.system < RenderSystem > ();
     root_ = root;
 
     // The root entity should have a GraphNodeComponent, whose parent is an "empty" entity

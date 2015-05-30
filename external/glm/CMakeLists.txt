@@ -29,7 +29,7 @@ source_group("GTX Files" FILES ${GTX_SOURCE})
 source_group("GTX Files" FILES ${GTX_INLINE})
 source_group("GTX Files" FILES ${GTX_HEADER})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+include_directories(..)
 
 if(GLM_TEST_ENABLE)
 	add_executable(${NAME} ${ROOT_TEXT} ${ROOT_NAT}
