@@ -1,6 +1,6 @@
 # Transcension3D
 
-Transcension 3D is a 3D game engine written in C++ and OpenGL3.3. It was made by six guys from [LiTH](https://www.liu.se/?l=en&sc=true), Sweden, during a university course in computer graphics. The core architecture is built around the Entity-Component-System pattern as implemented by the excellent open source library [EntityX](https://github.com/alecthomas/entityx/).
+Transcension3D is a 3D game engine written in C++ and OpenGL3.3. It was made by six guys from [LiTH](https://www.liu.se/?l=en&sc=true), Sweden, during a university course in computer graphics. The core architecture is built around the Entity-Component-System pattern as implemented by the excellent open source library [EntityX](https://github.com/alecthomas/entityx/).
 
 ## Engine features
 
