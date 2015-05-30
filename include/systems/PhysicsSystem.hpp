@@ -71,11 +71,6 @@ namespace sw {
                 Dim d = dimension->dimension_;
 
                 std::cout << "populateworld" << std::endl;
-                /*
-                std::cout << "Group: " << physics->group_ << std::endl;
-                std::cout << "Mask: " << physics->mask_ << std::endl;
-                std::cout << "Previous flags: " << physics->body_->getCollisionFlags() << std::endl;
-                 */
                 std::cout << "  dimension: " << d << "\n";
                 physics->body_->activate(true);
 
@@ -123,26 +118,6 @@ namespace sw {
 
         void update(entityx::EntityManager &entityManager, entityx::EventManager &eventManager, entityx::TimeDelta dt) {
             if (will_update_current_bodies_) {
-                /*std::cout << "Will update bitches\n";
-                auto dimension = ex::ComponentHandle<DimensionComponent>();
-                auto physics = ex::ComponentHandle<PhysicsComponent>();
-                for (ex::Entity e : entityManager.entities_with_components(dimension, physics)) {
-                    Dim d = dimension->dimension_;
-                    if (d == Dim::DIMENSION_BOTH)
-                        continue;
-                    if (d == dim_from_) {
-                        //m_pWorld->removeRigidBody(physics->body_);
-                        physics->body_->setActivationState(ISLAND_SLEEPING);
-                        //physics->body_->setActivationState(DISABLE_SIMULATION);
-                        std::cout << "Disabled a bitch\n";
-                    }
-                    else {
-                        //m_pWorld->addRigidBody(physics->body_);
-                        //physics->body_->setActivationState(DISABLE_DEACTIVATION);
-                        physics->body_->activate(true);
-                        std::cout << "Enabled a bitch\n";
-                    }
-                }*/
                 auto physics = ex::ComponentHandle<PhysicsComponent>();
                 auto dimension = ex::ComponentHandle<DimensionComponent>();
                 auto player = ex::ComponentHandle<PlayerComponent>();
@@ -153,7 +128,6 @@ namespace sw {
                     m_pWorld->addRigidBody(physics->body_, d, d);
                     std::cout << "Current player dimension is: " << d << "\n";
                 }
-
                 will_update_current_bodies_ = false;
             }
 
@@ -193,13 +167,9 @@ namespace sw {
 
                 playerMin.setY(playerMin.getY() - (physics->height_));
 
-                //std::cout << "playerMin: " << playerMin.getY() << std::endl;
-
                 btVector3 btTo(playerMin.x(), -500.0f, playerMin.z());
 
                 btCollisionWorld::ClosestRayResultCallback res(playerMin, btTo);
-
-                //btCollisionWorld::ClosestConvexResultCallback
 
                 m_pWorld->rayTest(playerMin, btTo, res);
 
@@ -291,7 +261,6 @@ namespace sw {
                     is_lifting = true;
                     return;
                 }
-               // printMatVec(temp_body->getWorldTransform().getOrigin());
             } else {
                 message = "background";
             }
