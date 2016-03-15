@@ -6,7 +6,7 @@ Transcension3D is a 3D game engine written in C++ and OpenGL3.3. It was made by 
 
  - Physics simulation and continuous collision detection using [Bullet](http://bulletphysics.org/)
  - Controls using keyboard or console controller (PS4 and Xbox360 tested)
- - Level editing in [Blender](http://www.blender.org/), see our [Wiki](https://github.com/zanshi/swag3d/wiki/Level-Editing-in-Blender) for details
+ - Level editing in [Blender](http://www.blender.org/), see our [Wiki](https://github.com/zanshi/transcension3d/wiki/Level-Editing-in-Blender) for details
  - Dynamic lighting and shadows for point lights using shadow mapping (in development)
  - Multi-platform support: Mac, Windows and Linux
 
