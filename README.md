@@ -1,3 +1,5 @@
+
+
 # Transcension3D
 
 Transcension3D is a 3D game engine written in C++ and OpenGL3.3. It was made by six guys from [LiTH](https://www.liu.se/?l=en&sc=true), Sweden, during a university course in computer graphics. The core architecture is built around the Entity-Component-System pattern as implemented by the excellent open source library [EntityX](https://github.com/alecthomas/entityx/).
@@ -27,12 +29,13 @@ or
 
 - Visual Studio 2013
 
-To generate a Visual Studio 2013 solution, go into the visualc directory, open a terminal window and type
+To generate a Visual Studio 2013 solution, go into the `visualc` directory, open a terminal window and type:
 ```
 cmake .. -G "Visual Studio 12 2013"
 ```
+Open the resulting `.sln` file in Visual Studio to build.
 
-If you want MinGW makefiles again, type
+If you want to generate MinGW Makefiles instead, type:
 ```
 cmake .. -G "MinGW Makefiles"
 ```
